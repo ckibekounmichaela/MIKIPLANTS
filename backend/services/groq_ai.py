@@ -24,9 +24,9 @@ load_dotenv()
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
 
-# Initialiser le client Groq
-# Ce client sera réutilisé pour tous les appels à l'API
-client = Groq(api_key=GROQ_API_KEY)
+# Initialiser le client Groq uniquement si la clé est disponible
+# (évite un crash au démarrage si la variable d'env est manquante)
+client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
 
 
 # ============================================================
