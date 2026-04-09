@@ -1,0 +1,472 @@
+/* ============================================================
+   FICHIER : frontend/css/style.css
+   RÔLE    : Styles personnalisés pour toute l'application
+
+   ORGANISATION :
+   1. Variables globales (couleurs, polices)
+   2. Styles généraux (body, typographie)
+   3. Page d'authentification
+   4. Navbar
+   5. Cards et composants
+   6. Page de scan (upload zone)
+   7. Page rapport
+   8. Chat IA
+   9. Historique
+   10. Analytics / KPI
+   11. Utilitaires
+   ============================================================ */
+
+
+/* ============================================================
+   1. VARIABLES GLOBALES
+   Les variables CSS permettent de changer les couleurs
+   partout en modifiant une seule ligne ici.
+   ============================================================ */
+:root {
+    --color-primary:   #198754;   /* Vert Bootstrap success */
+    --color-primary-light: #d1e7dd;
+    --color-danger:    #dc3545;
+    --color-warning:   #ffc107;
+    --color-info:      #0dcaf0;
+    --color-text:      #212529;
+    --color-muted:     #6c757d;
+    --color-bg:        #f8f9fa;
+    --border-radius:   12px;
+    --shadow-sm:       0 2px 8px rgba(0,0,0,0.08);
+    --shadow-md:       0 4px 20px rgba(0,0,0,0.12);
+    --transition:      all 0.2s ease;
+}
+
+
+/* ============================================================
+   2. STYLES GÉNÉRAUX
+   ============================================================ */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--color-bg);
+    color: var(--color-text);
+}
+
+/* Liens sans soulignement par défaut */
+a {
+    text-decoration: none;
+}
+
+/* Scrollbar personnalisée (navigateurs WebKit : Chrome, Edge) */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #f1f1f1; }
+::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #888; }
+
+
+/* ============================================================
+   3. PAGE D'AUTHENTIFICATION (index.html)
+   ============================================================ */
+
+/* Fond vert dégradé pour la colonne gauche */
+.auth-left-panel {
+    background: linear-gradient(135deg, #1a6b3a 0%, #28a745 50%, #20c997 100%);
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+/* Colonne droite avec fond blanc */
+.auth-right-panel {
+    background: #ffffff;
+    padding: 2rem;
+}
+
+/* Conteneur du formulaire (largeur limitée pour la lisibilité) */
+.auth-form-container {
+    width: 100%;
+    max-width: 420px;
+    padding: 1rem;
+}
+
+/* Cards des fonctionnalités sur la colonne gauche */
+.feature-card {
+    background: rgba(255,255,255,0.15);
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: white;
+    font-size: 0.9rem;
+    backdrop-filter: blur(4px);
+}
+
+/* Onglets de connexion/inscription */
+.nav-pills .nav-link {
+    border-radius: 8px;
+    color: var(--color-muted);
+    font-weight: 500;
+}
+.nav-pills .nav-link.active {
+    background-color: var(--color-primary);
+    color: white;
+}
+
+
+/* ============================================================
+   4. NAVBAR
+   ============================================================ */
+.navbar {
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.navbar-brand {
+    font-size: 1.3rem;
+    letter-spacing: -0.5px;
+}
+
+.nav-link {
+    font-weight: 500;
+    padding: 0.5rem 0.8rem !important;
+    border-radius: 6px;
+    transition: var(--transition);
+}
+.nav-link:hover {
+    background: rgba(255,255,255,0.15);
+}
+
+
+/* ============================================================
+   5. CARDS ET COMPOSANTS COMMUNS
+   ============================================================ */
+
+/* Card générique avec hover */
+.card {
+    border-radius: var(--border-radius) !important;
+    transition: var(--transition);
+}
+
+/* Card du scan (historique / dashboard) avec effet survol */
+.scan-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md) !important;
+}
+
+/* Card des rapports d'analyse */
+.report-card {
+    border-radius: var(--border-radius) !important;
+}
+.report-card:hover {
+    box-shadow: var(--shadow-md) !important;
+}
+
+/* Card d'appel à l'action (CTA scan sur le dashboard) */
+.scan-cta-card {
+    background: linear-gradient(135deg, #f0fff4, #d1e7dd);
+    border-radius: var(--border-radius);
+    border: 2px dashed var(--color-primary);
+    transition: var(--transition);
+}
+.scan-cta-card:hover {
+    background: linear-gradient(135deg, #d1e7dd, #a3cfbb);
+}
+
+/* Cards de statistiques rapides (dashboard) */
+.stat-card {
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+}
+.stat-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+/* Icône dans les stat cards */
+.stat-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    margin: 0 auto;
+}
+
+
+/* ============================================================
+   6. PAGE DE SCAN (upload zone)
+   ============================================================ */
+
+/* Zone de drag & drop */
+.upload-zone {
+    border: 2px dashed #ced4da;
+    border-radius: var(--border-radius);
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: var(--transition);
+    min-height: 220px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #fafafa;
+}
+
+/* Style quand on survole la zone */
+.upload-zone:hover {
+    border-color: var(--color-primary);
+    background: #f0fff4;
+}
+
+/* Style quand on fait glisser un fichier dessus */
+.upload-zone.drag-over {
+    border-color: var(--color-primary);
+    background: var(--color-primary-light);
+    transform: scale(1.01);
+}
+
+/* Étapes de progression du scan */
+.progress-step {
+    transition: opacity 0.4s ease;
+}
+
+.step-icon {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+
+/* ============================================================
+   7. PAGE RAPPORT
+   ============================================================ */
+
+/* Badge de confiance (score PlantNet) */
+.confidence-badge {
+    background: linear-gradient(135deg, var(--color-primary), #20c997);
+    color: white;
+    border-radius: 50px;
+    padding: 6px 16px;
+    font-weight: 700;
+    font-size: 1.1rem;
+    display: inline-block;
+}
+
+/* Listes dans les cards de rapport */
+.report-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.report-list li {
+    padding: 4px 0;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+    font-size: 0.9rem;
+}
+.report-list li:last-child {
+    border-bottom: none;
+}
+.report-list li::before {
+    content: "•";
+    color: var(--color-primary);
+    font-weight: bold;
+    margin-right: 8px;
+}
+
+/* Badge de niveau de toxicité */
+.toxicity-badge-aucun   { background: #d1e7dd; color: #0a3622; }
+.toxicity-badge-faible  { background: #fff3cd; color: #664d03; }
+.toxicity-badge-moyen   { background: #ffe5d0; color: #6f3000; }
+.toxicity-badge-élevé   { background: #f8d7da; color: #58151c; }
+
+/* Badge de verdict comestibilité */
+.verdict-oui     { background: #d1e7dd; color: #0a3622; }
+.verdict-non     { background: #f8d7da; color: #58151c; }
+.verdict-partiel { background: #fff3cd; color: #664d03; }
+
+
+/* ============================================================
+   8. CHAT IA (rapport.html)
+   ============================================================ */
+
+/* Fenêtre de chat (hauteur fixe avec scroll) */
+.chat-window {
+    height: 380px;
+    overflow-y: auto;
+    padding: 1rem;
+    background: #f8f9fa;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Message générique */
+.chat-message {
+    display: flex;
+    flex-direction: column;
+    max-width: 80%;
+}
+
+/* Message de l'utilisateur (aligné à droite) */
+.user-message {
+    align-self: flex-end;
+    align-items: flex-end;
+}
+.user-message .message-bubble {
+    background: var(--color-primary);
+    color: white;
+    border-radius: 18px 18px 4px 18px;
+}
+
+/* Message de l'assistant (aligné à gauche) */
+.assistant-message {
+    align-self: flex-start;
+    align-items: flex-start;
+}
+.assistant-message .message-bubble {
+    background: white;
+    color: var(--color-text);
+    border-radius: 18px 18px 18px 4px;
+    border: 1px solid #e9ecef;
+}
+
+/* Bulle de message */
+.message-bubble {
+    padding: 10px 16px;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    box-shadow: var(--shadow-sm);
+}
+
+/* Petits boutons de questions rapides */
+.quick-question {
+    font-size: 0.8rem;
+    border-radius: 50px;
+    transition: var(--transition);
+}
+.quick-question:hover {
+    background: var(--color-primary);
+    color: white;
+}
+
+/* Animation "en train d'écrire..." */
+.typing-indicator {
+    display: flex;
+    gap: 4px;
+    padding: 10px 16px;
+    background: white;
+    border-radius: 18px 18px 18px 4px;
+    border: 1px solid #e9ecef;
+    width: fit-content;
+}
+.typing-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--color-muted);
+    animation: typing-bounce 1.2s infinite;
+}
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typing-bounce {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+    30% { transform: translateY(-6px); opacity: 1; }
+}
+
+
+/* ============================================================
+   9. PAGE HISTORIQUE
+   ============================================================ */
+
+/* Overlay sur les cards au survol */
+.scan-card .card-img-top {
+    transition: var(--transition);
+}
+.scan-card:hover .card-img-top {
+    filter: brightness(0.9);
+}
+
+/* Bouton de suppression sur les cards */
+.scan-card .btn-delete {
+    opacity: 0;
+    transition: var(--transition);
+}
+.scan-card:hover .btn-delete {
+    opacity: 1;
+}
+
+
+/* ============================================================
+   10. ANALYTICS / KPI
+   ============================================================ */
+
+/* Cards KPI */
+.kpi-card {
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+}
+.kpi-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-3px);
+}
+
+/* Icône KPI (cercle coloré) */
+.kpi-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    margin: 0 auto;
+}
+
+/* Item d'alerte dans la liste des alertes */
+.alert-item-invasive { border-left: 4px solid var(--color-warning) !important; }
+.alert-item-toxic    { border-left: 4px solid var(--color-danger)  !important; }
+
+
+/* ============================================================
+   11. UTILITAIRES
+   ============================================================ */
+
+/* Spinner de chargement centré plein écran */
+.loading-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(255,255,255,0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* Toast de notification */
+.toast-container {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    z-index: 9999;
+}
+
+/* Badge compact pour les tags de plantes */
+.plant-tag {
+    font-size: 0.75rem;
+    padding: 3px 8px;
+    border-radius: 50px;
+}
+
+/* Responsive : réduire la taille des cards sur mobile */
+@media (max-width: 576px) {
+    .kpi-card { padding: 0.75rem !important; }
+    .kpi-icon { width: 38px; height: 38px; font-size: 1rem; }
+    .chat-window { height: 280px; }
+    .upload-zone { min-height: 160px; padding: 1.5rem 1rem; }
+}
