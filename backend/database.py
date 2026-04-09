@@ -25,10 +25,17 @@ load_dotenv()
 # -------------------------------------------------------
 DATABASE_URL = os.getenv("DATABASE_URL", "mysql+pymysql://root:@localhost/mikiplants")
 
-# Render fournit des URLs PostgreSQL en "postgres://" mais SQLAlchemy
-# requiert "postgresql://" — on corrige automatiquement si nécessaire
+# Railway / Render fournissent des URLs PostgreSQL en "postgres://" mais
+# SQLAlchemy requiert "postgresql://" — on corrige automatiquement
 if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
+# Vérification explicite pour éviter une erreur cryptique
+if not DATABASE_URL or "://" not in DATABASE_URL:
+    raise RuntimeError(
+        "DATABASE_URL est manquante ou invalide. "
+        "Vérifie les variables d'environnement de ton service Railway/Render."
+    )
 
 # -------------------------------------------------------
 # Créer le "moteur" de connexion
