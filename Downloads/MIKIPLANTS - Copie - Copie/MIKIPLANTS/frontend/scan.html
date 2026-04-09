@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatAPlant – Analyser une plante</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        /* --- Zone vidéo caméra --- */
+        #cameraPreview {
+            width: 100%;
+            max-height: 380px;
+            object-fit: cover;
+            border-radius: 12px;
+            background: #000;
+            display: block;
+        }
+        #cameraCanvas { display: none; } /* Canvas caché pour la capture */
+
+        /* --- Bouton de capture --- */
+        .btn-capture {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            border: 4px solid white;
+            background: #198754;
+            box-shadow: 0 0 0 4px #198754;
+            transition: transform 0.1s;
+        }
+        .btn-capture:active { transform: scale(0.92); }
+
+        /* --- Photo capturée --- */
+        #capturedPhoto {
+            width: 100%;
+            max-height: 380px;
+            object-fit: cover;
+            border-radius: 12px;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-success sticky-top shadow-sm">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="/dashboard">
+            <i class="bi bi-flower1 me-2"></i>WhatAPlant
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarMenu">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item"><a class="nav-link" href="/dashboard"><i class="bi bi-house me-1"></i>Accueil</a></li>
+                <li class="nav-item"><a class="nav-link active" href="/scan"><i class="bi bi-camera me-1"></i>Analyser</a></li>
+                <li class="nav-item"><a class="nav-link" href="/historique"><i class="bi bi-clock-history me-1"></i>Historique</a></li>
+                <li class="nav-item"><a class="nav-link" href="/analytics"><i class="bi bi-bar-chart-line me-1"></i>Analytics</a></li>
+            </ul>
+            <div class="dropdown">
+                <button class="btn btn-outline-light btn-sm dropdown-toggle d-flex align-items-center gap-2"
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-person-circle"></i>
+                    <span id="navUsername">...</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                        <a class="dropdown-item" href="/profil">
+                            <i class="bi bi-person me-2 text-success"></i>Mon profil
+                        </a>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <a class="dropdown-item text-danger" href="#" onclick="logout()">
+                            <i class="bi bi-box-arrow-right me-2"></i>Déconnexion
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<main class="container py-4">
+
+    <!-- Titre -->
+    <div class="row mb-4">
+        <div class="col">
+            <h2 class="fw-bold">
+                <i class="bi bi-camera-fill text-success me-2"></i>Analyser une plante
+            </h2>
+            <p class="text-muted">Prenez une photo en direct ou importez une image existante.</p>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+
+            <!-- ======================================================
+                 ONGLETS : Caméra / Upload
+                 ====================================================== -->
+            <ul class="nav nav-pills nav-fill mb-4" id="scanTabs">
+                <li class="nav-item">
+                    <button class="nav-link active" id="tabCameraBtn" onclick="switchScanTab('camera')">
+                        <i class="bi bi-camera-video me-2"></i>Caméra en direct
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" id="tabUploadBtn" onclick="switchScanTab('upload')">
+                        <i class="bi bi-cloud-upload me-2"></i>Importer une image
+                    </button>
+                </li>
+            </ul>
+
+            <!-- ======================================================
+                 ONGLET 1 : CAMÉRA EN TEMPS RÉEL
+                 ====================================================== -->
+            <div id="cameraTab">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body p-3">
+
+                        <!-- Vidéo en direct (avant capture) -->
+                        <div id="videoSection">
+                            <video id="cameraPreview" autoplay playsinline muted></video>
+                            <canvas id="cameraCanvas"></canvas>
+
+                            <!-- Contrôles caméra -->
+                            <div class="d-flex align-items-center justify-content-between mt-3 px-2">
+
+                                <!-- Bouton changer de caméra (avant/arrière) -->
+                                <button class="btn btn-outline-secondary btn-sm rounded-pill"
+                                        onclick="switchCamera()" id="switchCamBtn" title="Changer de caméra">
+                                    <i class="bi bi-arrow-repeat me-1"></i>Retourner
+                                </button>
+
+                                <!-- Bouton de capture (rond, central) -->
+                                <button class="btn-capture" onclick="capturePhoto()" title="Prendre la photo">
+                                </button>
+
+                                <!-- Bouton démarrer/arrêter la caméra -->
+                                <button class="btn btn-outline-danger btn-sm rounded-pill"
+                                        onclick="stopCamera()" id="stopCamBtn">
+                                    <i class="bi bi-stop-circle me-1"></i>Arrêter
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Bouton pour démarrer la caméra (visible au départ) -->
+                        <div id="startCameraSection" class="text-center py-4">
+                            <i class="bi bi-camera-video text-success mb-3" style="font-size: 3rem;"></i>
+                            <h5 class="fw-semibold">Utiliser la caméra</h5>
+                            <p class="text-muted small mb-3">
+                                Pointez vers une plante et prenez une photo pour l'analyser instantanément.
+                            </p>
+                            <button class="btn btn-success px-4" onclick="startCamera()">
+                                <i class="bi bi-camera-video-fill me-2"></i>Démarrer la caméra
+                            </button>
+                        </div>
+
+                        <!-- Photo capturée (cachée avant capture) -->
+                        <div id="capturedSection" class="d-none">
+                            <img id="capturedPhoto" src="" alt="Photo capturée">
+                            <div class="d-flex gap-2 mt-3">
+                                <button class="btn btn-outline-secondary flex-fill" onclick="retakePhoto()">
+                                    <i class="bi bi-arrow-counterclockwise me-2"></i>Reprendre
+                                </button>
+                                <button class="btn btn-success flex-fill" id="analyzeCapturedBtn"
+                                        onclick="startAnalysis()">
+                                    <i class="bi bi-search me-2"></i>Analyser cette photo
+                                </button>
+                            </div>
+                            <!-- Indicateur GPS caméra -->
+                            <div class="mt-2 small text-center" id="geoStatusCamera">
+                                <i class="bi bi-geo-alt text-muted me-1"></i>
+                                <span class="text-muted">Détection GPS...</span>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- ======================================================
+                 ONGLET 2 : UPLOAD D'IMAGE
+                 ====================================================== -->
+            <div id="uploadTab" class="d-none">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body p-4">
+
+                        <!-- Zone drag & drop -->
+                        <div class="upload-zone" id="uploadZone"
+                             onclick="document.getElementById('fileInput').click()"
+                             ondragover="handleDragOver(event)"
+                             ondragleave="handleDragLeave(event)"
+                             ondrop="handleDrop(event)">
+
+                            <div id="uploadPlaceholder">
+                                <i class="bi bi-cloud-upload text-success mb-3" style="font-size: 3rem;"></i>
+                                <h5 class="fw-semibold">Glissez une image ici</h5>
+                                <p class="text-muted mb-3">ou cliquez pour parcourir vos fichiers</p>
+                                <span class="badge bg-light text-muted border">JPG, PNG, WebP — Max 5 MB</span>
+                            </div>
+
+                            <div id="imagePreview" class="d-none">
+                                <img id="previewImg" src="" alt="Aperçu"
+                                     class="img-fluid rounded" style="max-height: 350px;">
+                                <div class="mt-2">
+                                    <span id="previewFileName" class="text-muted small"></span>
+                                    <button class="btn btn-sm btn-link text-danger ms-2"
+                                            onclick="clearImage(event)">
+                                        <i class="bi bi-x-circle me-1"></i>Changer
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <input type="file" id="fileInput" accept="image/*"
+                               class="d-none" onchange="handleFileSelect(event)">
+
+                        <!-- Indicateur GPS automatique -->
+                        <div class="mt-3 small" id="geoStatus">
+                            <i class="bi bi-geo-alt text-muted me-1"></i>
+                            <span class="text-muted">Détection de la position GPS...</span>
+                        </div>
+
+                        <input type="hidden" id="latitude" value="">
+                        <input type="hidden" id="longitude" value="">
+
+                    </div>
+                </div>
+
+                <!-- Bouton Analyser (upload) -->
+                <div class="d-grid mb-4">
+                    <button class="btn btn-success btn-lg" id="analyzeBtn"
+                            onclick="startAnalysis()" disabled>
+                        <span id="analyzeBtnText">
+                            <i class="bi bi-search me-2"></i>Analyser cette plante
+                        </span>
+                        <span id="analyzeSpinner" class="d-none">
+                            <span class="spinner-border spinner-border-sm me-2"></span>
+                            Analyse en cours...
+                        </span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- ======================================================
+                 BARRE DE PROGRESSION (commune aux deux onglets)
+                 ====================================================== -->
+            <div id="progressSection" class="d-none card border-0 shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <h6 class="fw-bold mb-3">
+                        <i class="bi bi-cpu me-2 text-success"></i>Analyse en cours...
+                    </h6>
+
+                    <div class="progress-step mb-3" id="step1">
+                        <div class="d-flex align-items-center mb-1">
+                            <div class="step-icon me-2" id="step1Icon">
+                                <span class="spinner-border spinner-border-sm text-success"></span>
+                            </div>
+                            <span class="fw-semibold">Identification de la plante</span>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-success progress-bar-striped progress-bar-animated"
+                                 id="step1Bar" style="width: 0%"></div>
+                        </div>
+                        <small class="text-muted" id="step1Text">Envoi de l'image à PlantNet...</small>
+                    </div>
+
+                    <div class="progress-step mb-3" id="step2" style="opacity: 0.4;">
+                        <div class="d-flex align-items-center mb-1">
+                            <div class="step-icon me-2" id="step2Icon">
+                                <i class="bi bi-hourglass text-muted"></i>
+                            </div>
+                            <span class="fw-semibold">Génération du rapport IA</span>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-info" id="step2Bar" style="width: 0%"></div>
+                        </div>
+                        <small class="text-muted" id="step2Text">En attente de l'identification...</small>
+                    </div>
+
+                    <div class="progress-step" id="step3" style="opacity: 0.4;">
+                        <div class="d-flex align-items-center mb-1">
+                            <div class="step-icon me-2" id="step3Icon">
+                                <i class="bi bi-hourglass text-muted"></i>
+                            </div>
+                            <span class="fw-semibold">Finalisation</span>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-warning" id="step3Bar" style="width: 0%"></div>
+                        </div>
+                        <small class="text-muted" id="step3Text">En attente...</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Zone d'erreur -->
+            <div id="errorAlert" class="alert alert-danger d-none" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <span id="errorMessage"></span>
+            </div>
+
+            <!-- Conseils -->
+            <div class="card border-0 bg-light">
+                <div class="card-body p-3">
+                    <h6 class="fw-semibold mb-2">
+                        <i class="bi bi-lightbulb text-warning me-2"></i>
+                        Conseils pour une meilleure identification
+                    </h6>
+                    <ul class="list-unstyled mb-0 small text-muted">
+                        <li><i class="bi bi-check-circle text-success me-2"></i>Photo nette et bien éclairée</li>
+                        <li><i class="bi bi-check-circle text-success me-2"></i>Inclure feuilles, fleurs ou fruits</li>
+                        <li><i class="bi bi-check-circle text-success me-2"></i>Arrière-plan simple de préférence</li>
+                        <li><i class="bi bi-check-circle text-success me-2"></i>Éviter les photos trop sombres ou floues</li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/static/js/api.js?v=2"></script>
+<script src="/static/js/auth.js?v=2"></script>
+<script src="/static/js/scan.js?v=4"></script>
+
+</body>
+</html>

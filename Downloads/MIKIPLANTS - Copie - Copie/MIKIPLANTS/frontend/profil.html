@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatAPlant – Mon profil</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        .avatar-circle {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #198754, #20c997);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: white;
+            flex-shrink: 0;
+        }
+        .info-row {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .info-row:last-child { border-bottom: none; }
+        .info-label {
+            width: 160px;
+            font-weight: 600;
+            color: #6c757d;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+        .info-value { font-size: 0.95rem; }
+        .stat-pill {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            padding: 1rem 1.25rem;
+            text-align: center;
+            transition: all 0.2s;
+        }
+        .stat-pill:hover { transform: translateY(-3px); box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
+    </style>
+</head>
+<body>
+
+<!-- ======================================================
+     NAVBAR
+     ====================================================== -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-success sticky-top shadow-sm">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="/dashboard">
+            <i class="bi bi-flower1 me-2"></i>WhatAPlant
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarMenu">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item"><a class="nav-link" href="/dashboard"><i class="bi bi-house me-1"></i>Accueil</a></li>
+                <li class="nav-item"><a class="nav-link" href="/scan"><i class="bi bi-camera me-1"></i>Analyser</a></li>
+                <li class="nav-item"><a class="nav-link" href="/historique"><i class="bi bi-clock-history me-1"></i>Historique</a></li>
+                <li class="nav-item"><a class="nav-link" href="/analytics"><i class="bi bi-bar-chart-line me-1"></i>Analytics</a></li>
+            </ul>
+            <div class="dropdown">
+                <button class="btn btn-outline-light btn-sm dropdown-toggle d-flex align-items-center gap-2"
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-person-circle"></i>
+                    <span id="navUsername">...</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                        <a class="dropdown-item active" href="/profil">
+                            <i class="bi bi-person me-2 text-success"></i>Mon profil
+                        </a>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <a class="dropdown-item text-danger" href="#" onclick="logout()">
+                            <i class="bi bi-box-arrow-right me-2"></i>Déconnexion
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- ======================================================
+     CONTENU PRINCIPAL
+     ====================================================== -->
+<main class="container py-4" style="max-width: 760px;">
+
+    <!-- Titre de la page -->
+    <div class="mb-4">
+        <h2 class="fw-bold">
+            <i class="bi bi-person-circle text-success me-2"></i>Mon profil
+        </h2>
+        <p class="text-muted">Consultez et gérez les informations de votre compte.</p>
+    </div>
+
+    <!-- ---- Carte identité ---- -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4">
+            <div class="d-flex align-items-center gap-4 mb-4">
+                <!-- Avatar initiales -->
+                <div class="avatar-circle" id="avatarCircle">?</div>
+                <div>
+                    <h4 class="fw-bold mb-1" id="profileUsername">Chargement...</h4>
+                    <p class="text-muted mb-0" id="profileEmail">—</p>
+                    <span class="badge bg-success-subtle text-success mt-1">
+                        <i class="bi bi-patch-check-fill me-1"></i>Compte actif
+                    </span>
+                </div>
+            </div>
+
+            <!-- Infos détaillées -->
+            <div class="info-row">
+                <span class="info-label"><i class="bi bi-person me-2 text-success"></i>Nom d'utilisateur</span>
+                <span class="info-value fw-semibold" id="infoUsername">—</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label"><i class="bi bi-envelope me-2 text-success"></i>Email</span>
+                <span class="info-value" id="infoEmail">—</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label"><i class="bi bi-calendar3 me-2 text-success"></i>Membre depuis</span>
+                <span class="info-value" id="infoCreatedAt">—</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ---- Statistiques personnelles ---- -->
+    <h5 class="fw-bold mb-3">
+        <i class="bi bi-bar-chart-line text-success me-2"></i>Mes statistiques
+    </h5>
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="stat-pill">
+                <div class="text-primary mb-1"><i class="bi bi-camera-fill fs-4"></i></div>
+                <div class="fw-bold fs-3" id="statScans">-</div>
+                <div class="text-muted small">Scans total</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-pill">
+                <div class="text-success mb-1"><i class="bi bi-egg-fried fs-4"></i></div>
+                <div class="fw-bold fs-3" id="statEdible">-</div>
+                <div class="text-muted small">Comestibles</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-pill">
+                <div class="text-danger mb-1"><i class="bi bi-exclamation-triangle-fill fs-4"></i></div>
+                <div class="fw-bold fs-3" id="statToxic">-</div>
+                <div class="text-muted small">Toxiques</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-pill">
+                <div class="text-info mb-1"><i class="bi bi-capsule fs-4"></i></div>
+                <div class="fw-bold fs-3" id="statMedicinal">-</div>
+                <div class="text-muted small">Médicinales</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ---- Sécurité ---- -->
+    <h5 class="fw-bold mb-3">
+        <i class="bi bi-shield-lock text-success me-2"></i>Sécurité
+    </h5>
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-4 d-flex align-items-center justify-content-between flex-wrap gap-3">
+            <div>
+                <h6 class="fw-semibold mb-1">Mot de passe</h6>
+                <p class="text-muted small mb-0">Modifiez votre mot de passe pour sécuriser votre compte.</p>
+            </div>
+            <button class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+                <i class="bi bi-key me-2"></i>Changer le mot de passe
+            </button>
+        </div>
+    </div>
+
+</main>
+
+<!-- ======================================================
+     MODAL : Changer le mot de passe
+     ====================================================== -->
+<div class="modal fade" id="changePasswordModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold">
+                    <i class="bi bi-key text-success me-2"></i>Changer le mot de passe
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-3">
+
+                <div id="pwAlert" class="alert d-none" role="alert"></div>
+
+                <form id="changePasswordForm" onsubmit="handleChangePassword(event)">
+
+                    <!-- Mot de passe actuel -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-lock me-1"></i>Mot de passe actuel
+                        </label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="currentPassword"
+                                   placeholder="Votre mot de passe actuel" required>
+                            <button class="btn btn-outline-secondary" type="button"
+                                    onclick="togglePassword('currentPassword')">
+                                <i class="bi bi-eye" id="currentPasswordEye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Nouveau mot de passe -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-lock-fill me-1"></i>Nouveau mot de passe
+                        </label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="newPassword"
+                                   placeholder="Minimum 6 caractères" required minlength="6">
+                            <button class="btn btn-outline-secondary" type="button"
+                                    onclick="togglePassword('newPassword')">
+                                <i class="bi bi-eye" id="newPasswordEye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Confirmer le nouveau mot de passe -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-lock-fill me-1"></i>Confirmer le nouveau mot de passe
+                        </label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="confirmPassword"
+                                   placeholder="Répétez le nouveau mot de passe" required minlength="6">
+                            <button class="btn btn-outline-secondary" type="button"
+                                    onclick="togglePassword('confirmPassword')">
+                                <i class="bi bi-eye" id="confirmPasswordEye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 justify-content-end mt-4">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                            Annuler
+                        </button>
+                        <button type="submit" class="btn btn-success" id="changePwBtn">
+                            <span id="changePwBtnText">
+                                <i class="bi bi-check-lg me-1"></i>Enregistrer
+                            </span>
+                            <span id="changePwSpinner" class="d-none">
+                                <span class="spinner-border spinner-border-sm me-1"></span>
+                                En cours...
+                            </span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/static/js/api.js?v=2"></script>
+<script src="/static/js/auth.js?v=2"></script>
+
+<script>
+// ============================================================
+// Script de la page Profil
+// ============================================================
+
+document.addEventListener("DOMContentLoaded", async () => {
+    if (!requireAuth()) return;
+    await loadProfile();
+});
+
+async function loadProfile() {
+    try {
+        // Charger les infos utilisateur
+        const user = await apiGet("/api/auth/me");
+
+        // Navbar
+        document.getElementById("navUsername").textContent = user.username;
+
+        // Avatar : premières lettres du nom
+        const initials = user.username.substring(0, 2).toUpperCase();
+        document.getElementById("avatarCircle").textContent = initials;
+
+        // Carte identité
+        document.getElementById("profileUsername").textContent = user.username;
+        document.getElementById("profileEmail").textContent    = user.email;
+        document.getElementById("infoUsername").textContent    = user.username;
+        document.getElementById("infoEmail").textContent       = user.email;
+        document.getElementById("infoCreatedAt").textContent   = formatDate(user.created_at);
+
+        // Statistiques
+        const stats = await apiGet("/api/analytics/summary");
+        document.getElementById("statScans").textContent    = stats.total_scans;
+        document.getElementById("statEdible").textContent   = stats.edible_plants_count;
+        document.getElementById("statToxic").textContent    = stats.toxic_plants_count;
+        document.getElementById("statMedicinal").textContent = stats.medicinal_plants_count;
+
+    } catch (error) {
+        console.error("Erreur chargement profil :", error);
+    }
+}
+
+// ---- Changement de mot de passe ----
+async function handleChangePassword(event) {
+    event.preventDefault();
+
+    const current = document.getElementById("currentPassword").value;
+    const newPw   = document.getElementById("newPassword").value;
+    const confirm = document.getElementById("confirmPassword").value;
+
+    // Vérifier que les deux nouveaux mots de passe correspondent
+    if (newPw !== confirm) {
+        showPwAlert("Les deux nouveaux mots de passe ne correspondent pas.", "danger");
+        return;
+    }
+
+    // Spinner
+    document.getElementById("changePwBtn").disabled     = true;
+    document.getElementById("changePwBtnText").classList.add("d-none");
+    document.getElementById("changePwSpinner").classList.remove("d-none");
+    hidePwAlert();
+
+    try {
+        const result = await apiPost("/api/auth/change-password", {
+            current_password: current,
+            new_password: newPw
+        });
+
+        showPwAlert(result.message || "Mot de passe modifié avec succès !", "success");
+
+        // Vider les champs
+        document.getElementById("changePasswordForm").reset();
+
+        // Fermer le modal après 2s
+        setTimeout(() => {
+            bootstrap.Modal.getInstance(document.getElementById("changePasswordModal")).hide();
+            hidePwAlert();
+        }, 2000);
+
+    } catch (error) {
+        showPwAlert(error.message, "danger");
+    } finally {
+        document.getElementById("changePwBtn").disabled = false;
+        document.getElementById("changePwBtnText").classList.remove("d-none");
+        document.getElementById("changePwSpinner").classList.add("d-none");
+    }
+}
+
+function showPwAlert(message, type) {
+    const el = document.getElementById("pwAlert");
+    el.className = `alert alert-${type}`;
+    el.innerHTML = `<i class="bi bi-${type === "danger" ? "exclamation-circle" : "check-circle"} me-2"></i>${message}`;
+    el.classList.remove("d-none");
+}
+
+function hidePwAlert() {
+    document.getElementById("pwAlert").classList.add("d-none");
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatAPlant – Tableau de bord</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+<!-- ======================================================
+     NAVBAR : Barre de navigation principale
+     ====================================================== -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-success sticky-top shadow-sm">
+    <div class="container">
+        <!-- Logo et nom de l'app -->
+        <a class="navbar-brand fw-bold" href="/dashboard">
+            <i class="bi bi-flower1 me-2"></i>WhatAPlant
+        </a>
+
+        <!-- Bouton hamburger pour mobile -->
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <!-- Liens de navigation -->
+        <div class="collapse navbar-collapse" id="navbarMenu">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link active" href="/dashboard">
+                        <i class="bi bi-house me-1"></i>Accueil
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/scan">
+                        <i class="bi bi-camera me-1"></i>Analyser
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/historique">
+                        <i class="bi bi-clock-history me-1"></i>Historique
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/analytics">
+                        <i class="bi bi-bar-chart-line me-1"></i>Analytics
+                    </a>
+                </li>
+            </ul>
+
+            <!-- Menu utilisateur -->
+            <div class="dropdown">
+                <button class="btn btn-outline-light btn-sm dropdown-toggle d-flex align-items-center gap-2"
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-person-circle"></i>
+                    <span id="navUsername">...</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                        <a class="dropdown-item" href="/profil">
+                            <i class="bi bi-person me-2 text-success"></i>Mon profil
+                        </a>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <a class="dropdown-item text-danger" href="#" onclick="logout()">
+                            <i class="bi bi-box-arrow-right me-2"></i>Déconnexion
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- ======================================================
+     CONTENU PRINCIPAL
+     ====================================================== -->
+<main class="container py-4">
+
+    <!-- Titre de bienvenue -->
+    <div class="row mb-4">
+        <div class="col">
+            <h2 class="fw-bold">
+                Bonjour, <span id="welcomeUsername" class="text-success">...</span> 👋
+            </h2>
+            <p class="text-muted">Que souhaitez-vous analyser aujourd'hui ?</p>
+        </div>
+    </div>
+
+    <!-- ---- Bouton principal : Scanner une plante ---- -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="scan-cta-card text-center p-5">
+                <i class="bi bi-camera-fill text-success mb-3" style="font-size: 3rem;"></i>
+                <h3 class="fw-bold mb-2">Analyser une plante</h3>
+                <p class="text-muted mb-4">
+                    Prenez ou importez une photo et obtenez un rapport complet en quelques secondes.
+                </p>
+                <a href="/scan" class="btn btn-success btn-lg px-5">
+                    <i class="bi bi-camera me-2"></i>Démarrer l'analyse
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ---- Statistiques rapides ---- -->
+    <div class="row g-3 mb-5" id="statsRow">
+        <!-- Ces cards sont générées dynamiquement par dashboard.js -->
+        <div class="col-6 col-md-3">
+            <div class="stat-card text-center p-3">
+                <div class="stat-icon bg-primary-subtle text-primary mb-2">
+                    <i class="bi bi-camera"></i>
+                </div>
+                <div class="fw-bold fs-4" id="statTotalScans">-</div>
+                <div class="text-muted small">Total scans</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card text-center p-3">
+                <div class="stat-icon bg-danger-subtle text-danger mb-2">
+                    <i class="bi bi-exclamation-triangle"></i>
+                </div>
+                <div class="fw-bold fs-4" id="statToxic">-</div>
+                <div class="text-muted small">Plantes toxiques</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card text-center p-3">
+                <div class="stat-icon bg-success-subtle text-success mb-2">
+                    <i class="bi bi-egg-fried"></i>
+                </div>
+                <div class="fw-bold fs-4" id="statEdible">-</div>
+                <div class="text-muted small">Comestibles</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card text-center p-3">
+                <div class="stat-icon bg-info-subtle text-info mb-2">
+                    <i class="bi bi-capsule"></i>
+                </div>
+                <div class="fw-bold fs-4" id="statMedicinal">-</div>
+                <div class="text-muted small">Médicinales</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ---- Scans récents ---- -->
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="fw-bold mb-0">
+                    <i class="bi bi-clock-history me-2 text-success"></i>Scans récents
+                </h4>
+                <a href="/historique" class="btn btn-outline-success btn-sm">
+                    Voir tout <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+
+            <!-- Grille des scans récents (remplie par JS) -->
+            <div class="row g-3" id="recentScansGrid">
+                <!-- Skeleton loader pendant le chargement -->
+                <div class="col-md-4 col-lg-3">
+                    <div class="card border-0 shadow-sm h-100 placeholder-glow">
+                        <div class="placeholder" style="height:180px;border-radius:8px 8px 0 0;"></div>
+                        <div class="card-body">
+                            <div class="placeholder col-8 mb-2"></div>
+                            <div class="placeholder col-5"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 col-lg-3">
+                    <div class="card border-0 shadow-sm h-100 placeholder-glow">
+                        <div class="placeholder" style="height:180px;border-radius:8px 8px 0 0;"></div>
+                        <div class="card-body">
+                            <div class="placeholder col-8 mb-2"></div>
+                            <div class="placeholder col-5"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Message si aucun scan -->
+            <div id="noScansMessage" class="text-center py-5 d-none">
+                <i class="bi bi-camera text-muted" style="font-size: 3rem;"></i>
+                <p class="text-muted mt-3">Aucun scan pour l'instant.<br>
+                <a href="/scan" class="text-success">Analysez votre première plante !</a></p>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/static/js/api.js?v=2"></script>
+<script src="/static/js/auth.js?v=2"></script>
+
+<script>
+// ============================================================
+// Script du tableau de bord
+// ============================================================
+
+// Vérifier que l'utilisateur est connecté au chargement de la page
+document.addEventListener("DOMContentLoaded", async () => {
+    // Rediriger vers login si pas de token
+    requireAuth();
+
+    // Charger les données du tableau de bord
+    await loadDashboard();
+});
+
+async function loadDashboard() {
+    try {
+        // Récupérer le profil utilisateur
+        const user = await apiGet("/api/auth/me");
+        document.getElementById("navUsername").textContent = user.username;
+        document.getElementById("welcomeUsername").textContent = user.username;
+
+        // Récupérer les statistiques
+        const stats = await apiGet("/api/analytics/summary");
+        document.getElementById("statTotalScans").textContent = stats.total_scans;
+        document.getElementById("statToxic").textContent = stats.toxic_plants_count;
+        document.getElementById("statEdible").textContent = stats.edible_plants_count;
+        document.getElementById("statMedicinal").textContent = stats.medicinal_plants_count;
+
+        // Récupérer les 4 derniers scans
+        const history = await apiGet("/api/scan/history?page=1&limit=4");
+        renderRecentScans(history);
+
+    } catch (error) {
+        console.error("Erreur chargement dashboard:", error);
+    }
+}
+
+function renderRecentScans(scans) {
+    const grid = document.getElementById("recentScansGrid");
+    const noScans = document.getElementById("noScansMessage");
+
+    if (!scans || scans.length === 0) {
+        grid.innerHTML = "";
+        noScans.classList.remove("d-none");
+        return;
+    }
+
+    // Générer une card pour chaque scan récent
+    grid.innerHTML = scans.map(scan => `
+        <div class="col-md-4 col-lg-3">
+            <div class="card border-0 shadow-sm h-100 scan-card"
+                 onclick="window.location.href='/rapport?id=${scan.id}'"
+                 style="cursor:pointer;">
+                <img src="/${scan.image_path}" class="card-img-top"
+                     style="height:180px;object-fit:cover;"
+                     onerror="this.src='/static/img/plant-placeholder.jpg'">
+                <div class="card-body p-3">
+                    <h6 class="fw-bold mb-1">${scan.plant_name}</h6>
+                    <small class="text-muted fst-italic d-block mb-2">
+                        ${scan.plant_scientific_name}
+                    </small>
+                    <div class="d-flex flex-wrap gap-1">
+                        ${scan.is_toxic ? '<span class="badge bg-danger">Toxique</span>' : ''}
+                        ${scan.is_edible ? '<span class="badge bg-success">Comestible</span>' : ''}
+                        ${scan.is_medicinal ? '<span class="badge bg-info">Médicinal</span>' : ''}
+                        ${scan.is_invasive ? '<span class="badge bg-warning text-dark">Invasif</span>' : ''}
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent border-0 text-muted small p-3 pt-0">
+                    <i class="bi bi-calendar3 me-1"></i>
+                    ${new Date(scan.created_at).toLocaleDateString("fr-FR")}
+                </div>
+            </div>
+        </div>
+    `).join("");
+}
+</script>
+
+</body>
+</html>

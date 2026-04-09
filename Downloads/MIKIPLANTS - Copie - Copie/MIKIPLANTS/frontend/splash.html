@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatAPlant</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(160deg, #0d4f2b 0%, #1a7a42 40%, #25a55a 75%, #2ecc71 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* ---- Feuilles flottantes en arrière-plan ---- */
+        .leaf {
+            position: absolute;
+            opacity: 0.08;
+            font-size: 4rem;
+            animation: float 8s infinite ease-in-out;
+            pointer-events: none;
+            user-select: none;
+        }
+        .leaf:nth-child(1)  { top: 5%;  left: 8%;  font-size: 3rem;  animation-delay: 0s;   animation-duration: 7s; }
+        .leaf:nth-child(2)  { top: 15%; right: 10%; font-size: 5rem;  animation-delay: 1s;   animation-duration: 9s; }
+        .leaf:nth-child(3)  { top: 65%; left: 5%;  font-size: 2.5rem; animation-delay: 2s;   animation-duration: 6s; }
+        .leaf:nth-child(4)  { top: 75%; right: 7%; font-size: 4rem;  animation-delay: 0.5s; animation-duration: 8s; }
+        .leaf:nth-child(5)  { top: 40%; left: 3%;  font-size: 2rem;  animation-delay: 3s;   animation-duration: 7s; }
+        .leaf:nth-child(6)  { top: 30%; right: 4%; font-size: 3.5rem; animation-delay: 1.5s; animation-duration: 10s; }
+        .leaf:nth-child(7)  { top: 85%; left: 20%; font-size: 2rem;  animation-delay: 4s;   animation-duration: 8s; }
+        .leaf:nth-child(8)  { top: 10%; left: 45%; font-size: 1.8rem; animation-delay: 2.5s; animation-duration: 9s; }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            33%       { transform: translateY(-18px) rotate(8deg); }
+            66%       { transform: translateY(10px) rotate(-5deg); }
+        }
+
+        /* ---- Contenu centré ---- */
+        .splash-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 2.5rem 2rem;
+            z-index: 10;
+            animation: fadeUp 0.9s ease both;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ---- Icône logo ---- */
+        .logo-icon {
+            font-size: 4.5rem;
+            color: rgba(255,255,255,0.9);
+            margin-bottom: 0.5rem;
+            filter: drop-shadow(0 4px 12px rgba(0,0,0,0.25));
+            animation: pulse 3s infinite ease-in-out;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50%       { transform: scale(1.06); }
+        }
+
+        /* ---- Titre ---- */
+        .splash-title {
+            font-size: 2.8rem;
+            font-weight: 800;
+            color: #ffffff;
+            letter-spacing: -1px;
+            text-shadow: 0 3px 15px rgba(0,0,0,0.3);
+            margin-bottom: 0.3rem;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        /* ---- Ligne décorative de feuilles ---- */
+        .deco-line {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin: 1.1rem 0 1.4rem;
+            opacity: 0.7;
+        }
+        .deco-line span {
+            font-size: 1.1rem;
+            color: #a8f0c6;
+        }
+        .deco-line .deco-icon {
+            font-size: 1rem;
+            color: #6de0a8;
+        }
+
+        /* ---- Slogan ---- */
+        .splash-tagline {
+            font-size: 1.15rem;
+            color: rgba(255,255,255,0.88);
+            line-height: 1.6;
+            max-width: 300px;
+            text-shadow: 0 1px 6px rgba(0,0,0,0.2);
+            margin-bottom: 3rem;
+            font-style: italic;
+        }
+        .splash-tagline strong {
+            font-style: normal;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        /* ---- Bouton COMMENCER ---- */
+        .btn-commencer {
+            background: #ffffff;
+            color: #1a7a42;
+            font-weight: 700;
+            font-size: 1.05rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            border: none;
+            border-radius: 50px;
+            padding: 0.85rem 2.8rem;
+            box-shadow: 0 6px 24px rgba(0,0,0,0.25);
+            transition: all 0.25s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .btn-commencer:hover {
+            background: #f0fff4;
+            color: #155d32;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 32px rgba(0,0,0,0.3);
+        }
+        .btn-commencer:active {
+            transform: translateY(0);
+        }
+        .btn-commencer i {
+            font-size: 1.1rem;
+            transition: transform 0.2s;
+        }
+        .btn-commencer:hover i {
+            transform: translateX(4px);
+        }
+
+        /* ---- Lien connexion discret en bas ---- */
+        .already-account {
+            position: absolute;
+            bottom: 2rem;
+            color: rgba(255,255,255,0.55);
+            font-size: 0.85rem;
+        }
+        .already-account a {
+            color: rgba(255,255,255,0.85);
+            text-decoration: underline;
+            font-weight: 500;
+        }
+        .already-account a:hover {
+            color: #ffffff;
+        }
+
+        /* ---- Version ---- */
+        .version-tag {
+            position: absolute;
+            top: 1.2rem;
+            right: 1.5rem;
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.35);
+            letter-spacing: 1px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Feuilles décoratives flottantes -->
+    <div class="leaf">🌿</div>
+    <div class="leaf">🍃</div>
+    <div class="leaf">🌱</div>
+    <div class="leaf">🌿</div>
+    <div class="leaf">🍃</div>
+    <div class="leaf">🌾</div>
+    <div class="leaf">🌱</div>
+    <div class="leaf">🍃</div>
+
+    <!-- Tag version -->
+    <span class="version-tag">v1.0</span>
+
+    <!-- Contenu principal -->
+    <div class="splash-container">
+
+        <!-- Icône logo -->
+        <div class="logo-icon">
+            <i class="bi bi-flower1"></i>
+        </div>
+
+        <!-- Titre -->
+        <h1 class="splash-title">WhatAPlant</h1>
+
+        <!-- Ligne décorative -->
+        <div class="deco-line">
+            <span>✦</span>
+            <i class="bi bi-flower2 deco-icon"></i>
+            <span>✦</span>
+            <i class="bi bi-flower3 deco-icon"></i>
+            <span>✦</span>
+            <i class="bi bi-flower2 deco-icon"></i>
+            <span>✦</span>
+            <i class="bi bi-flower3 deco-icon"></i>
+            <span>✦</span>
+            <i class="bi bi-flower2 deco-icon"></i>
+            <span>✦</span>
+        </div>
+
+        <!-- Slogan -->
+        <p class="splash-tagline">
+            La nature vous parle,<br>
+            <strong>WhatAPlant</strong> vous répond.
+        </p>
+
+        <!-- Bouton COMMENCER -->
+        <a href="/login" class="btn-commencer">
+            Commencer
+            <i class="bi bi-arrow-right"></i>
+        </a>
+
+    </div>
+
+    <!-- Lien pour se connecter directement -->
+    <p class="already-account">
+        Déjà un compte ?
+        <a href="/login">Se connecter</a>
+    </p>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/js/api.js?v=2"></script>
+    <script>
+        // Si déjà connecté → aller directement au dashboard
+        const token = localStorage.getItem("access_token");
+        if (token) {
+            try {
+                const base64 = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+                const payload = JSON.parse(atob(base64));
+                const now = Math.floor(Date.now() / 1000);
+                if (payload.exp && payload.exp > now) {
+                    window.location.href = "/dashboard";
+                }
+            } catch (e) { /* token invalide, rester sur la splash */ }
+        }
+    </script>
+</body>
+</html>
