@@ -39,8 +39,15 @@ if not DATABASE_URL or "://" not in DATABASE_URL:
 
 # -------------------------------------------------------
 # Créer le "moteur" de connexion
+# PostgreSQL sur Railway/Render requiert SSL obligatoirement
 # -------------------------------------------------------
-engine = create_engine(DATABASE_URL)
+if DATABASE_URL.startswith("postgresql://") or DATABASE_URL.startswith("postgres://"):
+    engine = create_engine(
+        DATABASE_URL,
+        connect_args={"sslmode": "require"}
+    )
+else:
+    engine = create_engine(DATABASE_URL)
 
 # -------------------------------------------------------
 # SessionLocal : Une "session" est comme une connexion
