@@ -35,10 +35,15 @@ from database import engine, Base
 from routers import auth, scan, chat, analytics, plants
 
 # -------------------------------------------------------
-# Créer toutes les tables dans SQLite au démarrage
+# Créer toutes les tables dans la base de données au démarrage
 # Si les tables existent déjà, elles ne sont pas recréées
 # -------------------------------------------------------
-Base.metadata.create_all(bind=engine)
+try:
+    Base.metadata.create_all(bind=engine)
+    logger.info("Tables créées / vérifiées avec succès.")
+except Exception as e:
+    logger.error(f"Erreur lors de la création des tables : {e}")
+    logger.warning("L'app démarre quand même — vérifie DATABASE_URL et la connexion SSL.")
 
 # -------------------------------------------------------
 # Créer le dossier "uploads" si il n'existe pas
