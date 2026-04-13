@@ -21,11 +21,14 @@ import os
 import uuid
 import threading
 import urllib.parse
+import logging
 from datetime import datetime, timedelta
 from typing import Optional
 
 import bcrypt as _bcrypt
 import httpx
+
+logger = logging.getLogger(__name__)
 
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.responses import RedirectResponse
@@ -414,77 +417,86 @@ async def google_callback(request: Request, code: str, db: Session = Depends(get
     On échange ce code contre un token, on récupère les infos utilisateur,
     puis on crée/connecte le compte et on redirige vers le dashboard.
     """
-    # 1. Échanger le code contre un access token Google
-    redirect_uri = get_google_redirect_uri(request)
-    async with httpx.AsyncClient() as client:
-        token_response = await client.post(GOOGLE_TOKEN_URL, data={
-            "code":          code,
-            "client_id":     GOOGLE_CLIENT_ID,
-            "client_secret": GOOGLE_CLIENT_SECRET,
-            "redirect_uri":  redirect_uri,
-            "grant_type":    "authorization_code"
-        })
+    try:
+        # 1. Échanger le code contre un access token Google
+        redirect_uri = get_google_redirect_uri(request)
+        logger.info(f"[Google OAuth] redirect_uri utilisé : {redirect_uri}")
 
-    if token_response.status_code != 200:
-        return RedirectResponse("/login?error=google_token_failed")
+        async with httpx.AsyncClient() as client:
+            token_response = await client.post(GOOGLE_TOKEN_URL, data={
+                "code":          code,
+                "client_id":     GOOGLE_CLIENT_ID,
+                "client_secret": GOOGLE_CLIENT_SECRET,
+                "redirect_uri":  redirect_uri,
+                "grant_type":    "authorization_code"
+            })
 
-    token_data   = token_response.json()
-    access_token = token_data.get("access_token")
+        logger.info(f"[Google OAuth] token_response status : {token_response.status_code}")
+        logger.info(f"[Google OAuth] token_response body   : {token_response.text[:300]}")
 
-    # 2. Récupérer les infos du compte Google
-    async with httpx.AsyncClient() as client:
-        userinfo_response = await client.get(
-            GOOGLE_USERINFO_URL,
-            headers={"Authorization": f"Bearer {access_token}"}
-        )
+        if token_response.status_code != 200:
+            return RedirectResponse(f"/login?error=google_token_failed&detail={token_response.text[:100]}")
+    except Exception as e:
+        logger.error(f"[Google OAuth] Exception : {e}")
+        return RedirectResponse(f"/login?error=exception&detail={str(e)[:100]}")
 
-    if userinfo_response.status_code != 200:
-        return RedirectResponse("/login?error=google_userinfo_failed")
+    try:
+        token_data   = token_response.json()
+        access_token = token_data.get("access_token")
 
-    google_user = userinfo_response.json()
-    google_id   = google_user.get("id")
-    email       = google_user.get("email")
-    name        = google_user.get("name", "")
-    # Construire un username à partir du nom Google (sans espaces ni accents)
-    username_base = name.replace(" ", "_").lower()[:30] or email.split("@")[0]
-
-    # 3. Trouver ou créer l'utilisateur en base
-    user = db.query(User).filter(User.google_id == google_id).first()
-
-    if not user:
-        # Vérifier si un compte existe déjà avec cet email (compte classique)
-        user = db.query(User).filter(User.email == email).first()
-
-        if user:
-            # Lier le compte Google au compte existant
-            user.google_id  = google_id
-            user.is_verified = True
-            db.commit()
-        else:
-            # Créer un nouveau compte via Google
-            username = username_base
-            # S'assurer que le username est unique
-            counter = 1
-            while db.query(User).filter(User.username == username).first():
-                username = f"{username_base}_{counter}"
-                counter += 1
-
-            user = User(
-                username          = username,
-                email             = email,
-                password_hash     = None,   # Pas de mot de passe pour les comptes Google
-                google_id         = google_id,
-                is_verified       = True    # Email Google = déjà vérifié
+        # 2. Récupérer les infos du compte Google
+        async with httpx.AsyncClient() as client:
+            userinfo_response = await client.get(
+                GOOGLE_USERINFO_URL,
+                headers={"Authorization": f"Bearer {access_token}"}
             )
-            db.add(user)
-            db.commit()
-            db.refresh(user)
 
-    # 4. Créer un JWT et rediriger vers le dashboard
-    jwt_token = create_access_token(
-        data={"sub": user.email},
-        expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    )
+        if userinfo_response.status_code != 200:
+            return RedirectResponse("/login?error=google_userinfo_failed")
+
+        google_user = userinfo_response.json()
+        google_id   = google_user.get("id")
+        email       = google_user.get("email")
+        name        = google_user.get("name", "")
+        username_base = name.replace(" ", "_").lower()[:30] or email.split("@")[0]
+
+        logger.info(f"[Google OAuth] Utilisateur Google : {email} ({google_id})")
+
+        # 3. Trouver ou créer l'utilisateur en base
+        user = db.query(User).filter(User.google_id == google_id).first()
+
+        if not user:
+            user = db.query(User).filter(User.email == email).first()
+            if user:
+                user.google_id   = google_id
+                user.is_verified = True
+                db.commit()
+            else:
+                username = username_base
+                counter  = 1
+                while db.query(User).filter(User.username == username).first():
+                    username = f"{username_base}_{counter}"
+                    counter += 1
+
+                user = User(
+                    username      = username,
+                    email         = email,
+                    password_hash = None,
+                    google_id     = google_id,
+                    is_verified   = True
+                )
+                db.add(user)
+                db.commit()
+                db.refresh(user)
+
+        # 4. Créer un JWT et rediriger vers le dashboard
+        jwt_token = create_access_token(
+            data={"sub": user.email},
+            expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        )
+    except Exception as e:
+        logger.error(f"[Google OAuth] Erreur callback : {e}")
+        return RedirectResponse(f"/login?error=callback_error&detail={str(e)[:150]}")
 
     # Rediriger vers le dashboard avec le token en paramètre URL
     # Le JS côté frontend le stockera dans localStorage
