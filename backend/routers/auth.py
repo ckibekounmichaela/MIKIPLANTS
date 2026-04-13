@@ -58,14 +58,19 @@ GOOGLE_TOKEN_URL    = "https://oauth2.googleapis.com/token"
 GOOGLE_USERINFO_URL = "https://www.googleapis.com/oauth2/v2/userinfo"
 
 def get_google_redirect_uri(request: Request) -> str:
-    """Construit l'URI de callback depuis le host réel de la requête."""
-    scheme = request.url.scheme          # "http"
-    host   = request.url.hostname        # "localhost"
-    port   = request.url.port            # 8001
-    if port and port not in (80, 443):
-        base = f"{scheme}://{host}:{port}"
+    """Construit l'URI de callback depuis le host réel de la requête.
+    Force HTTPS sur tout domaine autre que localhost.
+    """
+    host = request.url.hostname or "localhost"
+    port = request.url.port
+
+    # Localhost → HTTP avec port
+    if host in ("localhost", "127.0.0.1"):
+        base = f"http://{host}:{port}" if port else f"http://{host}"
     else:
-        base = f"{scheme}://{host}"
+        # Production (Railway, etc.) → toujours HTTPS
+        base = f"https://{host}"
+
     return f"{base}/api/auth/google/callback"
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
