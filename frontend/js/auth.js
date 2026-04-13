@@ -329,4 +329,26 @@ document.addEventListener("DOMContentLoaded", () => {
     if (currentPath === "/login" || currentPath === "/index.html") {
         redirectIfAuthenticated();
     }
+
+    // Récupérer le token Google OAuth depuis l'URL (?token=xxx)
+    // Google redirige vers /dashboard?token=xxx après connexion
+    const urlParams = new URLSearchParams(window.location.search);
+    const tokenFromUrl = urlParams.get("token");
+    if (tokenFromUrl) {
+        localStorage.setItem("access_token", tokenFromUrl);
+        // Nettoyer l'URL (supprimer le token visible dans la barre d'adresse)
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
+    // Afficher une erreur Google si présente dans l'URL
+    const googleError = urlParams.get("error");
+    if (googleError) {
+        const alertEl = document.getElementById("loginAlert");
+        if (alertEl) {
+            alertEl.className = "alert alert-danger";
+            alertEl.innerHTML = `<i class="bi bi-exclamation-circle me-2"></i>
+                La connexion avec Google a échoué. Réessayez ou utilisez email/mot de passe.`;
+            alertEl.classList.remove("d-none");
+        }
+    }
 });

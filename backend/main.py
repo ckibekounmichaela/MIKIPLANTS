@@ -133,6 +133,7 @@ app.include_router(
     tags=["Catalogue de plantes"]
 )
 
+
 # -------------------------------------------------------
 # Servir les fichiers statiques (frontend HTML/CSS/JS)
 # StaticFiles permet à FastAPI de servir des fichiers
