@@ -13,10 +13,12 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Créer un faux exécutable "cd" qui lance uvicorn
-# Railway essaie d'exécuter "cd backend && uvicorn..." comme binaire
-# Ce script intercepte l'appel et démarre l'app correctement
-RUN printf '#!/bin/sh\nexec uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}\n' \
-    > /usr/local/bin/cd && chmod +x /usr/local/bin/cd
+# Railway tente d'exécuter "cd backend && uvicorn..." comme binaire
+# Ce script intercepte l'appel et démarre l'app avec le bon port
+RUN python3 -c "
+lines = ['#!/bin/sh\n', 'exec uvicorn main:app --host 0.0.0.0 --port \$PORT\n']
+open('/usr/local/bin/cd', 'w').writelines(lines)
+" && chmod +x /usr/local/bin/cd
 
 WORKDIR /app/backend
 
