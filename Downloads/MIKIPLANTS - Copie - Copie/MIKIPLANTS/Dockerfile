@@ -1,5 +1,8 @@
 FROM python:3.11-slim
 
+# Cache bust
+ARG CACHEBUST=2
+
 WORKDIR /app
 
 # Installer les dépendances
