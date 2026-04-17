@@ -1,5 +1,6 @@
 FROM python:3.11-slim
 
+# Aller directement dans le dossier backend comme WORKDIR
 WORKDIR /app
 
 # Copier et installer les dépendances
@@ -9,8 +10,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copier tout le projet
 COPY . .
 
-# Exposer le port (Railway injecte $PORT dynamiquement)
+# Se placer dans backend pour le démarrage
+WORKDIR /app/backend
+
+# Exposer le port
 EXPOSE 8000
 
-# Démarrer l'application
-CMD ["sh", "-c", "cd backend && uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+# Démarrer uvicorn directement (sans cd)
+CMD uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}
