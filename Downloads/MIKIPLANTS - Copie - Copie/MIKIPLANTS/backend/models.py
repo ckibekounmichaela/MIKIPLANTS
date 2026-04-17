@@ -92,9 +92,13 @@ class User(Base):
 
     email = Column(String(100), unique=True, nullable=False)
 
-    password_hash = Column(String(200), nullable=False)
+    password_hash = Column(String(200), nullable=True)
+    # nullable=True : les comptes Google n'ont pas de mot de passe local
     # On ne stocke JAMAIS le mot de passe en clair !
     # On stocke uniquement son "hash" (version chiffrée)
+
+    google_id = Column(String(100), nullable=True, unique=True, index=True)
+    # Identifiant unique Google (sub) — rempli lors d'une connexion Google
 
     created_at = Column(DateTime, default=datetime.utcnow)
     # default=datetime.utcnow : la date est automatiquement remplie

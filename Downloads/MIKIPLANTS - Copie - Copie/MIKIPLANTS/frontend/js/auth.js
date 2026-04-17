@@ -329,4 +329,41 @@ document.addEventListener("DOMContentLoaded", () => {
     if (currentPath === "/login" || currentPath === "/index.html") {
         redirectIfAuthenticated();
     }
+
+    // -------------------------------------------------------
+    // Récupérer le token Google OAuth (cookie ou URL param)
+    // Le backend pose un cookie court "google_token" après OAuth
+    // On le transfère dans localStorage puis on supprime le cookie
+    // -------------------------------------------------------
+    function readCookie(name) {
+        const match = document.cookie.split("; ").find(r => r.startsWith(name + "="));
+        return match ? match.split("=")[1] : null;
+    }
+
+    const cookieToken = readCookie("google_token");
+    if (cookieToken) {
+        localStorage.setItem("access_token", cookieToken);
+        // Supprimer le cookie immédiatement
+        document.cookie = "google_token=; Max-Age=0; path=/";
+    }
+
+    // Fallback : token dans l'URL (ancienne méthode, gardée pour compatibilité)
+    const urlParams = new URLSearchParams(window.location.search);
+    const tokenFromUrl = urlParams.get("token");
+    if (tokenFromUrl && !cookieToken) {
+        localStorage.setItem("access_token", tokenFromUrl);
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
+    // Afficher une erreur Google si présente dans l'URL
+    const googleError = urlParams.get("error");
+    if (googleError) {
+        const alertEl = document.getElementById("loginAlert");
+        if (alertEl) {
+            alertEl.className = "alert alert-danger";
+            alertEl.innerHTML = `<i class="bi bi-exclamation-circle me-2"></i>
+                La connexion avec Google a échoué. Réessayez ou utilisez email/mot de passe.`;
+            alertEl.classList.remove("d-none");
+        }
+    }
 });

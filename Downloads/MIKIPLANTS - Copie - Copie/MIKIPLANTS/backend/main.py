@@ -35,10 +35,41 @@ from database import engine, Base
 from routers import auth, scan, chat, analytics, plants
 
 # -------------------------------------------------------
-# Créer toutes les tables dans SQLite au démarrage
+# Créer toutes les tables dans la base de données au démarrage
 # Si les tables existent déjà, elles ne sont pas recréées
 # -------------------------------------------------------
-Base.metadata.create_all(bind=engine)
+try:
+    Base.metadata.create_all(bind=engine)
+    logger.info("Tables créées / vérifiées avec succès.")
+except Exception as e:
+    logger.error(f"Erreur lors de la création des tables : {e}")
+    logger.warning("L'app démarre quand même — vérifie DATABASE_URL et la connexion SSL.")
+
+# Migration : ajouter les colonnes manquantes si elles n'existent pas
+from sqlalchemy import text, inspect
+try:
+    with engine.connect() as conn:
+        inspector = inspect(engine)
+        columns   = [c["name"] for c in inspector.get_columns("users")]
+
+        if "google_id" not in columns:
+            conn.execute(text("ALTER TABLE users ADD COLUMN google_id VARCHAR(100) NULL"))
+            conn.execute(text("ALTER TABLE users ADD CONSTRAINT uq_users_google_id UNIQUE (google_id)"))
+            conn.commit()
+            logger.info("Migration : colonne google_id ajoutée.")
+
+        if "password_hash" in columns:
+            # Rendre password_hash nullable pour les comptes Google
+            is_postgres = str(engine.url).startswith("postgresql")
+            if is_postgres:
+                conn.execute(text("ALTER TABLE users ALTER COLUMN password_hash DROP NOT NULL"))
+            else:
+                conn.execute(text("ALTER TABLE users MODIFY COLUMN password_hash VARCHAR(200) NULL"))
+            conn.commit()
+            logger.info("Migration : password_hash rendu nullable.")
+
+except Exception as e:
+    logger.warning(f"Migration optionnelle échouée (peut être déjà appliquée) : {e}")
 
 # -------------------------------------------------------
 # Créer le dossier "uploads" si il n'existe pas
@@ -127,6 +158,7 @@ app.include_router(
     prefix="/api/plants",
     tags=["Catalogue de plantes"]
 )
+
 
 # -------------------------------------------------------
 # Servir les fichiers statiques (frontend HTML/CSS/JS)

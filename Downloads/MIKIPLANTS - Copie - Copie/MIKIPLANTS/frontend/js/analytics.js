@@ -10,10 +10,18 @@
 // ============================================================
 
 // Stocker les instances de graphiques pour pouvoir les mettre à jour
-let distributionChart = null;
-let timelineChart     = null;
-let topPlantsChart    = null;
-let scanMap           = null;   // Instance Leaflet
+let distributionChart  = null;
+let timelineChart      = null;
+let topPlantsChart     = null;
+let diseasesChart      = null;
+let scanMap            = null;   // Instance Leaflet
+
+// Graphiques globaux
+let gDistributionChart = null;
+let gTopPlantsChart    = null;
+let gDiseasesChart     = null;
+let gRiskMap           = null;
+let globalLoaded       = false;  // Charger les données globales une seule fois
 
 // ============================================================
 // INITIALISATION
@@ -21,17 +29,77 @@ let scanMap           = null;   // Instance Leaflet
 document.addEventListener("DOMContentLoaded", async () => {
     if (!requireAuth()) return;
     loadNavUser();
+    checkAdminButton();   // Afficher le bouton export admin si nécessaire
     await Promise.all([
         loadSummary(),
         loadDistribution(),
         loadTimeline(30),
         loadTopPlants(),
+        loadDiseases(),
         loadAlerts(),
         loadMap()
     ]);
     // Promise.all exécute toutes les requêtes en parallèle
     // C'est plus rapide qu'attendre chaque requête l'une après l'autre
 });
+
+
+// ============================================================
+// BOUTON ADMIN : affiché uniquement pour l'administrateur
+// ============================================================
+
+/**
+ * Vérifie si l'utilisateur connecté est l'admin via /api/analytics/is-admin.
+ * Si oui, rend visible le bouton d'export global.
+ */
+async function checkAdminButton() {
+    try {
+        const data = await apiGet("/api/analytics/is-admin");
+        if (data.is_admin) {
+            const btn = document.getElementById("btnExportAll");
+            if (btn) btn.classList.remove("d-none");
+        }
+    } catch (e) {
+        // Silencieux — pas d'impact sur l'UX
+    }
+}
+
+/**
+ * Télécharger un fichier CSV depuis une URL protégée (avec token JWT).
+ * Les liens <a href> simples n'envoient pas le token → on utilise fetch.
+ * @param {string} url      - L'URL de l'endpoint CSV
+ * @param {string} filename - Le nom du fichier à télécharger
+ */
+async function downloadCsv(url, filename) {
+    try {
+        const token = localStorage.getItem("access_token");
+        const response = await fetch(url, {
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+
+        if (response.status === 403) {
+            alert("Accès refusé : vous n'êtes pas administrateur.");
+            return;
+        }
+        if (!response.ok) {
+            alert("Erreur lors du téléchargement du fichier CSV.");
+            return;
+        }
+
+        // Créer un lien temporaire pour déclencher le téléchargement
+        const blob = await response.blob();
+        const link = document.createElement("a");
+        link.href  = URL.createObjectURL(blob);
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
+
+    } catch (e) {
+        alert("Erreur réseau lors du téléchargement.");
+    }
+}
 
 
 // ============================================================
@@ -236,52 +304,368 @@ async function loadTopPlants() {
 
 
 /**
- * Charger et afficher les alertes récentes.
+ * Charger et afficher le graphique des maladies les plus fréquentes.
+ */
+async function loadDiseases() {
+    try {
+        const data = await apiGet("/api/analytics/diseases?limit=10");
+
+        const noData = document.getElementById("noDiseasesData");
+        const canvas = document.getElementById("diseasesChart");
+
+        if (!data || data.length === 0) {
+            canvas.classList.add("d-none");
+            noData.classList.remove("d-none");
+            return;
+        }
+
+        noData.classList.add("d-none");
+        canvas.classList.remove("d-none");
+
+        const ctx = canvas.getContext("2d");
+        if (diseasesChart) diseasesChart.destroy();
+
+        const labels = data.map(d =>
+            d.disease.length > 25 ? d.disease.substring(0, 25) + "…" : d.disease
+        );
+        const values = data.map(d => d.count);
+
+        // Palette de rouges/oranges pour les maladies
+        const colors = values.map((_, i) => {
+            const palette = ["#dc3545","#e85d6a","#f28b30","#fd7e14","#ffc107",
+                             "#e63946","#c1121f","#ff6b6b","#ff9f43","#ee5a24"];
+            return palette[i % palette.length];
+        });
+
+        diseasesChart = new Chart(ctx, {
+            type: "bar",
+            data: {
+                labels,
+                datasets: [{
+                    label: "Occurrences",
+                    data: values,
+                    backgroundColor: colors,
+                    borderWidth: 0,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                indexAxis: "y",
+                responsive: true,
+                scales: {
+                    x: { beginAtZero: true, ticks: { stepSize: 1 } }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
+
+    } catch (error) {
+        console.error("Erreur chargement maladies:", error);
+    }
+}
+
+
+/**
+ * Charger et afficher les alertes (ponctuelles + tendances).
  */
 async function loadAlerts() {
     try {
-        const data   = await apiGet("/api/analytics/alerts");
-        const list   = document.getElementById("alertsList");
+        const data = await apiGet("/api/analytics/alerts");
+
+        // ---- Alertes ponctuelles ----
+        const list    = document.getElementById("alertsList");
         const noAlert = document.getElementById("noAlerts");
 
         if (data.count === 0) {
             list.innerHTML = "";
             noAlert.classList.remove("d-none");
-            return;
+        } else {
+            noAlert.classList.add("d-none");
+            list.innerHTML = data.alerts.map(alert => {
+                const isToxic = alert.alert_types.includes("Toxicité élevée");
+                const itemClass = isToxic ? "alert-item-toxic" : "alert-item-invasive";
+                return `
+                    <a href="/rapport?id=${alert.scan_id}"
+                       class="list-group-item list-group-item-action ${itemClass} py-3">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="mb-1 fw-semibold">${alert.plant_name}</h6>
+                                <small class="text-muted fst-italic">${alert.scientific_name}</small>
+                                <div class="mt-1">
+                                    ${alert.alert_types.map(type =>
+                                        `<span class="badge ${type.includes("Toxicité") ? "bg-danger" : "bg-warning text-dark"} me-1">${type}</span>`
+                                    ).join("")}
+                                </div>
+                            </div>
+                            <small class="text-muted">${alert.date}</small>
+                        </div>
+                    </a>`;
+            }).join("");
         }
 
-        noAlert.classList.add("d-none");
+        // ---- Alertes de tendance ----
+        const trendList    = document.getElementById("trendAlertsList");
+        const noTrendAlert = document.getElementById("noTrendAlerts");
+        const trends       = data.trend_alerts || [];
 
-        // Générer un item de liste pour chaque alerte
-        list.innerHTML = data.alerts.map(alert => {
-            // Choisir le style selon le type d'alerte
-            const isInvasive = alert.alert_types.includes("Espèce invasive");
-            const isToxic    = alert.alert_types.includes("Toxicité élevée");
-            const itemClass  = isToxic ? "alert-item-toxic" : "alert-item-invasive";
+        if (trends.length === 0) {
+            trendList.innerHTML = "";
+            noTrendAlert.classList.remove("d-none");
+        } else {
+            noTrendAlert.classList.add("d-none");
 
-            return `
-                <a href="/rapport?id=${alert.scan_id}"
-                   class="list-group-item list-group-item-action ${itemClass} py-3">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <h6 class="mb-1 fw-semibold">${alert.plant_name}</h6>
-                            <small class="text-muted fst-italic">${alert.scientific_name}</small>
-                            <div class="mt-1">
-                                ${alert.alert_types.map(type =>
-                                    `<span class="badge ${type.includes("Toxicité") ? 'bg-danger' : 'bg-warning text-dark'} me-1">
-                                        ${type}
-                                    </span>`
-                                ).join("")}
+            const severityConfig = {
+                danger:  { bg: "bg-danger-subtle",  text: "text-danger",  icon: "bi-exclamation-triangle-fill" },
+                warning: { bg: "bg-warning-subtle", text: "text-warning", icon: "bi-exclamation-circle-fill"   },
+                info:    { bg: "bg-info-subtle",    text: "text-info",    icon: "bi-info-circle-fill"          }
+            };
+
+            trendList.innerHTML = trends.map(t => {
+                const cfg  = severityConfig[t.severity] || severityConfig.warning;
+                const arrow = t.current_week > t.prev_week ? "↑" : "↓";
+                return `
+                    <div class="list-group-item ${cfg.bg} py-3 border-0">
+                        <div class="d-flex align-items-start gap-2">
+                            <i class="bi ${cfg.icon} ${cfg.text} mt-1"></i>
+                            <div>
+                                <p class="mb-1 fw-semibold small">${t.message}</p>
+                                <div class="d-flex gap-3 small text-muted">
+                                    <span>Cette semaine : <strong class="${cfg.text}">${t.current_week}</strong></span>
+                                    <span>Semaine préc. : <strong>${t.prev_week}</strong></span>
+                                    <span class="${cfg.text} fw-bold">${arrow}</span>
+                                </div>
                             </div>
                         </div>
-                        <small class="text-muted">${alert.date}</small>
-                    </div>
-                </a>
-            `;
-        }).join("");
+                    </div>`;
+            }).join("");
+        }
 
     } catch (error) {
         console.error("Erreur chargement alertes:", error);
+    }
+}
+
+
+// ============================================================
+// GESTION DES ONGLETS (Mes stats / Global)
+// ============================================================
+
+function switchTab(tab) {
+    const myView     = document.getElementById("viewMyStats");
+    const globalView = document.getElementById("viewGlobal");
+    const tabMy      = document.getElementById("tabMyStats");
+    const tabGlobal  = document.getElementById("tabGlobal");
+
+    if (tab === "my") {
+        myView.classList.remove("d-none");
+        globalView.classList.add("d-none");
+        tabMy.classList.add("active");
+        tabGlobal.classList.remove("active");
+    } else {
+        myView.classList.add("d-none");
+        globalView.classList.remove("d-none");
+        tabMy.classList.remove("active");
+        tabGlobal.classList.add("active");
+
+        // Charger les données globales seulement au premier clic
+        if (!globalLoaded) {
+            globalLoaded = true;
+            Promise.all([
+                loadGlobalSummary(),
+                loadGlobalDistribution(),
+                loadGlobalTopPlants(),
+                loadGlobalDiseases(),
+                loadGlobalRiskMap()
+            ]);
+        }
+    }
+}
+
+
+// ============================================================
+// STATISTIQUES GLOBALES
+// ============================================================
+
+async function loadGlobalSummary() {
+    try {
+        const data = await apiGet("/api/analytics/global/summary");
+        document.getElementById("gKpiScans").textContent    = data.total_scans;
+        document.getElementById("gKpiUnique").textContent   = data.unique_plants;
+        document.getElementById("gKpiEdible").textContent   = data.edible_plants_count;
+        document.getElementById("gKpiToxic").textContent    = data.toxic_plants_count;
+        document.getElementById("gKpiInvasive").textContent = data.invasive_plants_count;
+    } catch (e) {
+        console.error("Erreur global summary:", e);
+    }
+}
+
+async function loadGlobalDistribution() {
+    try {
+        const data = await apiGet("/api/analytics/global/distribution");
+        const ctx  = document.getElementById("gDistributionChart").getContext("2d");
+        if (gDistributionChart) gDistributionChart.destroy();
+
+        gDistributionChart = new Chart(ctx, {
+            type: "doughnut",
+            data: {
+                labels: data.labels,
+                datasets: [{
+                    data: data.values,
+                    backgroundColor: ["#198754","#dc3545","#0dcaf0","#ffc107"],
+                    borderWidth: 2,
+                    borderColor: "#fff"
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: "bottom", labels: { padding: 15, usePointStyle: true } },
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => {
+                                const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                                const pct   = total > 0 ? ((ctx.parsed / total) * 100).toFixed(1) : 0;
+                                return ` ${ctx.label}: ${ctx.parsed} (${pct}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    } catch (e) {
+        console.error("Erreur global distribution:", e);
+    }
+}
+
+async function loadGlobalTopPlants() {
+    try {
+        const data = await apiGet("/api/analytics/global/top-plants?limit=10");
+        const ctx  = document.getElementById("gTopPlantsChart").getContext("2d");
+        if (gTopPlantsChart) gTopPlantsChart.destroy();
+
+        const labels = data.map(p =>
+            p.plant_name.length > 22 ? p.plant_name.substring(0, 22) + "…" : p.plant_name
+        );
+
+        gTopPlantsChart = new Chart(ctx, {
+            type: "bar",
+            data: {
+                labels,
+                datasets: [{
+                    label: "Scans",
+                    data: data.map(p => p.scan_count),
+                    backgroundColor: "rgba(25,135,84,0.75)",
+                    borderColor: "#198754",
+                    borderWidth: 1,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                indexAxis: "y",
+                responsive: true,
+                scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } },
+                plugins: { legend: { display: false } }
+            }
+        });
+    } catch (e) {
+        console.error("Erreur global top plants:", e);
+    }
+}
+
+async function loadGlobalDiseases() {
+    try {
+        const data   = await apiGet("/api/analytics/global/diseases?limit=10");
+        const canvas = document.getElementById("gDiseasesChart");
+        const noData = document.getElementById("gNoDiseasesData");
+
+        if (!data || data.length === 0) {
+            canvas.classList.add("d-none");
+            noData.classList.remove("d-none");
+            return;
+        }
+
+        noData.classList.add("d-none");
+        canvas.classList.remove("d-none");
+        const ctx = canvas.getContext("2d");
+        if (gDiseasesChart) gDiseasesChart.destroy();
+
+        const palette = ["#dc3545","#e85d6a","#f28b30","#fd7e14","#ffc107",
+                         "#e63946","#c1121f","#ff6b6b","#ff9f43","#ee5a24"];
+
+        gDiseasesChart = new Chart(ctx, {
+            type: "bar",
+            data: {
+                labels: data.map(d => d.disease.length > 25 ? d.disease.substring(0,25)+"…" : d.disease),
+                datasets: [{
+                    label: "Occurrences",
+                    data: data.map(d => d.count),
+                    backgroundColor: data.map((_, i) => palette[i % palette.length]),
+                    borderWidth: 0,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                indexAxis: "y",
+                responsive: true,
+                scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } },
+                plugins: { legend: { display: false } }
+            }
+        });
+    } catch (e) {
+        console.error("Erreur global diseases:", e);
+    }
+}
+
+async function loadGlobalRiskMap() {
+    try {
+        const data    = await apiGet("/api/analytics/global/regions-at-risk");
+        const mapDiv  = document.getElementById("gRiskMap");
+        const noData  = document.getElementById("gMapNoData");
+
+        if (!data.zones || data.zones.length === 0) {
+            mapDiv.classList.add("d-none");
+            noData.classList.remove("d-none");
+            return;
+        }
+
+        if (gRiskMap) {
+            gRiskMap.remove();
+            gRiskMap = null;
+        }
+
+        gRiskMap = L.map("gRiskMap").setView([7.54, -5.55], 6);
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+            maxZoom: 19
+        }).addTo(gRiskMap);
+
+        const bounds = [];
+        data.zones.forEach(zone => {
+            // Rayon proportionnel au nombre de cas (min 8km, max 40km)
+            const radius = Math.min(8000 + zone.total * 3000, 40000);
+            // Rouge si toxique domine, orange si invasif
+            const color  = zone.toxic >= zone.invasive ? "#dc3545" : "#fd7e14";
+
+            L.circle([zone.lat, zone.lng], {
+                radius,
+                color,
+                fillColor: color,
+                fillOpacity: 0.3,
+                weight: 2
+            }).bindPopup(`
+                <strong>Zone à risque</strong><br>
+                <span class="badge bg-danger me-1">Toxiques : ${zone.toxic}</span>
+                <span class="badge bg-warning text-dark">Invasives : ${zone.invasive}</span><br>
+                <small class="text-muted">Total scans : ${zone.total}</small>
+            `).addTo(gRiskMap);
+
+            bounds.push([zone.lat, zone.lng]);
+        });
+
+        if (bounds.length > 1) gRiskMap.fitBounds(bounds, { padding: [30, 30] });
+
+    } catch (e) {
+        console.error("Erreur global risk map:", e);
     }
 }
 

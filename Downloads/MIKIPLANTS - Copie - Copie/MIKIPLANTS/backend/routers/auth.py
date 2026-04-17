@@ -20,12 +20,18 @@
 import os
 import uuid
 import threading
+import urllib.parse
+import logging
 from datetime import datetime, timedelta
 from typing import Optional
 
 import bcrypt as _bcrypt
+import httpx
+
+logger = logging.getLogger(__name__)
 
 from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi.responses import RedirectResponse
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from jose import JWTError, jwt
@@ -44,6 +50,45 @@ load_dotenv()
 SECRET_KEY = os.getenv("SECRET_KEY", "cle_secrete_par_defaut_changer_en_prod")
 ALGORITHM  = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 1440))
+
+# --- Google OAuth2 ---
+GOOGLE_CLIENT_ID     = os.getenv("GOOGLE_CLIENT_ID", "")
+GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "")
+GOOGLE_REDIRECT_URI  = os.getenv("APP_BASE_URL", "http://localhost:8000") + "/api/auth/google/callback"
+
+GOOGLE_AUTH_URL     = "https://accounts.google.com/o/oauth2/auth"
+GOOGLE_TOKEN_URL    = "https://oauth2.googleapis.com/token"
+GOOGLE_USERINFO_URL = "https://www.googleapis.com/oauth2/v2/userinfo"
+
+def get_google_redirect_uri(request: Request) -> str:
+    """Retourne l'URI de callback Google OAuth.
+    Priorité : variable GOOGLE_REDIRECT_URI dans .env
+    Sinon : construite depuis APP_BASE_URL
+    Sinon : construite depuis la requête en cours.
+    """
+    # 1. URI explicite dans .env → priorité absolue
+    explicit = os.getenv("GOOGLE_REDIRECT_URI", "").strip()
+    if explicit:
+        logger.info(f"[Google OAuth] redirect_uri (depuis .env) : {explicit}")
+        return explicit
+
+    # 2. APP_BASE_URL dans .env
+    base_url = os.getenv("APP_BASE_URL", "").strip().rstrip("/")
+    if base_url:
+        uri = f"{base_url}/api/auth/google/callback"
+        logger.info(f"[Google OAuth] redirect_uri (depuis APP_BASE_URL) : {uri}")
+        return uri
+
+    # 3. Fallback : depuis la requête HTTP
+    host = request.url.hostname or "localhost"
+    port = request.url.port
+    if host in ("localhost", "127.0.0.1"):
+        base = f"http://{host}:{port}" if port else f"http://{host}"
+    else:
+        base = f"https://{host}"
+    uri = f"{base}/api/auth/google/callback"
+    logger.info(f"[Google OAuth] redirect_uri (depuis requête) : {uri}")
+    return uri
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
@@ -360,6 +405,126 @@ def reset_password(data: ResetPasswordRequest, db: Session = Depends(get_db)):
     db.commit()
 
     return {"message": "Mot de passe réinitialisé avec succès. Vous pouvez maintenant vous connecter."}
+
+
+@router.get("/google/login")
+def google_login(request: Request):
+    """
+    Redirige l'utilisateur vers la page de connexion Google.
+    """
+    params = {
+        "client_id":     GOOGLE_CLIENT_ID,
+        "redirect_uri":  get_google_redirect_uri(request),
+        "response_type": "code",
+        "scope":         "openid email profile",
+        "access_type":   "offline",
+        "prompt":        "select_account"
+    }
+    url = GOOGLE_AUTH_URL + "?" + urllib.parse.urlencode(params)
+    return RedirectResponse(url)
+
+
+@router.get("/google/callback")
+async def google_callback(request: Request, code: str, db: Session = Depends(get_db)):
+    """
+    Google redirige ici après la connexion avec un code temporaire.
+    On échange ce code contre un token, on récupère les infos utilisateur,
+    puis on crée/connecte le compte et on redirige vers le dashboard.
+    """
+    try:
+        # 1. Échanger le code contre un access token Google
+        redirect_uri = get_google_redirect_uri(request)
+        logger.info(f"[Google OAuth] redirect_uri utilisé : {redirect_uri}")
+
+        async with httpx.AsyncClient() as client:
+            token_response = await client.post(GOOGLE_TOKEN_URL, data={
+                "code":          code,
+                "client_id":     GOOGLE_CLIENT_ID,
+                "client_secret": GOOGLE_CLIENT_SECRET,
+                "redirect_uri":  redirect_uri,
+                "grant_type":    "authorization_code"
+            })
+
+        logger.info(f"[Google OAuth] token_response status : {token_response.status_code}")
+        logger.info(f"[Google OAuth] token_response body   : {token_response.text[:300]}")
+
+        if token_response.status_code != 200:
+            return RedirectResponse(f"/login?error=google_token_failed&detail={token_response.text[:100]}")
+    except Exception as e:
+        logger.error(f"[Google OAuth] Exception : {e}")
+        return RedirectResponse(f"/login?error=exception&detail={str(e)[:100]}")
+
+    try:
+        token_data   = token_response.json()
+        access_token = token_data.get("access_token")
+
+        # 2. Récupérer les infos du compte Google
+        async with httpx.AsyncClient() as client:
+            userinfo_response = await client.get(
+                GOOGLE_USERINFO_URL,
+                headers={"Authorization": f"Bearer {access_token}"}
+            )
+
+        if userinfo_response.status_code != 200:
+            return RedirectResponse("/login?error=google_userinfo_failed")
+
+        google_user = userinfo_response.json()
+        google_id   = google_user.get("id")
+        email       = google_user.get("email")
+        name        = google_user.get("name", "")
+        username_base = name.replace(" ", "_").lower()[:30] or email.split("@")[0]
+
+        logger.info(f"[Google OAuth] Utilisateur Google : {email} ({google_id})")
+
+        # 3. Trouver ou créer l'utilisateur en base
+        user = db.query(User).filter(User.google_id == google_id).first()
+
+        if not user:
+            user = db.query(User).filter(User.email == email).first()
+            if user:
+                user.google_id   = google_id
+                user.is_verified = True
+                db.commit()
+            else:
+                username = username_base
+                counter  = 1
+                while db.query(User).filter(User.username == username).first():
+                    username = f"{username_base}_{counter}"
+                    counter += 1
+
+                user = User(
+                    username      = username,
+                    email         = email,
+                    password_hash = None,
+                    google_id     = google_id,
+                    is_verified   = True
+                )
+                db.add(user)
+                db.commit()
+                db.refresh(user)
+
+        # 4. Créer un JWT et rediriger vers le dashboard
+        jwt_token = create_access_token(
+            data={"sub": user.email},
+            expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        )
+    except Exception as e:
+        logger.error(f"[Google OAuth] Erreur callback : {e}")
+        return RedirectResponse(f"/login?error=callback_error&detail={str(e)[:150]}")
+
+    # Rediriger vers le dashboard avec le token dans un cookie court (mobile-compatible)
+    # On évite l'URL param qui peut être bloqué par certains navigateurs mobiles
+    is_localhost = request.url.hostname in ("localhost", "127.0.0.1")
+    response = RedirectResponse("/dashboard", status_code=302)
+    response.set_cookie(
+        key="google_token",
+        value=jwt_token,
+        max_age=60,           # 60 secondes — juste le temps de récupérer en JS
+        httponly=False,       # Le JS doit pouvoir le lire pour le mettre dans localStorage
+        samesite="lax",
+        secure=not is_localhost   # HTTPS en production, HTTP en local
+    )
+    return response
 
 
 @router.post("/change-password")
