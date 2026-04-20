@@ -1,22 +1,3 @@
-# ============================================================
-# FICHIER : backend/routers/auth.py
-# RÔLE    : Gestion complète de l'authentification
-#
-# ENDPOINTS :
-#   POST /api/auth/register        → Inscription + email de vérification
-#   POST /api/auth/login           → Connexion + email de notification
-#   GET  /api/auth/me              → Profil de l'utilisateur connecté
-#   GET  /api/auth/verify-email    → Vérifier le compte via token
-#   POST /api/auth/forgot-password → Demander réinitialisation mot de passe
-#   POST /api/auth/reset-password  → Changer le mot de passe avec le token
-#
-# SÉCURITÉ :
-#   - Mots de passe hashés avec bcrypt (irréversible)
-#   - Tokens JWT signés (authentification sans état)
-#   - Tokens de reset UUID (valides 1 heure seulement)
-#   - Tokens de vérification UUID (valides 24 heures)
-# ============================================================
-
 import os
 import uuid
 import threading
@@ -61,20 +42,34 @@ GOOGLE_TOKEN_URL    = "https://oauth2.googleapis.com/token"
 GOOGLE_USERINFO_URL = "https://www.googleapis.com/oauth2/v2/userinfo"
 
 def get_google_redirect_uri(request: Request) -> str:
-    """Construit l'URI de callback depuis le host réel de la requête.
-    Force HTTPS sur tout domaine autre que localhost.
+    """Retourne l'URI de callback Google OAuth.
+    Priorité : variable GOOGLE_REDIRECT_URI dans .env
+    Sinon : construite depuis APP_BASE_URL
+    Sinon : construite depuis la requête en cours.
     """
+    # 1. URI explicite dans .env → priorité absolue
+    explicit = os.getenv("GOOGLE_REDIRECT_URI", "").strip()
+    if explicit:
+        logger.info(f"[Google OAuth] redirect_uri (depuis .env) : {explicit}")
+        return explicit
+
+    # 2. APP_BASE_URL dans .env
+    base_url = os.getenv("APP_BASE_URL", "").strip().rstrip("/")
+    if base_url:
+        uri = f"{base_url}/api/auth/google/callback"
+        logger.info(f"[Google OAuth] redirect_uri (depuis APP_BASE_URL) : {uri}")
+        return uri
+
+    # 3. Fallback : depuis la requête HTTP
     host = request.url.hostname or "localhost"
     port = request.url.port
-
-    # Localhost → HTTP avec port
     if host in ("localhost", "127.0.0.1"):
         base = f"http://{host}:{port}" if port else f"http://{host}"
     else:
-        # Production (Railway, etc.) → toujours HTTPS
         base = f"https://{host}"
-
-    return f"{base}/api/auth/google/callback"
+    uri = f"{base}/api/auth/google/callback"
+    logger.info(f"[Google OAuth] redirect_uri (depuis requête) : {uri}")
+    return uri
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
@@ -124,7 +119,7 @@ def get_current_user(
     """
     Dépendance FastAPI : récupère l'utilisateur connecté depuis son token JWT.
     Utilisée dans tous les endpoints protégés avec Depends(get_current_user).
-    Lève HTTP 401 si le token est invalide ou expiré.
+    Lève HTTP 401 si le token est invalide, expiré, ou révoqué.
     """
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -142,6 +137,11 @@ def get_current_user(
 
     user = db.query(User).filter(User.email == email).first()
     if user is None:
+        raise credentials_exception
+
+    # Vérifier que le token n'a pas été révoqué par un changement de mot de passe
+    token_version = payload.get("tv", 0)
+    if token_version != (user.token_version or 0):
         raise credentials_exception
 
     return user
@@ -192,11 +192,12 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
 
     # Créer l'utilisateur en base
     new_user = User(
-        username           = user_data.username,
-        email              = user_data.email,
-        password_hash      = hash_password(user_data.password),
-        is_verified        = False,             # Compte non vérifié par défaut
-        verification_token = verification_token
+        username                    = user_data.username,
+        email                       = user_data.email,
+        password_hash               = hash_password(user_data.password),
+        is_verified                 = False,
+        verification_token          = verification_token,
+        verification_token_expires  = datetime.utcnow() + timedelta(hours=24)
     )
 
     db.add(new_user)
@@ -229,13 +230,37 @@ def login(user_data: UserLogin, request: Request, db: Session = Depends(get_db))
 
     user = db.query(User).filter(User.email == user_data.email).first()
 
-    # Vérifier email + mot de passe ensemble (protection timing attack)
-    if not user or not verify_password(user_data.password, user.password_hash):
-        raise HTTPException(status_code=401, detail="Email ou mot de passe incorrect.")
+    # Aucun compte avec cet email
+    if not user:
+        raise HTTPException(
+            status_code=401,
+            detail="Aucun compte trouvé avec cet email."
+        )
 
-    # Créer le token JWT
+    # Compte Google-only : pas de mot de passe local
+    if user.password_hash is None:
+        raise HTTPException(
+            status_code=401,
+            detail="Ce compte utilise la connexion Google. Connectez-vous avec Google."
+        )
+
+    # Mot de passe incorrect
+    if not verify_password(user_data.password, user.password_hash):
+        raise HTTPException(
+            status_code=401,
+            detail="Mot de passe incorrect."
+        )
+
+    # Vérifier que le compte est activé (email confirmé)
+    if not user.is_verified:
+        raise HTTPException(
+            status_code=401,
+            detail="Compte non vérifié. Consultez vos emails et cliquez sur le lien de vérification."
+        )
+
+    # Créer le token JWT (tv = token_version pour invalidation future)
     access_token = create_access_token(
-        data={"sub": user.email},
+        data={"sub": user.email, "tv": user.token_version or 0},
         expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     )
 
@@ -290,12 +315,50 @@ def verify_email(token: str, db: Session = Depends(get_db)):
     if user.is_verified:
         return {"message": "Votre compte est déjà vérifié. Vous pouvez vous connecter."}
 
+    # Vérifier que le lien n'est pas expiré (24h)
+    if user.verification_token_expires and datetime.utcnow() > user.verification_token_expires:
+        raise HTTPException(
+            status_code=400,
+            detail="Ce lien de vérification a expiré. Créez un nouveau compte ou contactez le support."
+        )
+
     # Activer le compte et supprimer le token (usage unique)
-    user.is_verified        = True
-    user.verification_token = None
+    user.is_verified                   = True
+    user.verification_token            = None
+    user.verification_token_expires    = None
     db.commit()
 
     return {"message": "Compte vérifié avec succès ! Vous pouvez maintenant vous connecter."}
+
+
+@router.post("/resend-verification")
+def resend_verification(data: ForgotPasswordRequest, db: Session = Depends(get_db)):
+    """
+    Renvoyer l'email de vérification à un utilisateur non encore vérifié.
+    Utilise ForgotPasswordRequest (même schéma : juste un email).
+    """
+    user = db.query(User).filter(User.email == data.email).first()
+
+    # Réponse générique pour éviter l'énumération d'emails
+    generic_msg = {"message": "Si cet email est enregistré et non vérifié, un email de vérification a été envoyé."}
+
+    if not user or user.is_verified:
+        return generic_msg
+
+    # Générer un nouveau token de vérification
+    new_token = str(uuid.uuid4())
+    user.verification_token         = new_token
+    user.verification_token_expires = datetime.utcnow() + timedelta(hours=24)
+    db.commit()
+
+    _send_email_async(
+        email_service.send_verification_email,
+        user.email,
+        user.username,
+        new_token
+    )
+
+    return generic_msg
 
 
 @router.post("/forgot-password")
@@ -359,11 +422,11 @@ def reset_password(data: ResetPasswordRequest, db: Session = Depends(get_db)):
     4. Invalider le token (usage unique)
     """
 
-    # Valider la longueur du nouveau mot de passe
-    if len(data.new_password) < 6:
+    # Valider la longueur du nouveau mot de passe (aligné sur change-password)
+    if len(data.new_password) < 8:
         raise HTTPException(
             status_code=400,
-            detail="Le mot de passe doit contenir au moins 6 caractères."
+            detail="Le mot de passe doit contenir au moins 8 caractères."
         )
 
     # Chercher l'utilisateur avec ce token de réinitialisation
@@ -384,10 +447,11 @@ def reset_password(data: ResetPasswordRequest, db: Session = Depends(get_db)):
             detail="Ce lien a expiré. Veuillez faire une nouvelle demande."
         )
 
-    # Mettre à jour le mot de passe et invalider le token
+    # Mettre à jour le mot de passe, invalider le token, révoquer les JWT existants
     user.password_hash      = hash_password(data.new_password)
-    user.reset_token        = None   # Token usage unique → on le supprime
+    user.reset_token        = None
     user.reset_token_expires = None
+    user.token_version      = (user.token_version or 0) + 1
     db.commit()
 
     return {"message": "Mot de passe réinitialisé avec succès. Vous pouvez maintenant vous connecter."}
@@ -397,26 +461,46 @@ def reset_password(data: ResetPasswordRequest, db: Session = Depends(get_db)):
 def google_login(request: Request):
     """
     Redirige l'utilisateur vers la page de connexion Google.
+    Un paramètre 'state' aléatoire est généré et stocké dans un cookie httpOnly
+    pour prévenir les attaques CSRF sur le flow OAuth.
     """
+    state = str(uuid.uuid4())
     params = {
         "client_id":     GOOGLE_CLIENT_ID,
         "redirect_uri":  get_google_redirect_uri(request),
         "response_type": "code",
         "scope":         "openid email profile",
         "access_type":   "offline",
-        "prompt":        "select_account"
+        "prompt":        "select_account",
+        "state":         state,
     }
     url = GOOGLE_AUTH_URL + "?" + urllib.parse.urlencode(params)
-    return RedirectResponse(url)
+    response = RedirectResponse(url)
+    is_localhost = request.url.hostname in ("localhost", "127.0.0.1")
+    response.set_cookie(
+        key="oauth_state",
+        value=state,
+        max_age=300,
+        httponly=True,
+        samesite="lax",
+        secure=not is_localhost,
+    )
+    return response
 
 
 @router.get("/google/callback")
-async def google_callback(request: Request, code: str, db: Session = Depends(get_db)):
+async def google_callback(request: Request, code: str, state: Optional[str] = None, db: Session = Depends(get_db)):
     """
     Google redirige ici après la connexion avec un code temporaire.
     On échange ce code contre un token, on récupère les infos utilisateur,
     puis on crée/connecte le compte et on redirige vers le dashboard.
     """
+    # Vérifier le state pour prévenir les attaques CSRF
+    stored_state = request.cookies.get("oauth_state")
+    if not state or not stored_state or state != stored_state:
+        logger.warning(f"[Google OAuth] State mismatch — possible CSRF. state={state}, cookie={stored_state}")
+        return RedirectResponse("/login?error=oauth_state_invalid")
+
     try:
         # 1. Échanger le code contre un access token Google
         redirect_uri = get_google_redirect_uri(request)
@@ -435,10 +519,11 @@ async def google_callback(request: Request, code: str, db: Session = Depends(get
         logger.info(f"[Google OAuth] token_response body   : {token_response.text[:300]}")
 
         if token_response.status_code != 200:
-            return RedirectResponse(f"/login?error=google_token_failed&detail={token_response.text[:100]}")
+            logger.error(f"[Google OAuth] Token échoué : {token_response.text[:200]}")
+            return RedirectResponse("/login?error=google_failed")
     except Exception as e:
         logger.error(f"[Google OAuth] Exception : {e}")
-        return RedirectResponse(f"/login?error=exception&detail={str(e)[:100]}")
+        return RedirectResponse("/login?error=google_failed")
 
     try:
         token_data   = token_response.json()
@@ -491,16 +576,27 @@ async def google_callback(request: Request, code: str, db: Session = Depends(get
 
         # 4. Créer un JWT et rediriger vers le dashboard
         jwt_token = create_access_token(
-            data={"sub": user.email},
+            data={"sub": user.email, "tv": user.token_version or 0},
             expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
         )
     except Exception as e:
         logger.error(f"[Google OAuth] Erreur callback : {e}")
-        return RedirectResponse(f"/login?error=callback_error&detail={str(e)[:150]}")
+        return RedirectResponse("/login?error=google_failed")
 
-    # Rediriger vers le dashboard avec le token en paramètre URL
-    # Le JS côté frontend le stockera dans localStorage
-    return RedirectResponse(f"/dashboard?token={jwt_token}")
+    # Rediriger vers le dashboard avec le token dans un cookie court (mobile-compatible)
+    is_localhost = request.url.hostname in ("localhost", "127.0.0.1")
+    response = RedirectResponse("/dashboard", status_code=302)
+    response.set_cookie(
+        key="google_token",
+        value=jwt_token,
+        max_age=60,           # 60 secondes — juste le temps de récupérer en JS
+        httponly=False,       # Le JS doit pouvoir le lire pour le mettre dans localStorage
+        samesite="lax",
+        secure=not is_localhost
+    )
+    # Supprimer le cookie oauth_state (usage unique)
+    response.delete_cookie("oauth_state")
+    return response
 
 
 @router.post("/change-password")
@@ -517,6 +613,13 @@ def change_password(
         new_password     : Nouveau mot de passe (minimum 6 caractères)
     """
 
+    # Compte Google-only : pas de mot de passe local à changer
+    if current_user.password_hash is None:
+        raise HTTPException(
+            status_code=400,
+            detail="Votre compte utilise Google. Impossible de définir un mot de passe local."
+        )
+
     # Vérifier que le mot de passe actuel est correct
     if not verify_password(data.current_password, current_user.password_hash):
         raise HTTPException(
@@ -524,15 +627,25 @@ def change_password(
             detail="Mot de passe actuel incorrect."
         )
 
-    # Vérifier la longueur du nouveau mot de passe
-    if len(data.new_password) < 6:
+    # Vérifier que le nouveau mot de passe est différent de l'ancien
+    if verify_password(data.new_password, current_user.password_hash):
         raise HTTPException(
             status_code=400,
-            detail="Le nouveau mot de passe doit contenir au moins 6 caractères."
+            detail="Le nouveau mot de passe doit être différent de l'ancien."
         )
 
-    # Mettre à jour le mot de passe
-    current_user.password_hash = hash_password(data.new_password)
+    # Validation de la force du mot de passe
+    pw = data.new_password
+    if len(pw) < 8:
+        raise HTTPException(status_code=400, detail="Le mot de passe doit contenir au moins 8 caractères.")
+    if not any(c.isdigit() for c in pw):
+        raise HTTPException(status_code=400, detail="Le mot de passe doit contenir au moins un chiffre.")
+    if not any(c.isalpha() for c in pw):
+        raise HTTPException(status_code=400, detail="Le mot de passe doit contenir au moins une lettre.")
+
+    # Mettre à jour le mot de passe et révoquer les JWT existants
+    current_user.password_hash  = hash_password(data.new_password)
+    current_user.token_version  = (current_user.token_version or 0) + 1
     db.commit()
 
-    return {"message": "Mot de passe modifié avec succès."}
+    return {"message": "Mot de passe modifié avec succès. Veuillez vous reconnecter."}

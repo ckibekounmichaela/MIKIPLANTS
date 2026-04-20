@@ -86,87 +86,63 @@ function renderScans(scans) {
     const grid = document.getElementById("scansGrid");
     document.getElementById("noResultsMessage").classList.add("d-none");
 
-    // Générer une card Bootstrap pour chaque scan
-    grid.innerHTML = scans.map(scan => `
-        <div class="col-md-4 col-lg-3" id="scanCard_${scan.id}">
-            <div class="card border-0 shadow-sm h-100 scan-card position-relative">
+    // Cacher le skeleton statique et afficher la vraie grille
+    const skeleton = document.getElementById("scanSkeleton");
+    if (skeleton) skeleton.classList.add("d-none");
+    grid.classList.remove("d-none");
 
-                <!-- Bouton suppression (visible au survol via CSS) -->
-                <button class="btn btn-danger btn-sm btn-delete position-absolute top-0 end-0 m-2 rounded-circle"
-                        style="width:32px;height:32px;padding:0;z-index:1;"
-                        onclick="openDeleteModal(${scan.id}, event)"
-                        title="Supprimer ce scan">
+    grid.innerHTML = scans.map(scan => {
+        const conf = (scan.confidence_score * 100).toFixed(0);
+        const confColor = scan.confidence_score >= 0.8 ? '#198754'
+                        : scan.confidence_score >= 0.5 ? '#ffc107' : '#dc3545';
+        const badges = [
+            scan.is_toxic     ? `<span class="badge-pill bg-danger bg-opacity-15 text-danger">⚠️ Toxique</span>`    : "",
+            scan.is_edible    ? `<span class="badge-pill bg-success bg-opacity-15 text-success">✅ Comestible</span>` : "",
+            scan.is_medicinal ? `<span class="badge-pill bg-info bg-opacity-15 text-info">💊 Médicinal</span>`       : "",
+            scan.is_invasive  ? `<span class="badge-pill bg-warning bg-opacity-15 text-warning">🌿 Invasif</span>`   : "",
+        ].filter(Boolean).join("") || `<span class="badge-pill bg-secondary bg-opacity-15 text-secondary">Non classifié</span>`;
+
+        return `
+        <div class="col-6 col-md-4 col-lg-3" id="scanCard_${scan.id}">
+            <div class="scan-card-new position-relative" onclick="viewRapport(${scan.id})">
+                <!-- Badge confiance -->
+                <div class="conf-badge">${conf}%</div>
+                <!-- Bouton suppression -->
+                <button class="del-btn" onclick="openDeleteModal(${scan.id}, event)" title="Supprimer">
                     <i class="bi bi-trash"></i>
                 </button>
-
                 <!-- Image -->
-                <img src="/${scan.image_path}" class="card-img-top"
-                     style="height:180px;object-fit:cover;cursor:pointer;"
-                     onclick="viewRapport(${scan.id})"
-                     onerror="this.src='https://via.placeholder.com/300x180/e9ecef/6c757d?text=Image+non+disponible'">
-
-                <!-- Corps de la card -->
-                <div class="card-body p-3" style="cursor:pointer;" onclick="viewRapport(${scan.id})">
-                    <h6 class="fw-bold mb-1 text-truncate" title="${scan.plant_name}">
-                        ${scan.plant_name || "Plante inconnue"}
-                    </h6>
-                    <small class="text-muted fst-italic d-block mb-2 text-truncate">
-                        ${scan.plant_scientific_name || ""}
-                    </small>
-
-                    <!-- Badges -->
-                    <div class="d-flex flex-wrap gap-1 mb-2">
-                        ${scan.is_toxic
-                            ? `<span class="badge bg-danger plant-tag">⚠️ Toxique</span>`
-                            : ""}
-                        ${scan.is_edible
-                            ? `<span class="badge bg-success plant-tag">✅ Comestible</span>`
-                            : ""}
-                        ${scan.is_medicinal
-                            ? `<span class="badge bg-info text-dark plant-tag">💊 Médicinal</span>`
-                            : ""}
-                        ${scan.is_invasive
-                            ? `<span class="badge bg-warning text-dark plant-tag">🌿 Invasif</span>`
-                            : ""}
-                        ${!scan.is_toxic && !scan.is_edible && !scan.is_medicinal && !scan.is_invasive
-                            ? `<span class="badge bg-secondary plant-tag">Non classifié</span>`
-                            : ""}
-                    </div>
-
-                    <!-- Score de confiance -->
+                <img src="/${scan.image_path}?token=${localStorage.getItem('access_token')}" alt="${scan.plant_name}"
+                     onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22170%22%3E%3Crect width=%22300%22 height=%22170%22 fill=%22%23e9ecef%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%239ca3af%22 font-size=%2240%22%3E🌿%3C/text%3E%3C/svg%3E'">
+                <!-- Contenu -->
+                <div class="card-content">
+                    <div class="plant-name" title="${scan.plant_name}">${scan.plant_name || "Plante inconnue"}</div>
+                    <div class="plant-sci">${scan.plant_scientific_name || ""}</div>
+                    <div class="plant-badges mb-2">${badges}</div>
                     <div class="d-flex align-items-center gap-2">
-                        <div class="progress flex-grow-1" style="height:4px;">
-                            <div class="progress-bar ${scan.confidence_score >= 0.8 ? 'bg-success' : scan.confidence_score >= 0.5 ? 'bg-warning' : 'bg-danger'}"
-                                 style="width:${scan.confidence_score * 100}%"></div>
+                        <div style="flex:1;height:4px;background:#f0f0f0;border-radius:2px;overflow:hidden;">
+                            <div style="height:100%;width:${conf}%;background:${confColor};border-radius:2px;"></div>
                         </div>
-                        <small class="text-muted">${(scan.confidence_score * 100).toFixed(0)}%</small>
+                        <small style="color:${confColor};font-weight:700;font-size:0.72rem;">${conf}%</small>
                     </div>
-                </div>
-
-                <!-- Pied de card : date + localisation -->
-                <div class="card-footer bg-transparent border-0 text-muted small p-3 pt-0">
-                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-1">
-                        <span><i class="bi bi-calendar3 me-1"></i>${formatDate(scan.created_at)}</span>
+                    <div class="mt-2" style="font-size:0.72rem;color:#9ca3af;">
+                        <i class="bi bi-calendar3 me-1"></i>${formatDate(scan.created_at)}
                         ${scan.latitude && scan.longitude
                             ? `<a href="https://www.openstreetmap.org/?mlat=${scan.latitude}&mlon=${scan.longitude}&zoom=15"
-                                  target="_blank" class="text-success text-decoration-none"
-                                  id="geo-${scan.id}"
-                                  title="Voir sur la carte (${scan.latitude.toFixed(4)}, ${scan.longitude.toFixed(4)})">
+                                  target="_blank" class="ms-2 text-success text-decoration-none"
+                                  id="geo-${scan.id}" onclick="event.stopPropagation()">
                                   <i class="bi bi-geo-alt-fill"></i>
-                                  <span class="geo-label">Chargement...</span>
+                                  <span class="geo-label">…</span>
                                </a>`
-                            : `<span class="text-muted opacity-50"><i class="bi bi-geo-alt"></i> Non localisé</span>`
-                        }
+                            : ""}
                     </div>
                 </div>
             </div>
-        </div>
-    `).join("");
+        </div>`;
+    }).join("");
 
-    // Mettre à jour la pagination
     renderPagination(scans.length);
 
-    // Charger les noms de lieux pour les scans géolocalisés
     scans.forEach(scan => {
         if (scan.latitude && scan.longitude) {
             resolveGeoLabel(scan.id, scan.latitude, scan.longitude);
@@ -248,9 +224,22 @@ function applyFilter(filter, btn) {
     currentFilter = filter;
     currentPage   = 1;
 
-    // Mettre à jour les styles des boutons de filtre
-    document.querySelectorAll(".btn-group .btn").forEach(b => b.classList.remove("active"));
-    if (btn) btn.classList.add("active");
+    // Retirer toutes les classes actives des pills
+    document.querySelectorAll(".filter-pill").forEach(b => {
+        b.className = "filter-pill"; // reset
+    });
+
+    // Appliquer la bonne classe active selon le filtre
+    if (btn) {
+        const activeClass = {
+            "":         "active-all",
+            "toxic":    "active-toxic",
+            "edible":   "active-edible",
+            "medicinal":"active-medic",
+            "invasive": "active-inv",
+        }[filter] || "active-all";
+        btn.classList.add(activeClass);
+    }
 
     loadScans();
 }
@@ -416,24 +405,18 @@ function viewRapport(scanId) {
 
 /** Afficher les skeletons de chargement. */
 function showSkeletons() {
-    const grid = document.getElementById("scansGrid");
-    grid.innerHTML = Array(4).fill(`
-        <div class="col-md-4 col-lg-3 skeleton-card">
-            <div class="card border-0 shadow-sm placeholder-glow">
-                <div class="placeholder" style="height:180px;border-radius:8px 8px 0 0;"></div>
-                <div class="card-body">
-                    <div class="placeholder col-8 mb-2"></div>
-                    <div class="placeholder col-5 mb-2"></div>
-                    <div class="placeholder col-6"></div>
-                </div>
-            </div>
-        </div>
-    `).join("");
+    // Montrer le skeleton statique, cacher la vraie grille
+    const skeleton = document.getElementById("scanSkeleton");
+    if (skeleton) skeleton.classList.remove("d-none");
+    document.getElementById("scansGrid").classList.add("d-none");
     document.getElementById("noResultsMessage").classList.add("d-none");
 }
 
 /** Afficher le message "aucun résultat". */
 function showNoResults() {
+    const skeleton = document.getElementById("scanSkeleton");
+    if (skeleton) skeleton.classList.add("d-none");
+    document.getElementById("scansGrid").classList.add("d-none");
     document.getElementById("scansGrid").innerHTML = "";
     document.getElementById("noResultsMessage").classList.remove("d-none");
     document.getElementById("pagination").innerHTML = "";

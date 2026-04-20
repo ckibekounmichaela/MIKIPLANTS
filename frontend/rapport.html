@@ -3,320 +3,361 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WhatAPlant – Rapport d'analyse</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <title>MikiPlants – Rapport d'analyse</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet" crossorigin="anonymous">
     <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        body { background:#f4f6f9; }
+        .top-nav { background:linear-gradient(90deg,#0d5c2e,#198754); box-shadow:0 2px 16px rgba(0,0,0,0.15); }
+
+        /* En-tête plante */
+        .plant-header-card {
+            background:#fff; border-radius:20px;
+            box-shadow:0 4px 24px rgba(0,0,0,0.08); overflow:hidden;
+        }
+        .plant-header-card img {
+            width:100%; height:240px; object-fit:cover;
+        }
+        .confidence-ring {
+            width:72px; height:72px; border-radius:50%;
+            background:linear-gradient(135deg,#198754,#20c997);
+            display:flex; flex-direction:column; align-items:center; justify-content:center;
+            color:#fff; box-shadow:0 4px 16px rgba(25,135,84,0.35); flex-shrink:0;
+        }
+        .confidence-ring .val { font-size:1.2rem; font-weight:800; line-height:1; }
+        .confidence-ring .lbl { font-size:0.55rem; opacity:0.85; }
+
+        /* Badges catégorie */
+        .cat-badge { padding:5px 12px; border-radius:50px; font-size:0.78rem; font-weight:600; }
+
+        /* Bloc local CI */
+        .local-block {
+            background:linear-gradient(135deg,#f0fff4,#d1fae5);
+            border-radius:16px; border-left:4px solid #198754;
+            overflow:hidden;
+        }
+
+        /* Report cards */
+        .report-card-new {
+            background:#fff; border-radius:16px;
+            box-shadow:0 2px 14px rgba(0,0,0,0.07);
+            height:100%; transition:box-shadow 0.2s;
+        }
+        .report-card-new:hover { box-shadow:0 6px 24px rgba(0,0,0,0.12); }
+        .report-card-new .card-head {
+            padding:1rem 1.2rem 0.5rem;
+            display:flex; align-items:center; gap:10px;
+        }
+        .report-card-new .card-icon {
+            width:38px; height:38px; border-radius:10px;
+            display:flex; align-items:center; justify-content:center; font-size:1.1rem; flex-shrink:0;
+        }
+        .report-card-new .card-body-inner { padding:0 1.2rem 1.2rem; }
+
+        /* Section title */
+        .sec-title { font-size:1rem; font-weight:700; color:#1a1a2e; display:flex; align-items:center; gap:8px; margin-bottom:1rem; }
+        .sec-dot { width:8px; height:8px; border-radius:50%; background:#198754; }
+
+        /* Chat */
+        .chat-wrap { background:#fff; border-radius:20px; box-shadow:0 2px 14px rgba(0,0,0,0.07); overflow:hidden; }
+        .chat-header {
+            background:linear-gradient(135deg,#0d5c2e,#198754);
+            padding:1rem 1.2rem; color:#fff;
+        }
+        .chat-window {
+            height:360px; overflow-y:auto; padding:1rem;
+            background:#f8f9fa; display:flex; flex-direction:column; gap:12px;
+        }
+        .chat-message { display:flex; flex-direction:column; max-width:82%; }
+        .user-message    { align-self:flex-end; align-items:flex-end; }
+        .assistant-message { align-self:flex-start; align-items:flex-start; }
+        .user-message .message-bubble      { background:linear-gradient(135deg,#198754,#20c997); color:#fff; border-radius:18px 18px 4px 18px; }
+        .assistant-message .message-bubble { background:#fff; color:#212529; border-radius:18px 18px 18px 4px; border:1px solid #e9ecef; }
+        .message-bubble { padding:10px 15px; font-size:0.88rem; line-height:1.5; box-shadow:0 1px 4px rgba(0,0,0,0.07); }
+
+        .quick-q {
+            font-size:0.78rem; border-radius:50px; padding:5px 12px;
+            border:1.5px solid #d1fae5; color:#198754; background:#fff;
+            cursor:pointer; transition:all 0.2s; white-space:nowrap;
+        }
+        .quick-q:hover { background:#198754; color:#fff; border-color:#198754; }
+
+        .chat-input-area { padding:0.85rem 1rem; border-top:1px solid #f0f0f0; background:#fff; }
+        .chat-input-box {
+            display:flex; gap:8px; align-items:center;
+            background:#f4f6f9; border-radius:50px; padding:6px 6px 6px 16px;
+        }
+        .chat-input-box input { border:none; background:transparent; outline:none; flex:1; font-size:0.88rem; }
+        .chat-send-btn {
+            background:linear-gradient(135deg,#198754,#20c997); border:none; color:#fff;
+            border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center;
+            cursor:pointer; flex-shrink:0; transition:transform 0.15s;
+        }
+        .chat-send-btn:hover { transform:scale(1.08); }
+
+        .typing-indicator { display:flex; gap:4px; padding:10px 14px; background:#fff; border-radius:18px 18px 18px 4px; border:1px solid #e9ecef; width:fit-content; }
+        .typing-dot { width:7px; height:7px; border-radius:50%; background:#9ca3af; animation:typing 1.2s infinite; }
+        .typing-dot:nth-child(2){animation-delay:0.2s}
+        .typing-dot:nth-child(3){animation-delay:0.4s}
+        @keyframes typing { 0%,60%,100%{transform:translateY(0);opacity:.4} 30%{transform:translateY(-6px);opacity:1} }
+
+        @keyframes fadeInUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+        .anim{animation:fadeInUp 0.35s ease both}
+        .anim2{animation:fadeInUp 0.35s 0.1s ease both}
+    </style>
 </head>
 <body>
 
-<!-- Navbar -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-success sticky-top shadow-sm">
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg navbar-dark top-nav sticky-top">
     <div class="container">
-        <a class="navbar-brand fw-bold" href="/dashboard"><i class="bi bi-flower1 me-2"></i>WhatAPlant</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMenu">
+        <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="/dashboard">
+            <span style="background:rgba(255,255,255,0.2);border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;"><i class="bi bi-flower1"></i></span>
+            MikiPlants
+        </a>
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
             <span class="navbar-toggler-icon"></span>
         </button>
-        <div class="collapse navbar-collapse" id="navbarMenu">
-            <ul class="navbar-nav me-auto">
-                <li class="nav-item"><a class="nav-link" href="/dashboard"><i class="bi bi-house me-1"></i>Accueil</a></li>
+        <div class="collapse navbar-collapse" id="navMenu">
+            <ul class="navbar-nav me-auto gap-1">
+                <li class="nav-item"><a class="nav-link" href="/dashboard"><i class="bi bi-house-fill me-1"></i>Accueil</a></li>
                 <li class="nav-item"><a class="nav-link" href="/scan"><i class="bi bi-camera me-1"></i>Analyser</a></li>
                 <li class="nav-item"><a class="nav-link" href="/historique"><i class="bi bi-clock-history me-1"></i>Historique</a></li>
                 <li class="nav-item"><a class="nav-link" href="/analytics"><i class="bi bi-bar-chart-line me-1"></i>Analytics</a></li>
             </ul>
             <div class="dropdown">
-                <button class="btn btn-outline-light btn-sm dropdown-toggle d-flex align-items-center gap-2"
-                        data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="bi bi-person-circle"></i>
-                    <span id="navUsername">...</span>
+                <button class="btn btn-sm dropdown-toggle d-flex align-items-center gap-2"
+                        style="background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:50px;padding:6px 14px;"
+                        data-bs-toggle="dropdown">
+                    <i class="bi bi-person-fill"></i><span id="navUsername">...</span>
                 </button>
-                <ul class="dropdown-menu dropdown-menu-end">
-                    <li>
-                        <a class="dropdown-item" href="/profil">
-                            <i class="bi bi-person me-2 text-success"></i>Mon profil
-                        </a>
-                    </li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li>
-                        <a class="dropdown-item text-danger" href="#" onclick="logout()">
-                            <i class="bi bi-box-arrow-right me-2"></i>Déconnexion
-                        </a>
-                    </li>
+                <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg" style="border-radius:12px;">
+                    <li><a class="dropdown-item py-2" href="/profil"><i class="bi bi-person me-2 text-success"></i>Mon profil</a></li>
+                    <li><hr class="dropdown-divider my-1"></li>
+                    <li><a class="dropdown-item py-2 text-danger" href="#" onclick="logout()"><i class="bi bi-box-arrow-right me-2"></i>Déconnexion</a></li>
                 </ul>
             </div>
         </div>
     </div>
 </nav>
 
-<main class="container py-4">
+<main class="container py-4" style="max-width:960px;">
 
-    <!-- Overlay de chargement -->
+    <!-- Chargement -->
     <div id="loadingOverlay" class="text-center py-5">
         <div class="spinner-border text-success mb-3" style="width:3rem;height:3rem;"></div>
         <p class="text-muted">Chargement du rapport...</p>
     </div>
 
-    <!-- Message d'erreur -->
+    <!-- Erreur -->
     <div id="errorOverlay" class="d-none text-center py-5">
-        <i class="bi bi-exclamation-circle text-danger" style="font-size:3rem;"></i>
-        <p class="text-danger fw-bold mt-3" id="errorOverlayMsg">Impossible de charger le rapport.</p>
-        <a href="/historique" class="btn btn-outline-secondary btn-sm mt-2">
+        <div style="font-size:3rem;margin-bottom:1rem;">⚠️</div>
+        <p class="fw-bold text-danger" id="errorOverlayMsg">Impossible de charger le rapport.</p>
+        <a href="/historique" class="btn btn-outline-secondary btn-sm mt-2" style="border-radius:50px;">
             <i class="bi bi-arrow-left me-1"></i>Retour à l'historique
         </a>
     </div>
 
-    <!-- Contenu principal (caché pendant le chargement) -->
+    <!-- CONTENU -->
     <div id="rapportContent" class="d-none">
 
-    <!-- Bouton retour -->
-    <a href="/historique" class="btn btn-outline-secondary btn-sm mb-4">
-        <i class="bi bi-arrow-left me-1"></i>Retour à l'historique
-    </a>
+        <!-- Retour -->
+        <a href="/historique" class="btn btn-light btn-sm mb-4 d-inline-flex align-items-center gap-2"
+           style="border-radius:50px;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+            <i class="bi bi-arrow-left"></i>Retour à l'historique
+        </a>
 
-    <!-- ======================================================
-         EN-TÊTE DU RAPPORT : Photo + Identité de la plante
-         ====================================================== -->
-    <div class="card border-0 shadow-sm mb-4" id="plantHeader">
-        <div class="card-body p-0">
+        <!-- EN-TÊTE PLANTE -->
+        <div class="plant-header-card mb-4 anim">
             <div class="row g-0">
-                <!-- Photo de la plante -->
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <img id="plantImage" src="" alt="Photo de la plante"
-                         class="img-fluid rounded-start"
-                         style="height: 220px; width: 100%; object-fit: cover;">
+                         onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22240%22%3E%3Crect width=%22400%22 height=%22240%22 fill=%22%23e9ecef%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%239ca3af%22 font-size=%2260%22%3E🌿%3C/text%3E%3C/svg%3E'">
                 </div>
-                <!-- Informations d'identification -->
-                <div class="col-md-9 p-4 d-flex flex-column justify-content-center">
-                    <div class="d-flex align-items-start justify-content-between flex-wrap gap-2 mb-2">
+                <div class="col-md-8 p-4 d-flex flex-column justify-content-center">
+                    <div class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-3">
                         <div>
                             <h2 class="fw-bold mb-1" id="plantName">Chargement...</h2>
-                            <p class="text-muted fst-italic mb-1" id="plantScientific"></p>
-                            <span class="badge bg-secondary" id="plantFamily"></span>
+                            <p class="text-muted fst-italic mb-2" id="plantScientific"></p>
+                            <span class="badge" style="background:#f0f0f0;color:#6c757d;" id="plantFamily"></span>
                         </div>
-                        <!-- Score de confiance -->
-                        <div class="text-end">
-                            <div class="confidence-badge" id="confidenceBadge">
-                                <span id="confidenceValue">-</span>
-                            </div>
-                            <small class="text-muted d-block mt-1">Confiance</small>
+                        <div class="confidence-ring">
+                            <div class="val" id="confidenceValue">—</div>
+                            <div class="lbl">confiance</div>
                         </div>
                     </div>
-                    <!-- Barre de confiance -->
-                    <div class="progress mt-2" style="height: 8px;">
-                        <div class="progress-bar bg-success" id="confidenceBar" style="width: 0%"></div>
+                    <div class="progress mb-3" style="height:6px;border-radius:50px;">
+                        <div class="progress-bar" id="confidenceBar"
+                             style="width:0%;background:linear-gradient(90deg,#198754,#20c997);border-radius:50px;"></div>
                     </div>
-                    <!-- Badges de catégorie -->
-                    <div class="d-flex flex-wrap gap-2 mt-3" id="categoryBadges"></div>
+                    <div class="d-flex flex-wrap gap-2" id="categoryBadges"></div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- ======================================================
-         BLOC DONNÉES LOCALES CI (visible si lookup trouvé)
-         ====================================================== -->
-    <div id="localMatchBlock" class="d-none mb-4">
-        <div class="alert border-0 shadow-sm p-0 overflow-hidden" style="border-radius:12px;">
-            <div class="d-flex align-items-stretch">
-                <!-- Bandeau vert latéral -->
-                <div class="bg-success d-flex align-items-center justify-content-center px-3"
-                     style="min-width:54px;">
-                    <i class="bi bi-database-check text-white fs-4"></i>
+        <!-- BLOC LOCAL CI -->
+        <div id="localMatchBlock" class="d-none local-block p-3 mb-4 anim">
+            <div class="d-flex align-items-start gap-3 flex-wrap">
+                <div style="background:#198754;border-radius:10px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <i class="bi bi-database-check text-white"></i>
                 </div>
-                <!-- Contenu -->
-                <div class="p-3 flex-grow-1">
-                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-1">
                         <div>
-                            <span class="badge bg-success mb-1">
-                                <i class="bi bi-geo-alt-fill me-1"></i>Base locale Côte d'Ivoire
-                            </span>
+                            <span class="badge bg-success mb-1"><i class="bi bi-geo-alt-fill me-1"></i>Base locale Côte d'Ivoire</span>
                             <h6 class="fw-bold mb-0">
-                                Correspondance trouvée :
-                                <span id="localMatchName" class="text-success"></span>
+                                Correspondance : <span id="localMatchName" class="text-success"></span>
                                 <small class="text-muted fw-normal ms-1" id="localMatchLocalName"></small>
                             </h6>
                             <small class="text-muted fst-italic" id="localMatchSci"></small>
                         </div>
-                        <small class="text-success fw-semibold">
-                            <i class="bi bi-check-circle-fill me-1"></i>Rapport enrichi avec données CI
-                        </small>
+                        <small class="text-success fw-semibold"><i class="bi bi-check-circle-fill me-1"></i>Rapport enrichi CI</small>
                     </div>
-                    <hr class="my-2">
-                    <div class="row g-2 small">
-                        <div class="col-md-4">
-                            <span class="text-muted"><i class="bi bi-map me-1"></i><strong>Habitat :</strong></span>
-                            <span id="localMatchHabitat">—</span>
-                        </div>
-                        <div class="col-md-4">
-                            <span class="text-muted"><i class="bi bi-geo me-1"></i><strong>Régions CI :</strong></span>
-                            <span id="localMatchRegions">—</span>
-                        </div>
-                        <div class="col-md-4">
-                            <span class="text-muted"><i class="bi bi-egg-fried me-1"></i><strong>Cuisine locale :</strong></span>
-                            <span id="localMatchCulinary">—</span>
-                        </div>
+                    <div class="row g-2 small mt-1">
+                        <div class="col-md-4"><span class="text-muted"><i class="bi bi-map me-1"></i><strong>Habitat :</strong></span> <span id="localMatchHabitat">—</span></div>
+                        <div class="col-md-4"><span class="text-muted"><i class="bi bi-geo me-1"></i><strong>Régions :</strong></span> <span id="localMatchRegions">—</span></div>
+                        <div class="col-md-4"><span class="text-muted"><i class="bi bi-egg-fried me-1"></i><strong>Cuisine :</strong></span> <span id="localMatchCulinary">—</span></div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- ======================================================
-         5 CARDS D'ANALYSE (générées par JS)
-         ====================================================== -->
-    <div class="row g-3 mb-4" id="reportCards">
+        <!-- 5 CARDS D'ANALYSE -->
+        <div class="anim2">
+            <div class="sec-title mb-3"><span class="sec-dot"></span>Rapport complet d'analyse</div>
+        </div>
 
-        <!-- Card Santé -->
-        <div class="col-md-6 col-lg-4">
-            <div class="card border-0 shadow-sm h-100 report-card" id="cardHealth">
-                <div class="card-header border-0 bg-transparent pt-3 pb-0">
-                    <h5 class="fw-bold">
-                        <i class="bi bi-heart-pulse me-2 text-success"></i>Santé de la plante
-                    </h5>
-                </div>
-                <div class="card-body" id="healthContent">
-                    <div class="placeholder-glow"><div class="placeholder col-12 mb-2"></div><div class="placeholder col-8"></div></div>
+        <div class="row g-3 mb-4 anim2" id="reportCards">
+
+            <!-- Santé -->
+            <div class="col-md-6 col-lg-4">
+                <div class="report-card-new" id="cardHealth">
+                    <div class="card-head">
+                        <div class="card-icon" style="background:#d1fae5;"><i class="bi bi-heart-pulse text-success"></i></div>
+                        <span class="fw-bold">Santé de la plante</span>
+                    </div>
+                    <div class="card-body-inner" id="healthContent">
+                        <div class="placeholder-glow"><div class="placeholder col-12 mb-2"></div><div class="placeholder col-8"></div></div>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Card Comestibilité -->
-        <div class="col-md-6 col-lg-4">
-            <div class="card border-0 shadow-sm h-100 report-card" id="cardEdibility">
-                <div class="card-header border-0 bg-transparent pt-3 pb-0">
-                    <h5 class="fw-bold">
-                        <i class="bi bi-egg-fried me-2 text-warning"></i>Comestibilité
-                    </h5>
-                </div>
-                <div class="card-body" id="edibilityContent">
-                    <div class="placeholder-glow"><div class="placeholder col-12 mb-2"></div><div class="placeholder col-8"></div></div>
+            <!-- Comestibilité -->
+            <div class="col-md-6 col-lg-4">
+                <div class="report-card-new" id="cardEdibility">
+                    <div class="card-head">
+                        <div class="card-icon" style="background:#fef3c7;"><i class="bi bi-egg-fried text-warning"></i></div>
+                        <span class="fw-bold">Comestibilité</span>
+                    </div>
+                    <div class="card-body-inner" id="edibilityContent">
+                        <div class="placeholder-glow"><div class="placeholder col-12 mb-2"></div><div class="placeholder col-8"></div></div>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Card Médicinal -->
-        <div class="col-md-6 col-lg-4">
-            <div class="card border-0 shadow-sm h-100 report-card" id="cardMedicinal">
-                <div class="card-header border-0 bg-transparent pt-3 pb-0">
-                    <h5 class="fw-bold">
-                        <i class="bi bi-capsule me-2 text-info"></i>Propriétés médicinales
-                    </h5>
-                </div>
-                <div class="card-body" id="medicinalContent">
-                    <div class="placeholder-glow"><div class="placeholder col-12 mb-2"></div><div class="placeholder col-8"></div></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Card Toxicité -->
-        <div class="col-md-6 col-lg-6">
-            <div class="card border-0 shadow-sm h-100 report-card" id="cardToxicity">
-                <div class="card-header border-0 bg-transparent pt-3 pb-0">
-                    <h5 class="fw-bold">
-                        <i class="bi bi-exclamation-triangle me-2 text-danger"></i>Toxicité & Sécurité
-                    </h5>
-                </div>
-                <div class="card-body" id="toxicityContent">
-                    <div class="placeholder-glow"><div class="placeholder col-12 mb-2"></div><div class="placeholder col-8"></div></div>
+            <!-- Médicinal -->
+            <div class="col-md-6 col-lg-4">
+                <div class="report-card-new" id="cardMedicinal">
+                    <div class="card-head">
+                        <div class="card-icon" style="background:#cffafe;"><i class="bi bi-capsule text-info"></i></div>
+                        <span class="fw-bold">Propriétés médicinales</span>
+                    </div>
+                    <div class="card-body-inner" id="medicinalContent">
+                        <div class="placeholder-glow"><div class="placeholder col-12 mb-2"></div><div class="placeholder col-8"></div></div>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Card Environnement -->
-        <div class="col-md-12 col-lg-6">
-            <div class="card border-0 shadow-sm h-100 report-card" id="cardEnvironment">
-                <div class="card-header border-0 bg-transparent pt-3 pb-0">
-                    <h5 class="fw-bold">
-                        <i class="bi bi-tree me-2 text-success"></i>Impact environnemental
-                    </h5>
-                </div>
-                <div class="card-body" id="environmentContent">
-                    <div class="placeholder-glow"><div class="placeholder col-12 mb-2"></div><div class="placeholder col-8"></div></div>
+            <!-- Toxicité -->
+            <div class="col-md-6 col-lg-6">
+                <div class="report-card-new" id="cardToxicity">
+                    <div class="card-head">
+                        <div class="card-icon" style="background:#fee2e2;"><i class="bi bi-exclamation-triangle text-danger"></i></div>
+                        <span class="fw-bold">Toxicité & Sécurité</span>
+                    </div>
+                    <div class="card-body-inner" id="toxicityContent">
+                        <div class="placeholder-glow"><div class="placeholder col-12 mb-2"></div><div class="placeholder col-8"></div></div>
+                    </div>
                 </div>
             </div>
+
+            <!-- Environnement -->
+            <div class="col-md-12 col-lg-6">
+                <div class="report-card-new" id="cardEnvironment">
+                    <div class="card-head">
+                        <div class="card-icon" style="background:#d1fae5;"><i class="bi bi-tree text-success"></i></div>
+                        <span class="fw-bold">Impact environnemental</span>
+                    </div>
+                    <div class="card-body-inner" id="environmentContent">
+                        <div class="placeholder-glow"><div class="placeholder col-12 mb-2"></div><div class="placeholder col-8"></div></div>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
-    </div>
+        <!-- CHAT IA -->
+        <div class="chat-wrap anim2" id="chatSection">
+            <div class="chat-header">
+                <div class="d-flex align-items-center gap-2">
+                    <div style="background:rgba(255,255,255,0.2);border-radius:10px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;">
+                        <i class="bi bi-robot"></i>
+                    </div>
+                    <div>
+                        <div class="fw-bold">Agent IA — Posez vos questions</div>
+                        <div style="font-size:0.78rem;opacity:0.75;">Demandez tout ce que vous souhaitez savoir sur cette plante</div>
+                    </div>
+                </div>
+            </div>
 
-    <!-- ======================================================
-         AGENT CONVERSATIONNEL IA
-         ====================================================== -->
-    <div class="card border-0 shadow-sm" id="chatSection">
-        <div class="card-header bg-success text-white py-3">
-            <h5 class="mb-0 fw-bold">
-                <i class="bi bi-robot me-2"></i>Agent IA — Posez vos questions
-            </h5>
-            <small class="opacity-75">Demandez tout ce que vous voulez savoir sur cette plante</small>
-        </div>
-
-        <!-- Zone d'affichage des messages -->
-        <div class="card-body p-0">
             <div class="chat-window" id="chatWindow">
-                <!-- Message d'accueil de l'IA -->
                 <div class="chat-message assistant-message">
                     <div class="message-bubble">
                         <i class="bi bi-robot me-2 text-success"></i>
                         Bonjour ! Je suis votre assistant botanique. Je viens d'analyser cette plante.
-                        Avez-vous des questions sur sa comestibilité, ses propriétés médicinales,
-                        ou comment l'utiliser en toute sécurité ?
+                        Avez-vous des questions sur sa comestibilité, ses propriétés médicinales ou comment l'utiliser en toute sécurité ?
                     </div>
-                    <small class="text-muted">Agent IA</small>
+                    <small class="text-muted mt-1">Agent IA</small>
                 </div>
             </div>
-        </div>
 
-        <!-- Suggestions de questions rapides -->
-        <div class="px-3 pt-2" id="quickQuestions">
-            <small class="text-muted fw-semibold">Questions rapides :</small>
-            <div class="d-flex flex-wrap gap-2 mt-1 mb-2">
-                <button class="btn btn-outline-success btn-sm quick-question"
-                        onclick="sendQuickQuestion(this)">
-                    Comment préparer une décoction ?
-                </button>
-                <button class="btn btn-outline-success btn-sm quick-question"
-                        onclick="sendQuickQuestion(this)">
-                    Est-ce dangereux pour les enfants ?
-                </button>
-                <button class="btn btn-outline-success btn-sm quick-question"
-                        onclick="sendQuickQuestion(this)">
-                    Quelles parties utiliser ?
-                </button>
-                <button class="btn btn-outline-success btn-sm quick-question"
-                        onclick="sendQuickQuestion(this)">
-                    Comment l'éliminer sans polluer ?
-                </button>
+            <!-- Questions rapides -->
+            <div class="px-3 pt-3 pb-1" id="quickQuestions">
+                <small class="text-muted fw-semibold d-block mb-2">Questions rapides :</small>
+                <div class="d-flex flex-wrap gap-2 pb-2">
+                    <button class="quick-q" onclick="sendQuickQuestion(this)">Comment préparer une décoction ?</button>
+                    <button class="quick-q" onclick="sendQuickQuestion(this)">Est-ce dangereux pour les enfants ?</button>
+                    <button class="quick-q" onclick="sendQuickQuestion(this)">Quelles parties utiliser ?</button>
+                    <button class="quick-q" onclick="sendQuickQuestion(this)">Comment l'éliminer sans polluer ?</button>
+                </div>
+            </div>
+
+            <div class="chat-input-area">
+                <div class="chat-input-box">
+                    <input type="text" id="chatInput"
+                           placeholder="Ex : Comment préparer une décoction avec cette plante ?"
+                           onkeypress="if(event.key==='Enter') sendChatMessage()">
+                    <button class="chat-send-btn" onclick="sendChatMessage()" id="chatSendBtn">
+                        <span id="chatBtnText"><i class="bi bi-send-fill" style="font-size:0.85rem;"></i></span>
+                        <span id="chatBtnSpinner" class="d-none"><span class="spinner-border spinner-border-sm"></span></span>
+                    </button>
+                </div>
+                <small class="text-muted mt-2 d-block">
+                    <i class="bi bi-shield-check me-1 text-success"></i>
+                    Pour tout usage médical, consultez toujours un professionnel de santé.
+                </small>
             </div>
         </div>
-
-        <!-- Formulaire d'envoi de message -->
-        <div class="card-footer bg-white border-top p-3">
-            <div class="input-group">
-                <input type="text" class="form-control" id="chatInput"
-                       placeholder="Ex : Comment préparer une décoction avec cette plante ?"
-                       onkeypress="if(event.key==='Enter') sendChatMessage()">
-                <button class="btn btn-success" onclick="sendChatMessage()" id="chatSendBtn">
-                    <span id="chatBtnText"><i class="bi bi-send-fill"></i></span>
-                    <span id="chatBtnSpinner" class="d-none">
-                        <span class="spinner-border spinner-border-sm"></span>
-                    </span>
-                </button>
-            </div>
-            <small class="text-muted mt-1 d-block">
-                <i class="bi bi-shield-check me-1 text-success"></i>
-                Pour tout usage médical, consultez toujours un professionnel de santé.
-            </small>
-        </div>
-    </div>
 
     </div><!-- fin #rapportContent -->
 
 </main>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
 <script src="/static/js/api.js?v=2"></script>
 <script src="/static/js/auth.js?v=2"></script>
 <script src="/static/js/rapport.js?v=2"></script>
 <script src="/static/js/chat.js?v=2"></script>
-
 </body>
 </html>

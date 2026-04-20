@@ -3,419 +3,434 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WhatAPlant – Analytics</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <title>MikiPlants – Analytics</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet" crossorigin="anonymous">
     <link rel="stylesheet" href="/static/css/style.css">
-    <!-- Leaflet.js — Carte interactive (OpenStreetMap, sans clé API) -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous"/>
     <style>
-        #scanMap { height: 380px; border-radius: 12px; z-index: 0; }
-        .leaflet-popup-content { font-size: 0.85rem; min-width: 160px; }
-        .map-legend { background: white; padding: 8px 12px; border-radius: 8px;
-                      box-shadow: 0 2px 8px rgba(0,0,0,0.12); font-size: 0.78rem; }
-        .map-legend span { display: inline-block; width: 12px; height: 12px;
-                           border-radius: 50%; margin-right: 5px; vertical-align: middle; }
+        body { background:#f4f6f9; }
+        .top-nav { background:linear-gradient(90deg,#0d5c2e,#198754); box-shadow:0 2px 16px rgba(0,0,0,0.15); }
+
+        /* Hero */
+        .page-hero {
+            background:linear-gradient(135deg,#0d5c2e 0%,#198754 50%,#20c997 100%);
+            padding:2.2rem 0 3.5rem; position:relative; overflow:hidden;
+        }
+        .page-hero::after {
+            content:""; position:absolute; bottom:-2px; left:0; right:0; height:40px;
+            background:#f4f6f9; clip-path:ellipse(55% 100% at 50% 100%);
+        }
+
+        /* View tabs */
+        .view-tabs { display:flex; background:#fff; border-radius:14px; padding:5px; box-shadow:0 2px 12px rgba(0,0,0,0.08); width:fit-content; }
+        .view-tab {
+            padding:8px 20px; border:none; border-radius:10px; background:transparent;
+            font-weight:600; font-size:0.88rem; color:#6c757d; cursor:pointer; transition:all 0.2s;
+            display:flex; align-items:center; gap:6px; white-space:nowrap;
+        }
+        .view-tab.active { background:linear-gradient(135deg,#198754,#20c997); color:#fff; box-shadow:0 4px 12px rgba(25,135,84,0.3); }
+
+        /* KPI cards */
+        .kpi-new {
+            background:#fff; border-radius:16px; box-shadow:0 2px 14px rgba(0,0,0,0.07);
+            padding:1.1rem 1rem; text-align:center; height:100%;
+            transition:transform 0.2s, box-shadow 0.2s;
+        }
+        .kpi-new:hover { transform:translateY(-4px); box-shadow:0 8px 28px rgba(0,0,0,0.12); }
+        .kpi-new .kpi-ico { width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.2rem; margin:0 auto 0.6rem; }
+        .kpi-new .kpi-val { font-size:1.9rem; font-weight:800; line-height:1; }
+        .kpi-new .kpi-lbl { font-size:0.75rem; color:#9ca3af; margin-top:4px; }
+
+        /* Chart cards */
+        .chart-card { background:#fff; border-radius:16px; box-shadow:0 2px 14px rgba(0,0,0,0.07); height:100%; }
+        .chart-card .chart-head { padding:1rem 1.2rem 0.5rem; display:flex; align-items:center; justify-content:between; flex-wrap:wrap; gap:8px; }
+        .chart-card .chart-head-title { font-weight:700; font-size:0.92rem; color:#1a1a2e; display:flex; align-items:center; gap:8px; }
+        .chart-card .chart-body { padding:0.5rem 1.2rem 1.2rem; }
+
+        /* Section title */
+        .sec-title { font-size:1rem; font-weight:700; color:#1a1a2e; display:flex; align-items:center; gap:8px; margin-bottom:1rem; }
+        .sec-dot { width:8px; height:8px; border-radius:50%; background:#198754; flex-shrink:0; }
+
+        /* Map */
+        #scanMap { height:360px; border-radius:12px; z-index:0; }
+        #gRiskMap { height:280px; border-radius:12px; z-index:0; }
+        .leaflet-popup-content { font-size:0.85rem; min-width:160px; }
+        .map-legend { background:#fff; padding:6px 12px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.1); font-size:0.75rem; display:flex; flex-wrap:wrap; gap:10px; }
+        .map-legend span { display:inline-flex; align-items:center; gap:4px; }
+        .map-legend .dot { width:10px; height:10px; border-radius:50%; display:inline-block; }
+
+        /* Alert items */
+        .alert-item { padding:0.85rem 1rem; border-bottom:1px solid #f3f4f6; display:flex; align-items:flex-start; gap:10px; }
+        .alert-item:last-child { border-bottom:none; }
+        .alert-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; margin-top:4px; }
+
+        /* Privacy banner */
+        .privacy-banner { background:linear-gradient(135deg,#dbeafe,#eff6ff); border-radius:12px; border-left:4px solid #3b82f6; padding:12px 16px; }
+
+        @keyframes fadeInUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+        .anim{animation:fadeInUp 0.35s ease both}
+        .anim2{animation:fadeInUp 0.35s 0.1s ease both}
     </style>
 </head>
 <body>
 
-<!-- Navbar -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-success sticky-top shadow-sm">
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg navbar-dark top-nav sticky-top">
     <div class="container">
-        <a class="navbar-brand fw-bold" href="/dashboard"><i class="bi bi-flower1 me-2"></i>WhatAPlant</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMenu">
+        <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="/dashboard">
+            <span style="background:rgba(255,255,255,0.2);border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;"><i class="bi bi-flower1"></i></span>
+            MikiPlants
+        </a>
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
             <span class="navbar-toggler-icon"></span>
         </button>
-        <div class="collapse navbar-collapse" id="navbarMenu">
-            <ul class="navbar-nav me-auto">
-                <li class="nav-item"><a class="nav-link" href="/dashboard"><i class="bi bi-house me-1"></i>Accueil</a></li>
+        <div class="collapse navbar-collapse" id="navMenu">
+            <ul class="navbar-nav me-auto gap-1">
+                <li class="nav-item"><a class="nav-link" href="/dashboard"><i class="bi bi-house-fill me-1"></i>Accueil</a></li>
                 <li class="nav-item"><a class="nav-link" href="/scan"><i class="bi bi-camera me-1"></i>Analyser</a></li>
                 <li class="nav-item"><a class="nav-link" href="/historique"><i class="bi bi-clock-history me-1"></i>Historique</a></li>
-                <li class="nav-item"><a class="nav-link active" href="/analytics"><i class="bi bi-bar-chart-line me-1"></i>Analytics</a></li>
+                <li class="nav-item"><a class="nav-link active fw-semibold" href="/analytics"><i class="bi bi-bar-chart-line me-1"></i>Analytics</a></li>
             </ul>
             <div class="dropdown">
-                <button class="btn btn-outline-light btn-sm dropdown-toggle d-flex align-items-center gap-2"
-                        data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="bi bi-person-circle"></i>
-                    <span id="navUsername">...</span>
+                <button class="btn btn-sm dropdown-toggle d-flex align-items-center gap-2"
+                        style="background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:50px;padding:6px 14px;"
+                        data-bs-toggle="dropdown">
+                    <i class="bi bi-person-fill"></i><span id="navUsername">...</span>
                 </button>
-                <ul class="dropdown-menu dropdown-menu-end">
-                    <li>
-                        <a class="dropdown-item" href="/profil">
-                            <i class="bi bi-person me-2 text-success"></i>Mon profil
-                        </a>
-                    </li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li>
-                        <a class="dropdown-item text-danger" href="#" onclick="logout()">
-                            <i class="bi bi-box-arrow-right me-2"></i>Déconnexion
-                        </a>
-                    </li>
+                <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg" style="border-radius:12px;">
+                    <li><a class="dropdown-item py-2" href="/profil"><i class="bi bi-person me-2 text-success"></i>Mon profil</a></li>
+                    <li><hr class="dropdown-divider my-1"></li>
+                    <li><a class="dropdown-item py-2 text-danger" href="#" onclick="logout()"><i class="bi bi-box-arrow-right me-2"></i>Déconnexion</a></li>
                 </ul>
             </div>
         </div>
     </div>
 </nav>
 
-<main class="container py-4">
+<!-- HERO -->
+<div class="page-hero">
+    <div class="container text-white anim">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <div style="background:rgba(255,255,255,0.15);border-radius:12px;width:48px;height:48px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;">
+                    <i class="bi bi-bar-chart-fill"></i>
+                </div>
+                <div>
+                    <h2 class="fw-bold mb-0" style="font-size:1.6rem;">Tableau de bord analytique</h2>
+                    <p class="mb-0" style="opacity:0.8;font-size:0.9rem;">Tendances et statistiques de vos analyses</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
-    <!-- Titre + Onglets -->
-    <div class="mb-4">
-        <h2 class="fw-bold">
-            <i class="bi bi-bar-chart-line text-success me-2"></i>Tableau de bord analytique
-        </h2>
-        <p class="text-muted">Visualisez les tendances et statistiques de vos analyses de plantes.</p>
+<div class="container py-4">
 
-        <!-- Onglets Mes stats / Global -->
-        <ul class="nav nav-pills gap-2" id="analyticsTabs">
-            <li class="nav-item">
-                <button class="nav-link active" id="tabMyStats" onclick="switchTab('my')">
-                    <i class="bi bi-person me-1"></i>Mes statistiques
-                </button>
-            </li>
-            <li class="nav-item">
-                <button class="nav-link" id="tabGlobal" onclick="switchTab('global')">
-                    <i class="bi bi-globe me-1"></i>Statistiques globales
-                    <span class="badge bg-secondary ms-1">Tous utilisateurs</span>
-                </button>
-            </li>
-        </ul>
+    <!-- Tabs + Export -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4 anim">
+        <div class="view-tabs">
+            <button class="view-tab active" id="tabMyStats" onclick="switchTab('my')">
+                <i class="bi bi-person"></i>Mes statistiques
+            </button>
+            <button class="view-tab" id="tabGlobal" onclick="switchTab('global')">
+                <i class="bi bi-globe"></i>Globales
+                <span style="background:rgba(108,117,125,0.15);color:#6c757d;border-radius:50px;padding:1px 8px;font-size:0.7rem;">Tous</span>
+            </button>
+        </div>
+        <div>
+            <button onclick="downloadCsv('/api/analytics/export/tous-les-scans','tous_scans_anonymises.csv')"
+                    id="btnExportAll"
+                    class="btn btn-sm d-none d-flex align-items-center gap-2"
+                    style="background:#fff;border:1.5px solid #e9ecef;border-radius:50px;font-weight:600;font-size:0.82rem;">
+                <i class="bi bi-shield-lock text-success"></i>Export admin (.csv)
+            </button>
+        </div>
     </div>
 
-    <!-- ======================================================
-         VUE : MES STATISTIQUES
-         ====================================================== -->
+    <!-- ══ VUE MES STATS ══════════════════════════════════════ -->
     <div id="viewMyStats">
 
-    <!-- ======================================================
-         CARDS KPI (Indicateurs clés)
-         ====================================================== -->
-    <div class="row g-3 mb-4">
-        <div class="col-6 col-md-4 col-lg-2">
-            <div class="kpi-card text-center p-3 h-100">
-                <div class="kpi-icon bg-primary text-white mb-2">
-                    <i class="bi bi-camera-fill"></i>
+        <!-- KPI -->
+        <div class="row g-3 mb-4 anim">
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="kpi-new">
+                    <div class="kpi-ico" style="background:#dbeafe;"><i class="bi bi-camera-fill text-primary"></i></div>
+                    <div class="kpi-val text-primary" id="kpiTotalScans">—</div>
+                    <div class="kpi-lbl">Total scans</div>
                 </div>
-                <div class="fw-bold fs-3" id="kpiTotalScans">-</div>
-                <div class="text-muted small">Total scans</div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="kpi-new">
+                    <div class="kpi-ico" style="background:#d1fae5;"><i class="bi bi-flower2 text-success"></i></div>
+                    <div class="kpi-val text-success" id="kpiUniquePlants">—</div>
+                    <div class="kpi-lbl">Espèces uniques</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="kpi-new">
+                    <div class="kpi-ico" style="background:#fef3c7;"><i class="bi bi-egg-fried text-warning"></i></div>
+                    <div class="kpi-val text-warning" id="kpiEdible">—</div>
+                    <div class="kpi-lbl">Comestibles</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="kpi-new">
+                    <div class="kpi-ico" style="background:#fee2e2;"><i class="bi bi-exclamation-triangle-fill text-danger"></i></div>
+                    <div class="kpi-val text-danger" id="kpiToxic">—</div>
+                    <div class="kpi-lbl">Toxiques</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="kpi-new">
+                    <div class="kpi-ico" style="background:#cffafe;"><i class="bi bi-capsule-pill text-info"></i></div>
+                    <div class="kpi-val text-info" id="kpiMedicinal">—</div>
+                    <div class="kpi-lbl">Médicinales</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="kpi-new">
+                    <div class="kpi-ico" style="background:#f3f4f6;"><i class="bi bi-tree-fill text-secondary"></i></div>
+                    <div class="kpi-val text-secondary" id="kpiInvasive">—</div>
+                    <div class="kpi-lbl">Invasives</div>
+                </div>
             </div>
         </div>
-        <div class="col-6 col-md-4 col-lg-2">
-            <div class="kpi-card text-center p-3 h-100">
-                <div class="kpi-icon bg-success text-white mb-2">
-                    <i class="bi bi-flower2"></i>
-                </div>
-                <div class="fw-bold fs-3" id="kpiUniquePlants">-</div>
-                <div class="text-muted small">Espèces uniques</div>
-            </div>
-        </div>
-        <div class="col-6 col-md-4 col-lg-2">
-            <div class="kpi-card text-center p-3 h-100">
-                <div class="kpi-icon bg-warning text-white mb-2">
-                    <i class="bi bi-egg-fried"></i>
-                </div>
-                <div class="fw-bold fs-3" id="kpiEdible">-</div>
-                <div class="text-muted small">Comestibles</div>
-            </div>
-        </div>
-        <div class="col-6 col-md-4 col-lg-2">
-            <div class="kpi-card text-center p-3 h-100">
-                <div class="kpi-icon bg-danger text-white mb-2">
-                    <i class="bi bi-exclamation-triangle-fill"></i>
-                </div>
-                <div class="fw-bold fs-3" id="kpiToxic">-</div>
-                <div class="text-muted small">Toxiques</div>
-            </div>
-        </div>
-        <div class="col-6 col-md-4 col-lg-2">
-            <div class="kpi-card text-center p-3 h-100">
-                <div class="kpi-icon bg-info text-white mb-2">
-                    <i class="bi bi-capsule-pill"></i>
-                </div>
-                <div class="fw-bold fs-3" id="kpiMedicinal">-</div>
-                <div class="text-muted small">Médicinales</div>
-            </div>
-        </div>
-        <div class="col-6 col-md-4 col-lg-2">
-            <div class="kpi-card text-center p-3 h-100">
-                <div class="kpi-icon bg-secondary text-white mb-2">
-                    <i class="bi bi-tree-fill"></i>
-                </div>
-                <div class="fw-bold fs-3" id="kpiInvasive">-</div>
-                <div class="text-muted small">Invasives</div>
-            </div>
-        </div>
-    </div>
 
-    <!-- ======================================================
-         CARTE DES SCANS (Leaflet.js)
-         ====================================================== -->
-    <div class="row g-3 mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-transparent border-0 pt-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
-                    <h6 class="fw-bold mb-0">
-                        <i class="bi bi-geo-alt me-2 text-success"></i>
-                        Carte des localisations de scans
-                    </h6>
-                    <div class="d-flex gap-3 align-items-center">
-                        <!-- Légende -->
-                        <div class="map-legend d-flex gap-3 flex-wrap">
-                            <span><span style="background:#198754;"></span>Comestible</span>
-                            <span><span style="background:#dc3545;"></span>Toxique</span>
-                            <span><span style="background:#fd7e14;"></span>Invasive</span>
-                            <span><span style="background:#0dcaf0;"></span>Médicinale</span>
-                            <span><span style="background:#6c757d;"></span>Autre</span>
+        <!-- Carte -->
+        <div class="row g-3 mb-4 anim2">
+            <div class="col-12">
+                <div class="chart-card">
+                    <div class="chart-head">
+                        <div class="chart-head-title flex-grow-1">
+                            <div style="background:#d1fae5;border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;">
+                                <i class="bi bi-geo-alt-fill text-success" style="font-size:0.9rem;"></i>
+                            </div>
+                            Carte des localisations de scans
                         </div>
-                        <small id="mapPointCount" class="text-muted">— scans géolocalisés</small>
+                        <div class="d-flex align-items-center gap-3 flex-wrap">
+                            <div class="map-legend">
+                                <span><span class="dot" style="background:#198754;"></span>Comestible</span>
+                                <span><span class="dot" style="background:#dc3545;"></span>Toxique</span>
+                                <span><span class="dot" style="background:#fd7e14;"></span>Invasive</span>
+                                <span><span class="dot" style="background:#0dcaf0;"></span>Médicinale</span>
+                                <span><span class="dot" style="background:#6c757d;"></span>Autre</span>
+                            </div>
+                            <small id="mapPointCount" class="text-muted">— scans géolocalisés</small>
+                        </div>
                     </div>
-                </div>
-                <div class="card-body p-3">
-                    <div id="scanMap"></div>
-                    <div id="mapNoData" class="text-center py-5 d-none">
-                        <i class="bi bi-geo-alt text-muted" style="font-size:2.5rem;"></i>
-                        <p class="text-muted mt-2 mb-0">Aucun scan géolocalisé.<br>
-                        Autorisez l'accès à votre position lors du prochain scan.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ======================================================
-         GRAPHIQUES (ligne 1)
-         ====================================================== -->
-    <div class="row g-3 mb-4">
-
-        <!-- Graphique en donut : Répartition -->
-        <div class="col-md-5">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-transparent border-0 pt-3">
-                    <h6 class="fw-bold mb-0">
-                        <i class="bi bi-pie-chart me-2 text-success"></i>
-                        Répartition des plantes
-                    </h6>
-                </div>
-                <div class="card-body d-flex align-items-center justify-content-center">
-                    <canvas id="distributionChart" style="max-height: 280px;"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <!-- Graphique en courbes : Évolution temporelle -->
-        <div class="col-md-7">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-transparent border-0 pt-3 d-flex justify-content-between align-items-center">
-                    <h6 class="fw-bold mb-0">
-                        <i class="bi bi-graph-up me-2 text-success"></i>
-                        Évolution des analyses
-                    </h6>
-                    <!-- Sélecteur de période -->
-                    <select class="form-select form-select-sm w-auto" id="timelinePeriod"
-                            onchange="loadTimeline(this.value)">
-                        <option value="7">7 derniers jours</option>
-                        <option value="30" selected>30 derniers jours</option>
-                        <option value="90">3 derniers mois</option>
-                    </select>
-                </div>
-                <div class="card-body">
-                    <canvas id="timelineChart" style="max-height: 260px;"></canvas>
-                </div>
-            </div>
-        </div>
-
-    </div>
-
-    <!-- ======================================================
-         GRAPHIQUES (ligne 2)
-         ====================================================== -->
-    <div class="row g-3 mb-4">
-
-        <!-- Top 10 plantes -->
-        <div class="col-lg-6">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-transparent border-0 pt-3">
-                    <h6 class="fw-bold mb-0">
-                        <i class="bi bi-trophy me-2 text-warning"></i>
-                        Top 10 plantes les plus analysées
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <canvas id="topPlantsChart" style="max-height: 300px;"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <!-- Top maladies -->
-        <div class="col-lg-6">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-transparent border-0 pt-3">
-                    <h6 class="fw-bold mb-0">
-                        <i class="bi bi-virus me-2 text-danger"></i>
-                        Maladies les plus fréquentes
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <canvas id="diseasesChart" style="max-height: 300px;"></canvas>
-                    <div id="noDiseasesData" class="text-center py-4 d-none">
-                        <i class="bi bi-shield-check text-success" style="font-size:2rem;"></i>
-                        <p class="text-muted mt-2 mb-0">Aucune maladie détectée.</p>
+                    <div class="chart-body">
+                        <div id="scanMap"></div>
+                        <div id="mapNoData" class="text-center py-5 d-none">
+                            <div style="font-size:2.5rem;color:#ced4da;margin-bottom:0.75rem;">📍</div>
+                            <p class="text-muted mb-0">Aucun scan géolocalisé.<br>Autorisez la position lors du prochain scan.</p>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-    </div>
-
-    <!-- ======================================================
-         ALERTES
-         ====================================================== -->
-    <div class="row g-3 mb-4">
-
-        <!-- Alertes de tendance -->
-        <div class="col-lg-5">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-transparent border-0 pt-3">
-                    <h6 class="fw-bold mb-0">
-                        <i class="bi bi-graph-up-arrow me-2 text-warning"></i>
-                        Tendances (semaine en cours vs précédente)
-                    </h6>
+        <!-- Graphiques ligne 1 -->
+        <div class="row g-3 mb-4 anim2">
+            <div class="col-md-5">
+                <div class="chart-card">
+                    <div class="chart-head">
+                        <div class="chart-head-title">
+                            <div style="background:#d1fae5;border-radius:8px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;">
+                                <i class="bi bi-pie-chart text-success" style="font-size:0.85rem;"></i>
+                            </div>
+                            Répartition des plantes
+                        </div>
+                    </div>
+                    <div class="chart-body d-flex align-items-center justify-content-center">
+                        <canvas id="distributionChart" style="max-height:260px;"></canvas>
+                    </div>
                 </div>
-                <div class="card-body p-0">
-                    <div id="trendAlertsList" class="list-group list-group-flush">
-                        <div class="list-group-item text-center text-muted py-4">
-                            <span class="spinner-border spinner-border-sm me-2"></span>
-                            Analyse en cours...
+            </div>
+            <div class="col-md-7">
+                <div class="chart-card">
+                    <div class="chart-head d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <div class="chart-head-title">
+                            <div style="background:#d1fae5;border-radius:8px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;">
+                                <i class="bi bi-graph-up text-success" style="font-size:0.85rem;"></i>
+                            </div>
+                            Évolution des analyses
+                        </div>
+                        <select class="form-select form-select-sm w-auto" id="timelinePeriod"
+                                style="border-radius:50px;font-size:0.8rem;border:1.5px solid #e9ecef;"
+                                onchange="loadTimeline(this.value)">
+                            <option value="7">7 jours</option>
+                            <option value="30" selected>30 jours</option>
+                            <option value="90">3 mois</option>
+                        </select>
+                    </div>
+                    <div class="chart-body">
+                        <canvas id="timelineChart" style="max-height:240px;"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Graphiques ligne 2 -->
+        <div class="row g-3 mb-4 anim2">
+            <div class="col-lg-6">
+                <div class="chart-card">
+                    <div class="chart-head">
+                        <div class="chart-head-title">
+                            <div style="background:#fef3c7;border-radius:8px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;">
+                                <i class="bi bi-trophy text-warning" style="font-size:0.85rem;"></i>
+                            </div>
+                            Top 10 plantes analysées
+                        </div>
+                    </div>
+                    <div class="chart-body">
+                        <canvas id="topPlantsChart" style="max-height:280px;"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="chart-card">
+                    <div class="chart-head">
+                        <div class="chart-head-title">
+                            <div style="background:#fee2e2;border-radius:8px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;">
+                                <i class="bi bi-virus text-danger" style="font-size:0.85rem;"></i>
+                            </div>
+                            Maladies les plus fréquentes
+                        </div>
+                    </div>
+                    <div class="chart-body">
+                        <canvas id="diseasesChart" style="max-height:280px;"></canvas>
+                        <div id="noDiseasesData" class="text-center py-4 d-none">
+                            <i class="bi bi-shield-check text-success" style="font-size:2rem;"></i>
+                            <p class="text-muted mt-2 mb-0">Aucune maladie détectée.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alertes -->
+        <div class="row g-3 mb-4 anim2">
+            <div class="col-lg-5">
+                <div class="chart-card">
+                    <div class="chart-head">
+                        <div class="chart-head-title">
+                            <div style="background:#fef3c7;border-radius:8px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;">
+                                <i class="bi bi-graph-up-arrow text-warning" style="font-size:0.85rem;"></i>
+                            </div>
+                            Tendances (semaine en cours)
+                        </div>
+                    </div>
+                    <div id="trendAlertsList">
+                        <div class="text-center text-muted py-4">
+                            <span class="spinner-border spinner-border-sm me-2"></span>Analyse...
                         </div>
                     </div>
                     <div id="noTrendAlerts" class="text-center py-4 d-none">
-                        <i class="bi bi-check-circle text-success" style="font-size: 2rem;"></i>
+                        <i class="bi bi-check-circle text-success" style="font-size:2rem;"></i>
                         <p class="text-muted mt-2 mb-0">Aucune tendance anormale.</p>
                     </div>
                 </div>
             </div>
-        </div>
-
-        <!-- Alertes ponctuelles -->
-        <div class="col-lg-7">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-transparent border-0 pt-3">
-                    <h6 class="fw-bold mb-0">
-                        <i class="bi bi-bell me-2 text-danger"></i>
-                        Alertes ponctuelles (7 jours)
-                    </h6>
-                </div>
-                <div class="card-body p-0">
-                    <div id="alertsList" class="list-group list-group-flush">
-                        <div class="list-group-item text-center text-muted py-4">
-                            <span class="spinner-border spinner-border-sm me-2"></span>
-                            Chargement des alertes...
+            <div class="col-lg-7">
+                <div class="chart-card">
+                    <div class="chart-head">
+                        <div class="chart-head-title">
+                            <div style="background:#fee2e2;border-radius:8px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;">
+                                <i class="bi bi-bell text-danger" style="font-size:0.85rem;"></i>
+                            </div>
+                            Alertes ponctuelles (7 jours)
+                        </div>
+                    </div>
+                    <div id="alertsList">
+                        <div class="text-center text-muted py-4">
+                            <span class="spinner-border spinner-border-sm me-2"></span>Chargement...
                         </div>
                     </div>
                     <div id="noAlerts" class="text-center py-4 d-none">
-                        <i class="bi bi-check-circle text-success" style="font-size: 2rem;"></i>
-                        <p class="text-muted mt-2 mb-0">Aucune alerte récente.<br>Bonne nouvelle !</p>
+                        <i class="bi bi-check-circle text-success" style="font-size:2rem;"></i>
+                        <p class="text-muted mt-2 mb-0">Aucune alerte récente. Bonne nouvelle !</p>
                     </div>
                 </div>
             </div>
         </div>
 
-    </div>
+    </div><!-- fin viewMyStats -->
 
-    </div><!-- fin #viewMyStats -->
-
-    <!-- ======================================================
-         VUE : STATISTIQUES GLOBALES ANONYMISÉES
-         ====================================================== -->
+    <!-- ══ VUE GLOBALE ════════════════════════════════════════ -->
     <div id="viewGlobal" class="d-none">
 
-        <div class="alert alert-info d-flex align-items-center gap-2 mb-4 py-2">
-            <i class="bi bi-shield-check fs-5"></i>
-            <span>Ces statistiques agrègent les données de <strong>tous les utilisateurs</strong> de la plateforme. Aucune donnée personnelle n'est exposée.</span>
+        <div class="privacy-banner mb-4 d-flex align-items-center gap-2">
+            <i class="bi bi-shield-check text-primary fs-5"></i>
+            <span class="small">Ces statistiques agrègent les données de <strong>tous les utilisateurs</strong>. Aucune donnée personnelle n'est exposée.</span>
         </div>
 
         <!-- KPI globaux -->
-        <div class="row g-3 mb-4">
+        <div class="row g-3 mb-4 anim">
             <div class="col-6 col-md-4 col-lg-2">
-                <div class="kpi-card text-center p-3 h-100">
-                    <div class="kpi-icon bg-primary text-white mb-2"><i class="bi bi-camera-fill"></i></div>
-                    <div class="fw-bold fs-3" id="gKpiScans">-</div>
-                    <div class="text-muted small">Total scans</div>
+                <div class="kpi-new">
+                    <div class="kpi-ico" style="background:#dbeafe;"><i class="bi bi-camera-fill text-primary"></i></div>
+                    <div class="kpi-val text-primary" id="gKpiScans">—</div>
+                    <div class="kpi-lbl">Total scans</div>
                 </div>
             </div>
             <div class="col-6 col-md-4 col-lg-2">
-                <div class="kpi-card text-center p-3 h-100">
-                    <div class="kpi-icon bg-success text-white mb-2"><i class="bi bi-flower2"></i></div>
-                    <div class="fw-bold fs-3" id="gKpiUnique">-</div>
-                    <div class="text-muted small">Espèces uniques</div>
+                <div class="kpi-new">
+                    <div class="kpi-ico" style="background:#d1fae5;"><i class="bi bi-flower2 text-success"></i></div>
+                    <div class="kpi-val text-success" id="gKpiUnique">—</div>
+                    <div class="kpi-lbl">Espèces uniques</div>
                 </div>
             </div>
             <div class="col-6 col-md-4 col-lg-2">
-                <div class="kpi-card text-center p-3 h-100">
-                    <div class="kpi-icon bg-warning text-white mb-2"><i class="bi bi-egg-fried"></i></div>
-                    <div class="fw-bold fs-3" id="gKpiEdible">-</div>
-                    <div class="text-muted small">Comestibles</div>
+                <div class="kpi-new">
+                    <div class="kpi-ico" style="background:#fef3c7;"><i class="bi bi-egg-fried text-warning"></i></div>
+                    <div class="kpi-val text-warning" id="gKpiEdible">—</div>
+                    <div class="kpi-lbl">Comestibles</div>
                 </div>
             </div>
             <div class="col-6 col-md-4 col-lg-2">
-                <div class="kpi-card text-center p-3 h-100">
-                    <div class="kpi-icon bg-danger text-white mb-2"><i class="bi bi-exclamation-triangle-fill"></i></div>
-                    <div class="fw-bold fs-3" id="gKpiToxic">-</div>
-                    <div class="text-muted small">Toxiques</div>
+                <div class="kpi-new">
+                    <div class="kpi-ico" style="background:#fee2e2;"><i class="bi bi-exclamation-triangle-fill text-danger"></i></div>
+                    <div class="kpi-val text-danger" id="gKpiToxic">—</div>
+                    <div class="kpi-lbl">Toxiques</div>
                 </div>
             </div>
             <div class="col-6 col-md-4 col-lg-2">
-                <div class="kpi-card text-center p-3 h-100">
-                    <div class="kpi-icon bg-secondary text-white mb-2"><i class="bi bi-tree-fill"></i></div>
-                    <div class="fw-bold fs-3" id="gKpiInvasive">-</div>
-                    <div class="text-muted small">Invasives</div>
+                <div class="kpi-new">
+                    <div class="kpi-ico" style="background:#f3f4f6;"><i class="bi bi-tree-fill text-secondary"></i></div>
+                    <div class="kpi-val text-secondary" id="gKpiInvasive">—</div>
+                    <div class="kpi-lbl">Invasives</div>
                 </div>
             </div>
         </div>
 
         <!-- Graphiques globaux ligne 1 -->
-        <div class="row g-3 mb-4">
-            <!-- Répartition globale -->
+        <div class="row g-3 mb-4 anim2">
             <div class="col-md-5">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-header bg-transparent border-0 pt-3">
-                        <h6 class="fw-bold mb-0">
-                            <i class="bi bi-pie-chart me-2 text-success"></i>Répartition globale
-                        </h6>
-                    </div>
-                    <div class="card-body d-flex align-items-center justify-content-center">
-                        <canvas id="gDistributionChart" style="max-height:280px;"></canvas>
+                <div class="chart-card">
+                    <div class="chart-head"><div class="chart-head-title"><i class="bi bi-pie-chart text-success me-2"></i>Répartition globale</div></div>
+                    <div class="chart-body d-flex align-items-center justify-content-center">
+                        <canvas id="gDistributionChart" style="max-height:260px;"></canvas>
                     </div>
                 </div>
             </div>
-            <!-- Top plantes global -->
             <div class="col-md-7">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-header bg-transparent border-0 pt-3">
-                        <h6 class="fw-bold mb-0">
-                            <i class="bi bi-trophy me-2 text-warning"></i>Top 10 plantes (plateforme)
-                        </h6>
-                    </div>
-                    <div class="card-body">
-                        <canvas id="gTopPlantsChart" style="max-height:260px;"></canvas>
+                <div class="chart-card">
+                    <div class="chart-head"><div class="chart-head-title"><i class="bi bi-trophy text-warning me-2"></i>Top 10 plantes (plateforme)</div></div>
+                    <div class="chart-body">
+                        <canvas id="gTopPlantsChart" style="max-height:240px;"></canvas>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Graphiques globaux ligne 2 -->
-        <div class="row g-3 mb-4">
-            <!-- Maladies globales -->
+        <div class="row g-3 mb-4 anim2">
             <div class="col-lg-6">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-header bg-transparent border-0 pt-3">
-                        <h6 class="fw-bold mb-0">
-                            <i class="bi bi-virus me-2 text-danger"></i>Maladies les plus fréquentes (plateforme)
-                        </h6>
-                    </div>
-                    <div class="card-body">
-                        <canvas id="gDiseasesChart" style="max-height:280px;"></canvas>
+                <div class="chart-card">
+                    <div class="chart-head"><div class="chart-head-title"><i class="bi bi-virus text-danger me-2"></i>Maladies fréquentes (plateforme)</div></div>
+                    <div class="chart-body">
+                        <canvas id="gDiseasesChart" style="max-height:260px;"></canvas>
                         <div id="gNoDiseasesData" class="text-center py-4 d-none">
                             <i class="bi bi-shield-check text-success" style="font-size:2rem;"></i>
                             <p class="text-muted mt-2 mb-0">Aucune maladie détectée.</p>
@@ -423,16 +438,11 @@
                     </div>
                 </div>
             </div>
-            <!-- Régions à risque -->
             <div class="col-lg-6">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-header bg-transparent border-0 pt-3">
-                        <h6 class="fw-bold mb-0">
-                            <i class="bi bi-geo-alt me-2 text-danger"></i>Régions à risque (invasives/toxiques)
-                        </h6>
-                    </div>
-                    <div class="card-body p-3">
-                        <div id="gRiskMap" style="height:280px; border-radius:10px; z-index:0;"></div>
+                <div class="chart-card">
+                    <div class="chart-head"><div class="chart-head-title"><i class="bi bi-geo-alt text-danger me-2"></i>Régions à risque</div></div>
+                    <div class="chart-body">
+                        <div id="gRiskMap"></div>
                         <div id="gMapNoData" class="text-center py-4 d-none">
                             <i class="bi bi-geo-alt text-muted" style="font-size:2rem;"></i>
                             <p class="text-muted mt-2 mb-0">Aucune zone à risque géolocalisée.</p>
@@ -442,18 +452,15 @@
             </div>
         </div>
 
-    </div><!-- fin #viewGlobal -->
+    </div><!-- fin viewGlobal -->
 
-</main>
+</div>
 
-<!-- Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<!-- Leaflet.js (carte) -->
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
 <script src="/static/js/api.js?v=2"></script>
 <script src="/static/js/auth.js?v=2"></script>
 <script src="/static/js/analytics.js?v=2"></script>
-
 </body>
 </html>

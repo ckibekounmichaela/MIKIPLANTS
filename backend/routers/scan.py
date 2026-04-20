@@ -14,9 +14,16 @@
 import os
 import uuid
 import json
+import logging
+from datetime import datetime
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+logger = logging.getLogger(__name__)
+
+# Chemin absolu vers le dossier uploads (robuste peu importe le cwd)
+_BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # .../MIKIPLANTS
+
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Query
 from sqlalchemy.orm import Session
 from PIL import Image
 import io
@@ -30,8 +37,8 @@ from services.plant_lookup import find_local_plant, build_local_context_block
 
 router = APIRouter()
 
-# Dossier où stocker les images uploadées
-UPLOAD_DIR = os.getenv("UPLOAD_DIR", "../uploads")
+# Dossier où stocker les images uploadées (chemin absolu)
+UPLOAD_DIR = os.getenv("UPLOAD_DIR") or os.path.join(_BASE_DIR, "uploads")
 # Taille maximale autorisée pour une image (5 MB)
 MAX_FILE_SIZE = 5 * 1024 * 1024  # 5 MB en bytes
 # Types de fichiers autorisés
@@ -95,10 +102,25 @@ async def analyze_plant(
         )
 
     # -------------------------------------------------------
-    # ÉTAPE 2 : Sauvegarder l'image sur le disque
-    # On génère un nom unique avec UUID pour éviter les collisions
+    # ÉTAPE 2 : Redimensionner si nécessaire, puis sauvegarder
+    # On limite la résolution à 1024px (côté le plus long)
+    # pour réduire l'espace disque sans perte de qualité visible.
+    # On réutilise l'objet img déjà décodé en ÉTAPE 1.
     # -------------------------------------------------------
-    file_extension = image.filename.rsplit(".", 1)[-1].lower() if "." in image.filename else "jpg"
+    MAX_DIMENSION = 1024
+    try:
+        if img.mode in ("RGBA", "P"):
+            img = img.convert("RGB")
+        if max(img.width, img.height) > MAX_DIMENSION:
+            img.thumbnail((MAX_DIMENSION, MAX_DIMENSION), Image.LANCZOS)
+        buf = io.BytesIO()
+        # exif=b"" supprime toutes les métadonnées EXIF (GPS, modèle téléphone, etc.)
+        img.save(buf, format="JPEG", quality=85, optimize=True, exif=b"")
+        image_bytes = buf.getvalue()
+    except Exception:
+        pass  # garder image_bytes original si le redimensionnement échoue
+
+    file_extension = "jpg"
     unique_filename = f"{uuid.uuid4()}.{file_extension}"
     file_path = os.path.join(UPLOAD_DIR, unique_filename)
 
@@ -108,7 +130,7 @@ async def analyze_plant(
         f.write(image_bytes)
 
     # Chemin relatif pour l'URL (accessible via /uploads/...)
-    image_url = f"uploads/{unique_filename}"
+    image_url = f"api/uploads/{unique_filename}"
 
     # -------------------------------------------------------
     # ÉTAPE 3 : Identifier la plante avec PlantNet
@@ -125,9 +147,9 @@ async def analyze_plant(
     local_context = build_local_context_block(local_data) if local_data else ""
 
     if local_data:
-        print(f"[LOOKUP] Correspondance trouvée : {local_data['scientific_name']} (ID {local_data['id']})")
+        logger.debug("[LOOKUP] Correspondance : %s (ID %s)", local_data['scientific_name'], local_data['id'])
     else:
-        print(f"[LOOKUP] Aucune correspondance locale pour : {plantnet_result.get('scientific_name')}")
+        logger.debug("[LOOKUP] Aucune correspondance pour : %s", plantnet_result.get('scientific_name'))
 
     # -------------------------------------------------------
     # ÉTAPE 4 : Générer le rapport avec Groq IA
@@ -205,8 +227,8 @@ async def analyze_plant(
 
 @router.get("/history", response_model=List[ScanListItem])
 def get_scan_history(
-    page: int = 1,              # Numéro de page (commence à 1)
-    limit: int = 12,            # Nombre de scans par page
+    page: int = Query(1, ge=1),              # Numéro de page (commence à 1)
+    limit: int = Query(12, ge=1, le=100),   # Scans par page (max 100)
     filter_type: Optional[str] = None,  # Filtre: "toxic", "edible", "medicinal", "invasive"
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -222,8 +244,8 @@ def get_scan_history(
     EXEMPLE D'URL : GET /api/scan/history?page=2&limit=10&filter_type=toxic
     """
 
-    # Construire la requête de base
-    query = db.query(Scan).filter(Scan.user_id == current_user.id)
+    # Construire la requête de base (exclure les scans soft-deleted)
+    query = db.query(Scan).filter(Scan.user_id == current_user.id, Scan.deleted_at == None)
 
     # Appliquer le filtre si demandé
     if filter_type == "toxic":
@@ -261,7 +283,8 @@ def get_scan_detail(
     # Chercher le scan
     scan = db.query(Scan).filter(
         Scan.id == scan_id,
-        Scan.user_id == current_user.id  # Sécurité : on ne peut voir que ses propres scans
+        Scan.user_id == current_user.id,
+        Scan.deleted_at == None
     ).first()
 
     if not scan:
@@ -312,24 +335,19 @@ def delete_scan(
     db: Session = Depends(get_db)
 ):
     """
-    Supprimer un scan et son image associée.
-    Un utilisateur ne peut supprimer que ses propres scans.
+    Supprimer (soft) un scan. L'enregistrement est conservé en BD pour l'audit,
+    seul deleted_at est renseigné. Un utilisateur ne peut supprimer que ses scans.
     """
     scan = db.query(Scan).filter(
         Scan.id == scan_id,
-        Scan.user_id == current_user.id
+        Scan.user_id == current_user.id,
+        Scan.deleted_at == None
     ).first()
 
     if not scan:
         raise HTTPException(status_code=404, detail="Scan non trouvé.")
 
-    # Supprimer l'image du disque si elle existe
-    if scan.image_path and os.path.exists(f"../{scan.image_path}"):
-        os.remove(f"../{scan.image_path}")
-
-    # Supprimer le scan de la BD (les messages de chat sont supprimés en cascade)
-    db.delete(scan)
+    scan.deleted_at = datetime.utcnow()
     db.commit()
 
-    # 204 No Content = succès sans corps de réponse
     return None

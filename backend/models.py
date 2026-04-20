@@ -36,7 +36,7 @@ class Plant(Base):
     local_name = Column(String(200), nullable=True)
     # Nom local ivoirien (dioula, baoulé, etc.)
 
-    scientific_name = Column(String(200), nullable=False, unique=True)
+    scientific_name = Column(String(200), nullable=False, unique=True, index=True)
     # Nom scientifique (ex: "Manihot esculenta")
 
     family = Column(String(100), nullable=True)
@@ -113,12 +113,18 @@ class User(Base):
     # Token UUID envoyé par email à l'inscription
     # Mis à None après vérification réussie
 
+    verification_token_expires = Column(DateTime, nullable=True)
+    # Date d'expiration du token de vérification (24h après création)
+
     # --- Réinitialisation du mot de passe ---
     reset_token = Column(String(100), nullable=True)
     # Token UUID envoyé par email lors d'une demande de réinitialisation
 
     reset_token_expires = Column(DateTime, nullable=True)
     # Date d'expiration du token de réinitialisation (1 heure après création)
+
+    token_version = Column(Integer, default=0, nullable=False)
+    # Incrémenté à chaque changement de mot de passe pour invalider les anciens JWT
 
     # --- Relations (liens avec d'autres tables) ---
     # Un utilisateur peut avoir plusieurs scans
@@ -140,7 +146,7 @@ class Scan(Base):
 
     # Clé étrangère : lie ce scan à un utilisateur
     # ForeignKey("users.id") signifie : cette valeur doit exister dans users.id
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
 
     # --- Informations sur l'image ---
     image_path = Column(String(300), nullable=False)
@@ -193,7 +199,9 @@ class Scan(Base):
     local_plant_name = Column(String(200), nullable=True)
     # Nom local conservé en clair pour éviter une jointure à chaque lecture
 
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+    deleted_at = Column(DateTime, nullable=True, default=None)
+    # NULL = actif  |  datetime = supprimé (soft-delete, conservation pour audit)
 
     # --- Relations ---
     user = relationship("User", back_populates="scans")

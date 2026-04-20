@@ -1,18 +1,3 @@
-# ============================================================
-# FICHIER : backend/schemas.py
-# RÔLE    : Définition des structures de données (validation)
-#
-# CONCEPT POUR DÉBUTANT :
-#   Pydantic est une bibliothèque de validation de données.
-#   Les "schemas" définissent la forme exacte des données
-#   que l'API accepte (entrée) et renvoie (sortie).
-#
-#   Différence avec les models.py :
-#   - models.py  → structure des TABLES en base de données
-#   - schemas.py → structure des DONNÉES échangées via l'API
-#     (ce que le client envoie et ce que l'API répond)
-# ============================================================
-
 from datetime import datetime
 from typing import Optional, List
 from pydantic import BaseModel, EmailStr
@@ -66,11 +51,16 @@ class UserResponse(BaseModel):
     username: str
     email: str
     created_at: datetime
+    has_password: bool = True   # False = compte Google sans mot de passe local
 
     class Config:
-        # orm_mode=True permet à Pydantic de lire les données
-        # directement depuis un objet SQLAlchemy (pas seulement des dicts)
         from_attributes = True
+
+    @classmethod
+    def from_orm(cls, obj):
+        data = super().from_orm(obj)
+        data.has_password = obj.password_hash is not None
+        return data
 
 
 class Token(BaseModel):

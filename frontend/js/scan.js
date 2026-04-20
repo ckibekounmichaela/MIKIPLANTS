@@ -363,14 +363,6 @@ function setGeoStatus(status) {
     if (s2) s2.innerHTML = html;
 }
 
-/**
- * Ancienne fonction (conservée pour compatibilité).
- */
-function toggleGeoloc(checkbox) {
-    if (checkbox.checked) requestGeolocation();
-    else { userLatitude = userLongitude = null; }
-}
-
 
 // ============================================================
 // ENVOI DE L'ANALYSE (commun aux deux onglets)
@@ -416,7 +408,6 @@ async function startAnalysis() {
         if (userLatitude)  formData.append("latitude",  userLatitude);
         if (userLongitude) formData.append("longitude", userLongitude);
 
-        console.log("GPS envoyé :", userLatitude, userLongitude);
 
         updateStep(1, "active", "Identification en cours...", 70);
 

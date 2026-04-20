@@ -3,266 +3,577 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WhatAPlant – Mon profil</title>
+    <title>MikiPlants – Mon profil</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/style.css">
     <style>
-        .avatar-circle {
-            width: 90px;
-            height: 90px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #198754, #20c997);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2.2rem;
-            font-weight: 700;
-            color: white;
-            flex-shrink: 0;
+        * { box-sizing:border-box; }
+        body { margin:0; background:#f0f4f0; font-family:'Segoe UI',sans-serif; }
+
+        /* ── Navbar ── */
+        .top-nav {
+            background:linear-gradient(90deg,#0d5c2e,#198754);
+            box-shadow:0 2px 16px rgba(0,0,0,0.15);
         }
+        .nav-link { font-weight:500; font-size:0.88rem; border-radius:8px; padding:6px 12px !important; transition:background 0.2s; }
+        .nav-link:hover { background:rgba(255,255,255,0.15) !important; }
+        .btn-logout {
+            background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.25);
+            color:#fff; border-radius:50px; font-size:0.82rem; padding:6px 16px;
+            font-weight:600; transition:all 0.2s;
+        }
+        .btn-logout:hover { background:rgba(255,255,255,0.22); color:#fff; }
+
+        /* ── Hero cover ── */
+        .profile-hero {
+            background:linear-gradient(135deg,#0d5c2e 0%,#198754 55%,#20c997 100%);
+            height:200px; position:relative; overflow:hidden;
+        }
+        .hero-circle1 {
+            position:absolute; width:300px; height:300px; border-radius:50%;
+            background:rgba(255,255,255,0.06); top:-80px; right:-60px;
+        }
+        .hero-circle2 {
+            position:absolute; width:200px; height:200px; border-radius:50%;
+            background:rgba(255,255,255,0.04); bottom:-80px; left:60px;
+        }
+        .hero-circle3 {
+            position:absolute; width:120px; height:120px; border-radius:50%;
+            background:rgba(255,255,255,0.07); top:30px; left:40%;
+        }
+        /* Pattern de points décoratifs */
+        .hero-dots {
+            position:absolute; inset:0;
+            background-image:radial-gradient(rgba(255,255,255,0.12) 1px, transparent 1px);
+            background-size:24px 24px;
+        }
+
+        /* ── Layout ── */
+        .page-wrap { max-width:900px; margin:0 auto; padding:0 1rem 4rem; }
+
+        /* ── Card avatar ── */
+        .avatar-card {
+            background:#fff; border-radius:20px;
+            box-shadow:0 4px 24px rgba(0,0,0,0.08);
+            padding:0; overflow:hidden; margin-top:-60px; position:relative; z-index:2;
+        }
+        .avatar-card-top {
+            padding:1.5rem 1.5rem 1rem;
+            display:flex; align-items:flex-end; gap:1.2rem; flex-wrap:wrap;
+        }
+        .avatar-ring {
+            width:110px; height:110px; border-radius:50%;
+            background:linear-gradient(135deg,#0d5c2e,#20c997);
+            display:flex; align-items:center; justify-content:center;
+            font-size:2.6rem; font-weight:800; color:#fff;
+            border:5px solid #fff; box-shadow:0 6px 24px rgba(25,135,84,0.3);
+            flex-shrink:0; position:relative; margin-top:-30px;
+        }
+        .online-dot {
+            position:absolute; bottom:6px; right:6px;
+            width:18px; height:18px; border-radius:50%;
+            background:#22c55e; border:3px solid #fff;
+        }
+        .avatar-info { flex:1; min-width:0; }
+        .avatar-name { font-size:1.4rem; font-weight:800; color:#111827; margin-bottom:2px; }
+        .avatar-email { font-size:0.85rem; color:#9ca3af; margin-bottom:8px; }
+        .badge-account {
+            display:inline-flex; align-items:center; gap:5px;
+            background:#d1fae5; color:#065f46;
+            border-radius:50px; padding:4px 12px; font-size:0.75rem; font-weight:600;
+        }
+
+        /* Divider dans la carte avatar */
+        .avatar-card-divider { height:1px; background:#f3f4f6; margin:0 1.5rem; }
+        .avatar-card-footer {
+            padding:1rem 1.5rem;
+            display:flex; gap:1.5rem; flex-wrap:wrap;
+        }
+        .meta-chip {
+            display:flex; align-items:center; gap:6px;
+            font-size:0.82rem; color:#6b7280;
+        }
+        .meta-chip i { color:#198754; }
+
+        /* ── Stats ── */
+        .stats-grid {
+            display:grid; grid-template-columns:repeat(4,1fr); gap:1rem;
+            margin-top:1rem;
+        }
+        @media(max-width:640px) { .stats-grid { grid-template-columns:repeat(2,1fr); } }
+
+        .stat-card {
+            background:#fff; border-radius:16px;
+            box-shadow:0 2px 12px rgba(0,0,0,0.06);
+            padding:1.2rem 1rem; text-align:center;
+            transition:transform 0.2s, box-shadow 0.2s;
+            position:relative; overflow:hidden;
+        }
+        .stat-card::before {
+            content:""; position:absolute; top:0; left:0; right:0; height:3px;
+        }
+        .stat-card.blue::before  { background:linear-gradient(90deg,#3b82f6,#60a5fa); }
+        .stat-card.green::before { background:linear-gradient(90deg,#22c55e,#4ade80); }
+        .stat-card.red::before   { background:linear-gradient(90deg,#ef4444,#f87171); }
+        .stat-card.cyan::before  { background:linear-gradient(90deg,#06b6d4,#22d3ee); }
+        .stat-card:hover { transform:translateY(-4px); box-shadow:0 8px 24px rgba(0,0,0,0.1); }
+
+        .stat-icon {
+            width:44px; height:44px; border-radius:12px;
+            display:flex; align-items:center; justify-content:center;
+            font-size:1.2rem; margin:0 auto 0.6rem;
+        }
+        .stat-card.blue  .stat-icon { background:#dbeafe; color:#3b82f6; }
+        .stat-card.green .stat-icon { background:#dcfce7; color:#22c55e; }
+        .stat-card.red   .stat-icon { background:#fee2e2; color:#ef4444; }
+        .stat-card.cyan  .stat-icon { background:#cffafe; color:#06b6d4; }
+
+        .stat-number { font-size:1.9rem; font-weight:800; line-height:1; }
+        .stat-card.blue  .stat-number { color:#3b82f6; }
+        .stat-card.green .stat-number { color:#22c55e; }
+        .stat-card.red   .stat-number { color:#ef4444; }
+        .stat-card.cyan  .stat-number { color:#06b6d4; }
+        .stat-label { font-size:0.73rem; color:#9ca3af; margin-top:3px; font-weight:500; }
+
+        /* ── Sections ── */
+        .section-card {
+            background:#fff; border-radius:20px;
+            box-shadow:0 2px 12px rgba(0,0,0,0.06);
+            overflow:hidden; margin-top:1rem;
+        }
+        .section-header {
+            padding:1.1rem 1.5rem;
+            border-bottom:1px solid #f3f4f6;
+            display:flex; align-items:center; gap:10px;
+        }
+        .section-header-icon {
+            width:34px; height:34px; border-radius:10px;
+            background:linear-gradient(135deg,#0d5c2e,#198754);
+            display:flex; align-items:center; justify-content:center;
+            color:#fff; font-size:0.9rem; flex-shrink:0;
+        }
+        .section-header-title { font-weight:700; font-size:0.95rem; color:#111827; }
+
+        /* ── Info rows ── */
         .info-row {
-            display: flex;
-            align-items: center;
-            padding: 0.75rem 0;
-            border-bottom: 1px solid #f0f0f0;
+            display:flex; align-items:center; padding:1rem 1.5rem;
+            border-bottom:1px solid #f9fafb; gap:1rem;
+            transition:background 0.15s;
         }
-        .info-row:last-child { border-bottom: none; }
-        .info-label {
-            width: 160px;
-            font-weight: 600;
-            color: #6c757d;
-            font-size: 0.9rem;
-            flex-shrink: 0;
+        .info-row:last-child { border-bottom:none; }
+        .info-row:hover { background:#fafcfb; }
+        .info-row-icon {
+            width:36px; height:36px; border-radius:10px; flex-shrink:0;
+            display:flex; align-items:center; justify-content:center; font-size:0.9rem;
         }
-        .info-value { font-size: 0.95rem; }
-        .stat-pill {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            padding: 1rem 1.25rem;
-            text-align: center;
-            transition: all 0.2s;
+        .info-row-content { flex:1; min-width:0; }
+        .info-row-label { font-size:0.72rem; text-transform:uppercase; letter-spacing:0.05em; color:#9ca3af; font-weight:600; }
+        .info-row-value { font-size:0.92rem; font-weight:600; color:#111827; margin-top:1px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+        /* ── Security section ── */
+        .security-row {
+            display:flex; align-items:center; padding:1.2rem 1.5rem; gap:1rem;
         }
-        .stat-pill:hover { transform: translateY(-3px); box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
+        .security-icon-wrap {
+            width:46px; height:46px; border-radius:14px; flex-shrink:0;
+            display:flex; align-items:center; justify-content:center; font-size:1.2rem;
+        }
+        .security-text { flex:1; }
+        .security-text strong { display:block; font-size:0.9rem; color:#111827; }
+        .security-text small  { color:#9ca3af; font-size:0.8rem; }
+
+        .btn-change-pw {
+            background:linear-gradient(135deg,#198754,#20c997);
+            color:#fff; border:none; border-radius:50px;
+            padding:9px 20px; font-size:0.85rem; font-weight:700;
+            cursor:pointer; transition:all 0.2s; white-space:nowrap;
+            display:flex; align-items:center; gap:6px;
+        }
+        .btn-change-pw:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(25,135,84,0.35); }
+
+        /* ── Danger zone ── */
+        .danger-zone {
+            background:#fff; border-radius:20px;
+            box-shadow:0 2px 12px rgba(0,0,0,0.06);
+            overflow:hidden; margin-top:1rem;
+            border:1px solid #fee2e2;
+        }
+        .danger-header {
+            padding:1rem 1.5rem; background:#fff5f5;
+            border-bottom:1px solid #fee2e2;
+            display:flex; align-items:center; gap:8px;
+            font-weight:700; font-size:0.9rem; color:#dc2626;
+        }
+
+        /* ── Animations ── */
+        @keyframes fadeInUp {
+            from { opacity:0; transform:translateY(18px); }
+            to   { opacity:1; transform:translateY(0); }
+        }
+        .anim  { animation:fadeInUp 0.4s ease both; }
+        .anim2 { animation:fadeInUp 0.4s 0.08s ease both; }
+        .anim3 { animation:fadeInUp 0.4s 0.16s ease both; }
+        .anim4 { animation:fadeInUp 0.4s 0.24s ease both; }
     </style>
 </head>
 <body>
 
-<!-- ======================================================
-     NAVBAR
-     ====================================================== -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-success sticky-top shadow-sm">
+<!-- ── NAVBAR ── -->
+<nav class="navbar navbar-expand-lg navbar-dark top-nav sticky-top">
     <div class="container">
-        <a class="navbar-brand fw-bold" href="/dashboard">
-            <i class="bi bi-flower1 me-2"></i>WhatAPlant
+        <a class="navbar-brand fw-bold d-flex align-items-center gap-2 text-white" href="/dashboard">
+            <span style="background:rgba(255,255,255,0.2);border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;">
+                <i class="bi bi-flower1"></i>
+            </span>
+            MikiPlants
         </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMenu">
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
             <span class="navbar-toggler-icon"></span>
         </button>
-        <div class="collapse navbar-collapse" id="navbarMenu">
-            <ul class="navbar-nav me-auto">
-                <li class="nav-item"><a class="nav-link" href="/dashboard"><i class="bi bi-house me-1"></i>Accueil</a></li>
-                <li class="nav-item"><a class="nav-link" href="/scan"><i class="bi bi-camera me-1"></i>Analyser</a></li>
-                <li class="nav-item"><a class="nav-link" href="/historique"><i class="bi bi-clock-history me-1"></i>Historique</a></li>
-                <li class="nav-item"><a class="nav-link" href="/analytics"><i class="bi bi-bar-chart-line me-1"></i>Analytics</a></li>
+        <div class="collapse navbar-collapse" id="navMenu">
+            <ul class="navbar-nav me-auto gap-1 mt-2 mt-lg-0">
+                <li class="nav-item"><a class="nav-link text-white" href="/dashboard"><i class="bi bi-house-fill me-1"></i>Accueil</a></li>
+                <li class="nav-item"><a class="nav-link text-white" href="/scan"><i class="bi bi-camera me-1"></i>Analyser</a></li>
+                <li class="nav-item"><a class="nav-link text-white" href="/historique"><i class="bi bi-clock-history me-1"></i>Historique</a></li>
+                <li class="nav-item"><a class="nav-link text-white" href="/analytics"><i class="bi bi-bar-chart-line me-1"></i>Analytics</a></li>
             </ul>
-            <div class="dropdown">
-                <button class="btn btn-outline-light btn-sm dropdown-toggle d-flex align-items-center gap-2"
-                        data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="bi bi-person-circle"></i>
-                    <span id="navUsername">...</span>
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end">
-                    <li>
-                        <a class="dropdown-item active" href="/profil">
-                            <i class="bi bi-person me-2 text-success"></i>Mon profil
-                        </a>
-                    </li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li>
-                        <a class="dropdown-item text-danger" href="#" onclick="logout()">
-                            <i class="bi bi-box-arrow-right me-2"></i>Déconnexion
-                        </a>
-                    </li>
-                </ul>
+            <div class="d-flex align-items-center gap-2 mt-2 mt-lg-0">
+                <span class="text-white-50 small"><i class="bi bi-person-circle me-1"></i><span id="navUsername">…</span></span>
+                <button class="btn-logout btn" onclick="logout()"><i class="bi bi-box-arrow-right me-1"></i>Déconnexion</button>
             </div>
         </div>
     </div>
 </nav>
 
-<!-- ======================================================
-     CONTENU PRINCIPAL
-     ====================================================== -->
-<main class="container py-4" style="max-width: 760px;">
-
-    <!-- Titre de la page -->
-    <div class="mb-4">
-        <h2 class="fw-bold">
-            <i class="bi bi-person-circle text-success me-2"></i>Mon profil
-        </h2>
-        <p class="text-muted">Consultez et gérez les informations de votre compte.</p>
+<!-- ── HERO COVER ── -->
+<div class="profile-hero">
+    <div class="hero-dots"></div>
+    <div class="hero-circle1"></div>
+    <div class="hero-circle2"></div>
+    <div class="hero-circle3"></div>
+    <!-- Texte dans le hero -->
+    <div class="container" style="position:relative;z-index:2;padding-top:2rem;">
+        <p class="text-white mb-0" style="opacity:0.7;font-size:0.82rem;letter-spacing:0.05em;text-transform:uppercase;">
+            <i class="bi bi-person-circle me-1"></i>Mon espace
+        </p>
+        <h2 class="text-white fw-800 mb-0" style="font-size:1.6rem;font-weight:800;">Mon Profil</h2>
     </div>
+</div>
 
-    <!-- ---- Carte identité ---- -->
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body p-4">
-            <div class="d-flex align-items-center gap-4 mb-4">
-                <!-- Avatar initiales -->
-                <div class="avatar-circle" id="avatarCircle">?</div>
-                <div>
-                    <h4 class="fw-bold mb-1" id="profileUsername">Chargement...</h4>
-                    <p class="text-muted mb-0" id="profileEmail">—</p>
-                    <span class="badge bg-success-subtle text-success mt-1">
-                        <i class="bi bi-patch-check-fill me-1"></i>Compte actif
+<!-- ── CONTENU ── -->
+<div class="page-wrap">
+
+    <!-- ── Carte avatar ── -->
+    <div class="avatar-card anim">
+        <div class="avatar-card-top">
+            <div class="avatar-ring" id="avatarCircle">
+                ?
+                <div class="online-dot"></div>
+            </div>
+            <div class="avatar-info">
+                <div class="avatar-name" id="profileUsername">Chargement…</div>
+                <div class="avatar-email" id="profileEmail">—</div>
+                <div class="d-flex flex-wrap gap-2">
+                    <span class="badge-account">
+                        <i class="bi bi-patch-check-fill"></i> Compte actif
+                    </span>
+                    <span id="accountTypeBadge" class="d-none badge-account"
+                          style="background:#dbeafe;color:#1e40af;">
+                        <i class="bi bi-google"></i> Connexion Google
                     </span>
                 </div>
             </div>
+            <div class="ms-auto d-none d-md-flex align-items-center">
+                <a href="/scan" style="background:linear-gradient(135deg,#198754,#20c997);color:#fff;border:none;border-radius:50px;padding:10px 22px;font-size:0.85rem;font-weight:700;text-decoration:none;display:flex;align-items:center;gap:6px;transition:all 0.2s;box-shadow:0 4px 16px rgba(25,135,84,0.3);">
+                    <i class="bi bi-camera-fill"></i> Nouvelle analyse
+                </a>
+            </div>
+        </div>
 
-            <!-- Infos détaillées -->
-            <div class="info-row">
-                <span class="info-label"><i class="bi bi-person me-2 text-success"></i>Nom d'utilisateur</span>
-                <span class="info-value fw-semibold" id="infoUsername">—</span>
+        <div class="avatar-card-divider"></div>
+
+        <div class="avatar-card-footer">
+            <div class="meta-chip">
+                <i class="bi bi-calendar3"></i>
+                <span>Membre depuis <strong id="memberSince">—</strong></span>
             </div>
-            <div class="info-row">
-                <span class="info-label"><i class="bi bi-envelope me-2 text-success"></i>Email</span>
-                <span class="info-value" id="infoEmail">—</span>
+            <div class="meta-chip">
+                <i class="bi bi-camera-fill"></i>
+                <span><strong id="metaScans">—</strong> analyses effectuées</span>
             </div>
-            <div class="info-row">
-                <span class="info-label"><i class="bi bi-calendar3 me-2 text-success"></i>Membre depuis</span>
-                <span class="info-value" id="infoCreatedAt">—</span>
+            <div class="meta-chip">
+                <i class="bi bi-geo-alt-fill"></i>
+                <span>Côte d'Ivoire 🌍</span>
             </div>
         </div>
     </div>
 
-    <!-- ---- Statistiques personnelles ---- -->
-    <h5 class="fw-bold mb-3">
-        <i class="bi bi-bar-chart-line text-success me-2"></i>Mes statistiques
-    </h5>
-    <div class="row g-3 mb-4">
-        <div class="col-6 col-md-3">
-            <div class="stat-pill">
-                <div class="text-primary mb-1"><i class="bi bi-camera-fill fs-4"></i></div>
-                <div class="fw-bold fs-3" id="statScans">-</div>
-                <div class="text-muted small">Scans total</div>
-            </div>
+    <!-- ── Stats ── -->
+    <div class="stats-grid anim2">
+        <div class="stat-card blue">
+            <div class="stat-icon"><i class="bi bi-camera-fill"></i></div>
+            <div class="stat-number" id="statScans">—</div>
+            <div class="stat-label">Scans totaux</div>
         </div>
-        <div class="col-6 col-md-3">
-            <div class="stat-pill">
-                <div class="text-success mb-1"><i class="bi bi-egg-fried fs-4"></i></div>
-                <div class="fw-bold fs-3" id="statEdible">-</div>
-                <div class="text-muted small">Comestibles</div>
-            </div>
+        <div class="stat-card green">
+            <div class="stat-icon"><i class="bi bi-egg-fried"></i></div>
+            <div class="stat-number" id="statEdible">—</div>
+            <div class="stat-label">Comestibles</div>
         </div>
-        <div class="col-6 col-md-3">
-            <div class="stat-pill">
-                <div class="text-danger mb-1"><i class="bi bi-exclamation-triangle-fill fs-4"></i></div>
-                <div class="fw-bold fs-3" id="statToxic">-</div>
-                <div class="text-muted small">Toxiques</div>
-            </div>
+        <div class="stat-card red">
+            <div class="stat-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
+            <div class="stat-number" id="statToxic">—</div>
+            <div class="stat-label">Toxiques</div>
         </div>
-        <div class="col-6 col-md-3">
-            <div class="stat-pill">
-                <div class="text-info mb-1"><i class="bi bi-capsule fs-4"></i></div>
-                <div class="fw-bold fs-3" id="statMedicinal">-</div>
-                <div class="text-muted small">Médicinales</div>
-            </div>
+        <div class="stat-card cyan">
+            <div class="stat-icon"><i class="bi bi-capsule"></i></div>
+            <div class="stat-number" id="statMedicinal">—</div>
+            <div class="stat-label">Médicinales</div>
         </div>
     </div>
 
-    <!-- ---- Sécurité ---- -->
-    <h5 class="fw-bold mb-3">
-        <i class="bi bi-shield-lock text-success me-2"></i>Sécurité
-    </h5>
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body p-4 d-flex align-items-center justify-content-between flex-wrap gap-3">
+    <!-- ── Infos du compte ── -->
+    <div class="section-card anim3">
+        <div class="section-header">
+            <div class="section-header-icon"><i class="bi bi-person-lines-fill"></i></div>
             <div>
-                <h6 class="fw-semibold mb-1">Mot de passe</h6>
-                <p class="text-muted small mb-0">Modifiez votre mot de passe pour sécuriser votre compte.</p>
+                <div class="section-header-title">Informations du compte</div>
+                <div style="font-size:0.75rem;color:#9ca3af;">Vos données personnelles</div>
             </div>
-            <button class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
-                <i class="bi bi-key me-2"></i>Changer le mot de passe
+        </div>
+
+        <div class="info-row">
+            <div class="info-row-icon" style="background:#dbeafe;color:#3b82f6;">
+                <i class="bi bi-person-fill"></i>
+            </div>
+            <div class="info-row-content">
+                <div class="info-row-label">Nom d'utilisateur</div>
+                <div class="info-row-value" id="infoUsername">—</div>
+            </div>
+        </div>
+
+        <div class="info-row">
+            <div class="info-row-icon" style="background:#d1fae5;color:#059669;">
+                <i class="bi bi-envelope-fill"></i>
+            </div>
+            <div class="info-row-content">
+                <div class="info-row-label">Adresse email</div>
+                <div class="info-row-value" id="infoEmail">—</div>
+            </div>
+            <span id="verifiedBadge" style="background:#d1fae5;color:#065f46;border-radius:50px;padding:3px 10px;font-size:0.72rem;font-weight:600;white-space:nowrap;">
+                <i class="bi bi-check-circle-fill me-1"></i>Vérifié
+            </span>
+        </div>
+
+        <div class="info-row">
+            <div class="info-row-icon" style="background:#fef3c7;color:#d97706;">
+                <i class="bi bi-calendar-check-fill"></i>
+            </div>
+            <div class="info-row-content">
+                <div class="info-row-label">Membre depuis</div>
+                <div class="info-row-value" id="infoCreatedAt">—</div>
+            </div>
+        </div>
+
+        <div class="info-row">
+            <div class="info-row-icon" style="background:#ede9fe;color:#7c3aed;">
+                <i class="bi bi-shield-check-fill"></i>
+            </div>
+            <div class="info-row-content">
+                <div class="info-row-label">Type de compte</div>
+                <div class="info-row-value" id="infoAccountType">Email & Mot de passe</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Sécurité ── -->
+    <div class="section-card anim4" id="securityCard">
+        <div class="section-header">
+            <div class="section-header-icon"><i class="bi bi-shield-lock-fill"></i></div>
+            <div>
+                <div class="section-header-title">Sécurité</div>
+                <div style="font-size:0.75rem;color:#9ca3af;">Gérez l'accès à votre compte</div>
+            </div>
+        </div>
+
+        <!-- Section mot de passe (compte email) -->
+        <div id="pwSection" class="security-row">
+            <div class="security-icon-wrap" style="background:#d1fae5;color:#059669;">
+                <i class="bi bi-key-fill"></i>
+            </div>
+            <div class="security-text">
+                <strong>Mot de passe</strong>
+                <small>Modifiez votre mot de passe régulièrement pour protéger votre compte.</small>
+            </div>
+            <button class="btn-change-pw" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+                <i class="bi bi-pencil-fill"></i> Modifier
             </button>
         </div>
+
+        <!-- Section Google (compte Google) -->
+        <div id="googleSection" class="d-none security-row">
+            <div class="security-icon-wrap" style="background:#dbeafe;color:#2563eb;">
+                <img src="https://www.svgrepo.com/show/475656/google-color.svg" width="24" height="24">
+            </div>
+            <div class="security-text">
+                <strong>Connexion Google sécurisée</strong>
+                <small>Votre compte est protégé par Google. Gérez votre sécurité depuis votre compte Google.</small>
+            </div>
+            <a href="https://myaccount.google.com/security" target="_blank"
+               style="background:#f0f9ff;color:#2563eb;border:1.5px solid #bfdbfe;border-radius:50px;padding:8px 18px;font-size:0.82rem;font-weight:600;text-decoration:none;white-space:nowrap;display:flex;align-items:center;gap:6px;">
+                <i class="bi bi-box-arrow-up-right"></i> Mon compte Google
+            </a>
+        </div>
     </div>
 
-
-</main>
-
-<!-- ======================================================
-     MODAL : Changer le mot de passe
-     ====================================================== -->
-<div class="modal fade" id="changePasswordModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow">
-            <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-bold">
-                    <i class="bi bi-key text-success me-2"></i>Changer le mot de passe
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    <!-- ── Activité rapide ── -->
+    <div class="section-card anim4">
+        <div class="section-header">
+            <div class="section-header-icon"><i class="bi bi-lightning-fill"></i></div>
+            <div>
+                <div class="section-header-title">Accès rapide</div>
+                <div style="font-size:0.75rem;color:#9ca3af;">Naviguez dans l'application</div>
             </div>
-            <div class="modal-body pt-3">
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:#f3f4f6;">
+            <a href="/scan" class="quick-link" style="background:#fff;padding:1.2rem;text-align:center;text-decoration:none;transition:background 0.15s;display:block;">
+                <div style="width:44px;height:44px;border-radius:12px;background:#d1fae5;color:#059669;display:flex;align-items:center;justify-content:center;font-size:1.2rem;margin:0 auto 0.5rem;">
+                    <i class="bi bi-camera-fill"></i>
+                </div>
+                <div style="font-size:0.8rem;font-weight:600;color:#111827;">Analyser</div>
+                <div style="font-size:0.72rem;color:#9ca3af;">Scanner une plante</div>
+            </a>
+            <a href="/historique" class="quick-link" style="background:#fff;padding:1.2rem;text-align:center;text-decoration:none;transition:background 0.15s;display:block;">
+                <div style="width:44px;height:44px;border-radius:12px;background:#dbeafe;color:#3b82f6;display:flex;align-items:center;justify-content:center;font-size:1.2rem;margin:0 auto 0.5rem;">
+                    <i class="bi bi-clock-history"></i>
+                </div>
+                <div style="font-size:0.8rem;font-weight:600;color:#111827;">Historique</div>
+                <div style="font-size:0.72rem;color:#9ca3af;">Mes analyses</div>
+            </a>
+            <a href="/analytics" class="quick-link" style="background:#fff;padding:1.2rem;text-align:center;text-decoration:none;transition:background 0.15s;display:block;">
+                <div style="width:44px;height:44px;border-radius:12px;background:#fef3c7;color:#d97706;display:flex;align-items:center;justify-content:center;font-size:1.2rem;margin:0 auto 0.5rem;">
+                    <i class="bi bi-bar-chart-fill"></i>
+                </div>
+                <div style="font-size:0.8rem;font-weight:600;color:#111827;">Analytics</div>
+                <div style="font-size:0.72rem;color:#9ca3af;">Mes statistiques</div>
+            </a>
+        </div>
+    </div>
 
-                <div id="pwAlert" class="alert d-none" role="alert"></div>
+    <!-- ── Déconnexion ── -->
+    <div class="anim4 mt-3 text-center">
+        <button onclick="logout()"
+                style="background:none;border:1.5px solid #e9ecef;color:#6b7280;border-radius:50px;padding:10px 28px;font-size:0.85rem;font-weight:600;cursor:pointer;transition:all 0.2s;gap:6px;display:inline-flex;align-items:center;">
+            <i class="bi bi-box-arrow-right"></i> Se déconnecter
+        </button>
+    </div>
 
-                <form id="changePasswordForm" onsubmit="handleChangePassword(event)">
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     MODAL CHANGEMENT DE MOT DE PASSE
+═══════════════════════════════════════════════ -->
+<div class="modal fade" id="changePasswordModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:440px;">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:24px;overflow:hidden;">
+
+            <!-- Header -->
+            <div style="background:linear-gradient(135deg,#0d5c2e,#198754);padding:1.5rem 1.8rem;color:#fff;">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h5 class="fw-bold mb-1" style="font-size:1.1rem;">
+                            <i class="bi bi-shield-lock me-2"></i>Changer le mot de passe
+                        </h5>
+                        <p class="mb-0" style="font-size:0.8rem;opacity:0.8;">Choisissez un mot de passe fort et unique</p>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white mt-1" data-bs-dismiss="modal"></button>
+                </div>
+            </div>
+
+            <!-- Body -->
+            <div class="modal-body" style="padding:1.8rem;">
+                <div id="pwAlert" class="d-none" style="padding:10px 14px;border-radius:12px;font-size:0.84rem;margin-bottom:1.2rem;"></div>
+
+                <form id="changePasswordForm" onsubmit="handleChangePassword(event)" autocomplete="off">
 
                     <!-- Mot de passe actuel -->
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">
-                            <i class="bi bi-lock me-1"></i>Mot de passe actuel
+                        <label style="font-size:0.78rem;font-weight:700;color:#6b7280;display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.04em;">
+                            Mot de passe actuel
                         </label>
-                        <div class="input-group">
-                            <input type="password" class="form-control" id="currentPassword"
-                                   placeholder="Votre mot de passe actuel" required>
-                            <button class="btn btn-outline-secondary" type="button"
-                                    onclick="togglePassword('currentPassword')">
+                        <div style="position:relative;">
+                            <input type="password" id="currentPassword" required autocomplete="current-password"
+                                   placeholder="Votre mot de passe actuel"
+                                   style="width:100%;padding:11px 44px 11px 14px;border:2px solid #e9ecef;border-radius:12px;font-size:0.9rem;outline:none;background:#fafafa;transition:border-color 0.2s;"
+                                   onfocus="this.style.borderColor='#198754';this.style.background='#fff';"
+                                   onblur="this.style.borderColor='#e9ecef';">
+                            <button type="button" onclick="togglePassword('currentPassword')"
+                                    style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:#9ca3af;cursor:pointer;padding:4px;">
                                 <i class="bi bi-eye" id="currentPasswordEye"></i>
                             </button>
                         </div>
                     </div>
 
-                    <!-- Nouveau mot de passe -->
+                    <!-- Nouveau mot de passe + force -->
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">
-                            <i class="bi bi-lock-fill me-1"></i>Nouveau mot de passe
+                        <label style="font-size:0.78rem;font-weight:700;color:#6b7280;display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.04em;">
+                            Nouveau mot de passe
                         </label>
-                        <div class="input-group">
-                            <input type="password" class="form-control" id="newPassword"
-                                   placeholder="Minimum 6 caractères" required minlength="6">
-                            <button class="btn btn-outline-secondary" type="button"
-                                    onclick="togglePassword('newPassword')">
+                        <div style="position:relative;">
+                            <input type="password" id="newPassword" required minlength="8"
+                                   autocomplete="new-password" placeholder="Min. 8 caractères, lettre + chiffre"
+                                   oninput="checkPwStrength(this.value);checkConfirmMatch();"
+                                   style="width:100%;padding:11px 44px 11px 14px;border:2px solid #e9ecef;border-radius:12px;font-size:0.9rem;outline:none;background:#fafafa;transition:border-color 0.2s;"
+                                   onfocus="this.style.borderColor='#198754';this.style.background='#fff';"
+                                   onblur="this.style.borderColor='#e9ecef';">
+                            <button type="button" onclick="togglePassword('newPassword')"
+                                    style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:#9ca3af;cursor:pointer;padding:4px;">
                                 <i class="bi bi-eye" id="newPasswordEye"></i>
                             </button>
                         </div>
-                    </div>
-
-                    <!-- Confirmer le nouveau mot de passe -->
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">
-                            <i class="bi bi-lock-fill me-1"></i>Confirmer le nouveau mot de passe
-                        </label>
-                        <div class="input-group">
-                            <input type="password" class="form-control" id="confirmPassword"
-                                   placeholder="Répétez le nouveau mot de passe" required minlength="6">
-                            <button class="btn btn-outline-secondary" type="button"
-                                    onclick="togglePassword('confirmPassword')">
-                                <i class="bi bi-eye" id="confirmPasswordEye"></i>
-                            </button>
+                        <!-- Jauge -->
+                        <div style="height:4px;border-radius:2px;background:#e9ecef;margin-top:8px;overflow:hidden;">
+                            <div id="strengthBar" style="height:100%;width:0;border-radius:2px;transition:all 0.35s;"></div>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;margin-top:4px;">
+                            <small id="strengthLabel" style="font-size:0.73rem;font-weight:600;"></small>
+                            <small style="font-size:0.72rem;color:#9ca3af;">lettre + chiffre requis</small>
                         </div>
                     </div>
 
-                    <div class="d-flex gap-2 justify-content-end mt-4">
-                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <!-- Confirmer -->
+                    <div class="mb-4">
+                        <label style="font-size:0.78rem;font-weight:700;color:#6b7280;display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.04em;">
+                            Confirmer le mot de passe
+                        </label>
+                        <div style="position:relative;">
+                            <input type="password" id="confirmPassword" required minlength="8"
+                                   autocomplete="new-password" placeholder="Répétez le nouveau mot de passe"
+                                   oninput="checkConfirmMatch();"
+                                   style="width:100%;padding:11px 44px 11px 14px;border:2px solid #e9ecef;border-radius:12px;font-size:0.9rem;outline:none;background:#fafafa;transition:border-color 0.2s;"
+                                   onfocus="this.style.borderColor='#198754';this.style.background='#fff';"
+                                   onblur="this.style.borderColor='#e9ecef';">
+                            <button type="button" onclick="togglePassword('confirmPassword')"
+                                    style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:#9ca3af;cursor:pointer;padding:4px;">
+                                <i class="bi bi-eye" id="confirmPasswordEye"></i>
+                            </button>
+                        </div>
+                        <small id="confirmMatchMsg" class="d-none mt-1" style="font-size:0.78rem;display:block;margin-top:4px;"></small>
+                    </div>
+
+                    <!-- Boutons -->
+                    <div style="display:flex;gap:10px;">
+                        <button type="button" data-bs-dismiss="modal"
+                                style="flex:1;padding:12px;border:2px solid #e9ecef;border-radius:50px;background:#fff;font-weight:600;font-size:0.88rem;cursor:pointer;transition:all 0.2s;color:#374151;"
+                                onmouseover="this.style.background='#f9fafb';" onmouseout="this.style.background='#fff';">
                             Annuler
                         </button>
-                        <button type="submit" class="btn btn-success" id="changePwBtn">
-                            <span id="changePwBtnText">
-                                <i class="bi bi-check-lg me-1"></i>Enregistrer
-                            </span>
+                        <button type="submit" id="changePwBtn"
+                                style="flex:1;padding:12px;border:none;border-radius:50px;background:linear-gradient(135deg,#198754,#20c997);color:#fff;font-weight:700;font-size:0.88rem;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:6px;"
+                                onmouseover="this.style.transform='translateY(-2px)';" onmouseout="this.style.transform='none';">
+                            <span id="changePwBtnText"><i class="bi bi-shield-check"></i> Enregistrer</span>
                             <span id="changePwSpinner" class="d-none">
-                                <span class="spinner-border spinner-border-sm me-1"></span>
-                                En cours...
+                                <span class="spinner-border spinner-border-sm me-1"></span>En cours…
                             </span>
                         </button>
                     </div>
@@ -272,81 +583,108 @@
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
 <script src="/static/js/api.js?v=2"></script>
-<script src="/static/js/auth.js?v=2"></script>
-
+<script src="/static/js/auth.js?v=3"></script>
 <script>
-// ============================================================
-// Script de la page Profil
-// ============================================================
+
+let failedPwAttempts = 0;
+const MAX_PW_ATTEMPTS = 5;
+
+// ── Hover sur les quick links ──
+document.querySelectorAll(".quick-link").forEach(el => {
+    el.addEventListener("mouseenter", () => el.style.background = "#f9fafb");
+    el.addEventListener("mouseleave", () => el.style.background = "#fff");
+});
 
 document.addEventListener("DOMContentLoaded", async () => {
     if (!requireAuth()) return;
     await loadProfile();
+
+    // Reset modal à la fermeture
+    document.getElementById("changePasswordModal").addEventListener("hidden.bs.modal", () => {
+        document.getElementById("changePasswordForm").reset();
+        hidePwAlert();
+        resetStrength();
+        resetConfirmMatch();
+        failedPwAttempts = 0;
+        document.getElementById("changePwBtn").disabled = false;
+    });
 });
 
 async function loadProfile() {
-    // --- Infos utilisateur ---
     try {
         const user = await apiGet("/api/auth/me");
 
         // Navbar
         document.getElementById("navUsername").textContent = user.username;
 
-        // Avatar : premières lettres du nom
+        // Avatar + initiales
         const initials = user.username.substring(0, 2).toUpperCase();
-        document.getElementById("avatarCircle").textContent = initials;
-
-        // Carte identité
+        document.getElementById("avatarCircle").innerHTML = initials + '<div class="online-dot"></div>';
         document.getElementById("profileUsername").textContent = user.username;
         document.getElementById("profileEmail").textContent    = user.email;
         document.getElementById("infoUsername").textContent    = user.username;
         document.getElementById("infoEmail").textContent       = user.email;
-        document.getElementById("infoCreatedAt").textContent   = user.created_at
-            ? formatDate(user.created_at)
-            : "Non disponible";
 
-    } catch (error) {
-        console.error("Erreur /api/auth/me :", error);
+        // Date membre
+        const dateStr = user.created_at ? formatDate(user.created_at) : "—";
+        document.getElementById("infoCreatedAt").textContent = dateStr;
+        document.getElementById("memberSince").textContent   = dateStr;
+
+        // Type de compte
+        if (!user.has_password) {
+            document.getElementById("accountTypeBadge").classList.remove("d-none");
+            document.getElementById("infoAccountType").textContent = "Google OAuth";
+            document.getElementById("pwSection").classList.add("d-none");
+            document.getElementById("googleSection").classList.remove("d-none");
+        }
+
+    } catch(e) {
         document.getElementById("profileUsername").textContent = "Erreur de chargement";
-        document.getElementById("profileEmail").textContent    = error.message || "Impossible de charger le profil";
-        document.getElementById("avatarCircle").textContent    = "!";
     }
 
-    // --- Statistiques ---
+    // Stats
     try {
         const stats = await apiGet("/api/analytics/summary");
-        document.getElementById("statScans").textContent     = stats.total_scans    ?? 0;
-        document.getElementById("statEdible").textContent    = stats.edible_plants_count  ?? 0;
-        document.getElementById("statToxic").textContent     = stats.toxic_plants_count   ?? 0;
+        const total = stats.total_scans ?? 0;
+        document.getElementById("statScans").textContent     = total;
+        document.getElementById("statEdible").textContent    = stats.edible_plants_count ?? 0;
+        document.getElementById("statToxic").textContent     = stats.toxic_plants_count ?? 0;
         document.getElementById("statMedicinal").textContent = stats.medicinal_plants_count ?? 0;
-    } catch (error) {
-        console.error("Erreur /api/analytics/summary :", error);
-        ["statScans","statEdible","statToxic","statMedicinal"].forEach(id => {
-            document.getElementById(id).textContent = "—";
+        document.getElementById("metaScans").textContent     = total;
+    } catch(e) {
+        ["statScans","statEdible","statToxic","statMedicinal","metaScans"].forEach(id => {
+            const el = document.getElementById(id);
+            if(el) el.textContent = "0";
         });
     }
 }
 
-// ---- Changement de mot de passe ----
+// ── Changement de mot de passe ──
 async function handleChangePassword(event) {
     event.preventDefault();
+
+    if (failedPwAttempts >= MAX_PW_ATTEMPTS) {
+        showPwAlert("⛔ Trop de tentatives. Fermez la fenêtre et réessayez.", "danger");
+        document.getElementById("changePwBtn").disabled = true;
+        return;
+    }
 
     const current = document.getElementById("currentPassword").value;
     const newPw   = document.getElementById("newPassword").value;
     const confirm = document.getElementById("confirmPassword").value;
 
-    // Vérifier que les deux nouveaux mots de passe correspondent
     if (newPw !== confirm) {
         showPwAlert("Les deux nouveaux mots de passe ne correspondent pas.", "danger");
         return;
     }
+    if (current === newPw) {
+        showPwAlert("Le nouveau mot de passe doit être différent de l'ancien.", "warning");
+        return;
+    }
 
-    // Spinner
-    document.getElementById("changePwBtn").disabled     = true;
-    document.getElementById("changePwBtnText").classList.add("d-none");
-    document.getElementById("changePwSpinner").classList.remove("d-none");
+    setLoading(true);
     hidePwAlert();
 
     try {
@@ -355,37 +693,133 @@ async function handleChangePassword(event) {
             new_password: newPw
         });
 
-        showPwAlert(result.message || "Mot de passe modifié avec succès !", "success");
+        showPwAlert(
+            `<div style="display:flex;align-items:flex-start;gap:8px;">
+                <i class="bi bi-check-circle-fill" style="font-size:1.1rem;flex-shrink:0;margin-top:1px;"></i>
+                <div>
+                    <strong>Mot de passe modifié avec succès !</strong><br>
+                    <small style="opacity:0.85;">Vous serez déconnecté dans 3 secondes pour sécuriser votre session.</small>
+                </div>
+            </div>`,
+            "success"
+        );
 
-        // Vider les champs
         document.getElementById("changePasswordForm").reset();
+        document.getElementById("changePwBtn").disabled = true;
 
-        // Fermer le modal après 2s
         setTimeout(() => {
             bootstrap.Modal.getInstance(document.getElementById("changePasswordModal")).hide();
-            hidePwAlert();
-        }, 2000);
+            logout();
+        }, 3000);
 
-    } catch (error) {
-        showPwAlert(error.message, "danger");
-    } finally {
-        document.getElementById("changePwBtn").disabled = false;
-        document.getElementById("changePwBtnText").classList.remove("d-none");
-        document.getElementById("changePwSpinner").classList.add("d-none");
+    } catch(e) {
+        failedPwAttempts++;
+        const remaining = MAX_PW_ATTEMPTS - failedPwAttempts;
+        let msg = e.message || "Une erreur s'est produite.";
+
+        if (msg.includes("actuel incorrect")) {
+            document.getElementById("currentPassword").style.borderColor = "#ef4444";
+            document.getElementById("currentPassword").focus();
+        }
+        if (remaining > 0 && remaining <= 2) {
+            msg += ` (${remaining} tentative${remaining > 1 ? "s" : ""} restante${remaining > 1 ? "s" : ""})`;
+        }
+
+        showPwAlert(
+            `<div style="display:flex;align-items:center;gap:8px;">
+                <i class="bi bi-exclamation-circle-fill" style="font-size:1rem;flex-shrink:0;"></i>
+                <span>${msg}</span>
+            </div>`,
+            "danger"
+        );
+        setLoading(false);
     }
 }
 
-function showPwAlert(message, type) {
+// ── Jauge de force ──
+function checkPwStrength(val) {
+    const bar = document.getElementById("strengthBar");
+    const label = document.getElementById("strengthLabel");
+    if (!val) { resetStrength(); return; }
+
+    let score = 0;
+    if (val.length >= 8)  score++;
+    if (val.length >= 12) score++;
+    if (/[A-Z]/.test(val)) score++;
+    if (/[0-9]/.test(val)) score++;
+    if (/[^A-Za-z0-9]/.test(val)) score++;
+
+    const levels = [
+        { w:"20%", c:"#ef4444", t:"Très faible" },
+        { w:"40%", c:"#f97316", t:"Faible" },
+        { w:"60%", c:"#eab308", t:"Moyen" },
+        { w:"80%", c:"#22c55e", t:"Fort" },
+        { w:"100%",c:"#16a34a", t:"Très fort 💪" },
+    ];
+    const lv = levels[Math.min(score - 1, 4)];
+    bar.style.width = lv.w; bar.style.background = lv.c;
+    label.textContent = lv.t; label.style.color = lv.c;
+}
+
+function resetStrength() {
+    document.getElementById("strengthBar").style.width = "0";
+    document.getElementById("strengthLabel").textContent = "";
+}
+
+// ── Correspondance en temps réel ──
+function checkConfirmMatch() {
+    const newPw   = document.getElementById("newPassword").value;
+    const confirm = document.getElementById("confirmPassword").value;
+    const msg     = document.getElementById("confirmMatchMsg");
+    const input   = document.getElementById("confirmPassword");
+
+    if (!confirm) { msg.classList.add("d-none"); input.style.borderColor = "#e9ecef"; return; }
+    msg.style.display = "block";
+    msg.classList.remove("d-none");
+
+    if (newPw === confirm) {
+        msg.textContent = "✓ Les mots de passe correspondent";
+        msg.style.color = "#16a34a";
+        input.style.borderColor = "#16a34a";
+    } else {
+        msg.textContent = "✗ Les mots de passe ne correspondent pas";
+        msg.style.color = "#ef4444";
+        input.style.borderColor = "#ef4444";
+    }
+}
+
+function resetConfirmMatch() {
+    document.getElementById("confirmMatchMsg").classList.add("d-none");
+    ["confirmPassword","currentPassword","newPassword"].forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.style.borderColor = "#e9ecef";
+    });
+}
+
+// ── Alertes modal ──
+function showPwAlert(html, type) {
     const el = document.getElementById("pwAlert");
-    el.className = `alert alert-${type}`;
-    el.innerHTML = `<i class="bi bi-${type === "danger" ? "exclamation-circle" : "check-circle"} me-2"></i>${message}`;
+    const s = {
+        danger:  "background:#fee2e2;color:#dc2626;border-left:3px solid #dc2626;",
+        warning: "background:#fef3c7;color:#d97706;border-left:3px solid #d97706;",
+        success: "background:#d1fae5;color:#059669;border-left:3px solid #059669;",
+    };
+    el.style.cssText = (s[type]||s.danger) + "padding:12px 14px;border-radius:12px;font-size:0.84rem;margin-bottom:1.2rem;";
+    el.innerHTML = html;
     el.classList.remove("d-none");
 }
 
 function hidePwAlert() {
-    document.getElementById("pwAlert").classList.add("d-none");
+    const el = document.getElementById("pwAlert");
+    el.classList.add("d-none");
+    el.innerHTML = "";
+}
+
+function setLoading(on) {
+    document.getElementById("changePwBtn").disabled = on;
+    document.getElementById("changePwBtnText").classList.toggle("d-none", on);
+    document.getElementById("changePwSpinner").classList.toggle("d-none", !on);
 }
 </script>
-
 </body>
 </html>

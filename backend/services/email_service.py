@@ -20,6 +20,7 @@
 #   Compte Google → Sécurité → Validation en 2 étapes → Mots de passe d'application
 # ============================================================
 
+import html as _html
 import os
 import smtplib
 from email.mime.text import MIMEText
@@ -32,7 +33,7 @@ SMTP_PORT     = int(os.getenv("SMTP_PORT", "587"))
 SMTP_USER     = os.getenv("SMTP_USER", "")
 SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
 APP_BASE_URL  = os.getenv("APP_BASE_URL", "http://localhost:8000")
-FROM_NAME     = "WhatAPlant"
+FROM_NAME     = "MikiPlants"
 
 
 def _send_email(to_email: str, subject: str, html_body: str) -> bool:
@@ -111,6 +112,7 @@ def send_verification_email(to_email: str, username: str, token: str) -> bool:
         username : Nom d'utilisateur
         token    : Token de vérification unique (UUID)
     """
+    safe_username = _html.escape(username)
     verify_url = f"{APP_BASE_URL}/verify-email?token={token}"
 
     html = f"""
@@ -121,15 +123,15 @@ def send_verification_email(to_email: str, username: str, token: str) -> bool:
 
         <!-- En-tête vert -->
         <div style="background:#198754; padding:30px; text-align:center;">
-          <h1 style="color:white; margin:0; font-size:28px;">🌿 WhatAPlant</h1>
+          <h1 style="color:white; margin:0; font-size:28px;">🌿 MikiPlants</h1>
           <p style="color:#d4edda; margin:8px 0 0;">Identification intelligente de plantes</p>
         </div>
 
         <!-- Corps -->
         <div style="padding:30px;">
-          <h2 style="color:#333;">Bienvenue, {username} !</h2>
+          <h2 style="color:#333;">Bienvenue, {safe_username} !</h2>
           <p style="color:#555; line-height:1.6;">
-            Merci de vous être inscrit sur <strong>WhatAPlant</strong>.
+            Merci de vous être inscrit sur <strong>MikiPlants</strong>.
             Pour activer votre compte et commencer à analyser des plantes,
             veuillez confirmer votre adresse email en cliquant sur le bouton ci-dessous.
           </p>
@@ -158,7 +160,7 @@ def send_verification_email(to_email: str, username: str, token: str) -> bool:
         <!-- Pied de page -->
         <div style="background:#f8f9fa; padding:15px; text-align:center;">
           <p style="color:#999; font-size:12px; margin:0;">
-            © {datetime.now().year} WhatAPlant – Application d'analyse de plantes
+            © {datetime.now().year} MikiPlants – Application d'analyse de plantes
           </p>
         </div>
 
@@ -167,7 +169,7 @@ def send_verification_email(to_email: str, username: str, token: str) -> bool:
     </html>
     """
 
-    return _send_email(to_email, "✅ Vérifiez votre adresse email – WhatAPlant", html)
+    return _send_email(to_email, "✅ Vérifiez votre adresse email – MikiPlants", html)
 
 
 # ============================================================
@@ -185,6 +187,8 @@ def send_login_notification(to_email: str, username: str, ip_address: str = "Inc
         username   : Nom d'utilisateur
         ip_address : Adresse IP du client (pour information)
     """
+    safe_username = _html.escape(username)
+    safe_ip       = _html.escape(ip_address)
     now = datetime.now().strftime("%d/%m/%Y à %H:%M")
 
     html = f"""
@@ -195,22 +199,22 @@ def send_login_notification(to_email: str, username: str, ip_address: str = "Inc
 
         <!-- En-tête -->
         <div style="background:#198754; padding:30px; text-align:center;">
-          <h1 style="color:white; margin:0; font-size:28px;">🌿 WhatAPlant</h1>
+          <h1 style="color:white; margin:0; font-size:28px;">🌿 MikiPlants</h1>
         </div>
 
         <!-- Corps -->
         <div style="padding:30px;">
           <h2 style="color:#333;">Nouvelle connexion détectée</h2>
           <p style="color:#555; line-height:1.6;">
-            Bonjour <strong>{username}</strong>,<br><br>
-            Une connexion a été effectuée sur votre compte WhatAPlant.
+            Bonjour <strong>{safe_username}</strong>,<br><br>
+            Une connexion a été effectuée sur votre compte MikiPlants.
           </p>
 
           <!-- Détails de connexion -->
           <div style="background:#f8f9fa; border-left:4px solid #198754; padding:15px; border-radius:4px; margin:20px 0;">
             <p style="margin:0; color:#555;">
               📅 <strong>Date :</strong> {now}<br>
-              🌍 <strong>Adresse IP :</strong> {ip_address}<br>
+              🌍 <strong>Adresse IP :</strong> {safe_ip}<br>
               👤 <strong>Compte :</strong> {to_email}
             </p>
           </div>
@@ -238,7 +242,7 @@ def send_login_notification(to_email: str, username: str, ip_address: str = "Inc
         <!-- Pied de page -->
         <div style="background:#f8f9fa; padding:15px; text-align:center;">
           <p style="color:#999; font-size:12px; margin:0;">
-            © {datetime.now().year} WhatAPlant – Cet email est envoyé automatiquement, ne pas y répondre.
+            © {datetime.now().year} MikiPlants – Cet email est envoyé automatiquement, ne pas y répondre.
           </p>
         </div>
 
@@ -247,7 +251,7 @@ def send_login_notification(to_email: str, username: str, ip_address: str = "Inc
     </html>
     """
 
-    return _send_email(to_email, "🔐 Nouvelle connexion sur votre compte WhatAPlant", html)
+    return _send_email(to_email, "🔐 Nouvelle connexion sur votre compte MikiPlants", html)
 
 
 # ============================================================
@@ -263,6 +267,7 @@ def send_password_reset_email(to_email: str, username: str, token: str) -> bool:
         username : Nom d'utilisateur
         token    : Token de réinitialisation unique (UUID, valide 1 heure)
     """
+    safe_username = _html.escape(username)
     reset_url = f"{APP_BASE_URL}/reset-password?token={token}"
 
     html = f"""
@@ -273,7 +278,7 @@ def send_password_reset_email(to_email: str, username: str, token: str) -> bool:
 
         <!-- En-tête -->
         <div style="background:#dc3545; padding:30px; text-align:center;">
-          <h1 style="color:white; margin:0; font-size:28px;">🌿 WhatAPlant</h1>
+          <h1 style="color:white; margin:0; font-size:28px;">🌿 MikiPlants</h1>
           <p style="color:#f8d7da; margin:8px 0 0;">Réinitialisation de mot de passe</p>
         </div>
 
@@ -281,7 +286,7 @@ def send_password_reset_email(to_email: str, username: str, token: str) -> bool:
         <div style="padding:30px;">
           <h2 style="color:#333;">Mot de passe oublié ?</h2>
           <p style="color:#555; line-height:1.6;">
-            Bonjour <strong>{username}</strong>,<br><br>
+            Bonjour <strong>{safe_username}</strong>,<br><br>
             Vous avez demandé la réinitialisation de votre mot de passe.
             Cliquez sur le bouton ci-dessous pour choisir un nouveau mot de passe.
           </p>
@@ -313,7 +318,7 @@ def send_password_reset_email(to_email: str, username: str, token: str) -> bool:
         <!-- Pied de page -->
         <div style="background:#f8f9fa; padding:15px; text-align:center;">
           <p style="color:#999; font-size:12px; margin:0;">
-            © {datetime.now().year} WhatAPlant – Cet email est envoyé automatiquement.
+            © {datetime.now().year} MikiPlants – Cet email est envoyé automatiquement.
           </p>
         </div>
 
@@ -322,4 +327,4 @@ def send_password_reset_email(to_email: str, username: str, token: str) -> bool:
     </html>
     """
 
-    return _send_email(to_email, "🔑 Réinitialisation de votre mot de passe – WhatAPlant", html)
+    return _send_email(to_email, "🔑 Réinitialisation de votre mot de passe – MikiPlants", html)

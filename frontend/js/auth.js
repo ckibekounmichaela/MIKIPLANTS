@@ -51,32 +51,138 @@ function showTab(tab) {
  * @param {Event} event - L'événement submit du formulaire
  */
 async function handleLogin(event) {
-    // Empêcher le comportement par défaut (rechargement de la page)
     event.preventDefault();
 
-    // Récupérer les valeurs des champs
     const email    = document.getElementById("loginEmail").value.trim();
     const password = document.getElementById("loginPassword").value;
 
-    // Afficher le spinner et désactiver le bouton
     setButtonLoading("loginBtn", "loginBtnText", "loginSpinner", true);
     hideAlert("loginAlert");
 
     try {
-        // Appeler l'API de connexion
         const result = await apiPost("/api/auth/login", { email, password });
-
-        // Sauvegarder le token JWT dans le localStorage
-        // localStorage = stockage persistant dans le navigateur
         localStorage.setItem("access_token", result.access_token);
-
-        // Rediriger vers le tableau de bord
         window.location.href = "/dashboard";
 
     } catch (error) {
-        // Afficher le message d'erreur
-        showAlert("loginAlert", error.message, "danger");
+        const msg = error.message || "";
+
+        if (msg.includes("Aucun compte")) {
+            // Email inconnu → proposer de créer un compte
+            showLoginSmartAlert(
+                "bi-person-x",
+                "Aucun compte trouvé avec cet email.",
+                "Vous n'avez pas encore de compte ?",
+                "Créer un compte gratuit",
+                () => { showTab("register"); prefillRegisterEmail(email); }
+            );
+
+        } else if (msg.includes("Mot de passe incorrect")) {
+            // Mauvais mot de passe → proposer la réinitialisation
+            showLoginSmartAlert(
+                "bi-lock-fill",
+                "Mot de passe incorrect.",
+                "Vous avez oublié votre mot de passe ?",
+                "Réinitialiser le mot de passe",
+                () => { showTab("forgot"); prefillForgotEmail(email); },
+                "warning"
+            );
+
+        } else if (msg.includes("Google")) {
+            // Compte Google → afficher bouton Google
+            showLoginSmartAlert(
+                "bi-google",
+                "Ce compte utilise la connexion Google.",
+                "Utilisez le bouton ci-dessous pour vous connecter.",
+                "Continuer avec Google",
+                () => { window.location.href = "/api/auth/google/login"; },
+                "info"
+            );
+
+        } else if (msg.includes("non vérifié")) {
+            // Email non confirmé
+            showLoginSmartAlert(
+                "bi-envelope-exclamation",
+                "Compte non vérifié.",
+                "Vérifiez votre boîte email et cliquez sur le lien d'activation.",
+                "Renvoyer l'email de vérification",
+                () => resendVerification(email),
+                "warning"
+            );
+
+        } else {
+            showAlert("loginAlert", msg, "danger");
+        }
+
         setButtonLoading("loginBtn", "loginBtnText", "loginSpinner", false);
+    }
+}
+
+
+/**
+ * Afficher une alerte enrichie avec titre, message et bouton d'action.
+ */
+function showLoginSmartAlert(icon, title, subtitle, btnLabel, btnAction, type = "danger") {
+    const el = document.getElementById("loginAlert");
+    if (!el) return;
+
+    const colors = {
+        danger:  { bg: "#fee2e2", color: "#dc2626", border: "#dc2626", btnBg: "#dc2626" },
+        warning: { bg: "#fef3c7", color: "#d97706", border: "#d97706", btnBg: "#d97706" },
+        info:    { bg: "#dbeafe", color: "#2563eb", border: "#2563eb", btnBg: "#2563eb" },
+    };
+    const c = colors[type] || colors.danger;
+
+    el.style.cssText = `
+        background:${c.bg}; color:${c.color};
+        border-left:3px solid ${c.border};
+        padding:12px 14px; border-radius:10px;
+        font-size:0.85rem; margin-bottom:1rem;
+    `;
+    el.innerHTML = `
+        <div class="d-flex align-items-start gap-2">
+            <i class="bi ${icon} mt-1" style="font-size:1rem;flex-shrink:0;"></i>
+            <div style="flex:1;">
+                <div style="font-weight:700;">${title}</div>
+                <div style="opacity:0.85;font-size:0.8rem;margin-top:2px;">${subtitle}</div>
+                <button onclick="(${btnAction.toString()})()"
+                    style="margin-top:8px;background:${c.btnBg};color:#fff;border:none;
+                           border-radius:8px;padding:6px 14px;font-size:0.8rem;
+                           font-weight:600;cursor:pointer;width:100%;">
+                    ${btnLabel}
+                </button>
+            </div>
+        </div>
+    `;
+    el.style.display = "block";
+}
+
+
+/** Pré-remplir l'email dans le formulaire d'inscription. */
+function prefillRegisterEmail(email) {
+    const el = document.getElementById("registerEmail");
+    if (el) el.value = email;
+}
+
+/** Pré-remplir l'email dans le formulaire de connexion. */
+function prefillLoginEmail(email) {
+    const el = document.getElementById("loginEmail");
+    if (el) el.value = email;
+}
+
+/** Pré-remplir l'email dans le formulaire "mot de passe oublié". */
+function prefillForgotEmail(email) {
+    const el = document.getElementById("forgotEmail");
+    if (el) el.value = email;
+}
+
+/** Renvoyer l'email de vérification. */
+async function resendVerification(email) {
+    try {
+        await apiPost("/api/auth/resend-verification", { email });
+        showAlert("loginAlert", "Email de vérification renvoyé ! Vérifiez votre boîte mail.", "success");
+    } catch (e) {
+        showAlert("loginAlert", e.message, "danger");
     }
 }
 
@@ -102,24 +208,62 @@ async function handleRegister(event) {
     hideAlert("registerAlert");
 
     try {
-        // Créer le compte
         await apiPost("/api/auth/register", { username, email, password });
 
-        // Afficher un message de succès avec instruction de vérification email
-        showAlert("registerAlert",
-            "Compte créé ! Un email de vérification a été envoyé à " + email + ". " +
-            "Cliquez sur le lien dans l'email pour activer votre compte.",
-            "success"
-        );
+        // Succès : message clair + redirection auto vers login
+        const alertEl = document.getElementById("registerAlert");
+        alertEl.style.cssText = `
+            background:#d1fae5; color:#059669; border-left:3px solid #059669;
+            padding:12px 14px; border-radius:10px; font-size:0.85rem; margin-bottom:1rem;
+        `;
+        alertEl.innerHTML = `
+            <div class="d-flex align-items-start gap-2">
+                <i class="bi bi-check-circle-fill mt-1" style="font-size:1rem;flex-shrink:0;"></i>
+                <div>
+                    <div style="font-weight:700;">Compte créé avec succès ! 🎉</div>
+                    <div style="opacity:0.85;font-size:0.8rem;margin-top:2px;">
+                        Un email de vérification a été envoyé à <strong>${email}</strong>.<br>
+                        Cliquez sur le lien dans l'email pour activer votre compte.
+                    </div>
+                </div>
+            </div>
+        `;
+        alertEl.style.display = "block";
 
-        // Passer automatiquement à l'onglet de connexion après 3s
         setTimeout(() => {
             showTab("login");
             document.getElementById("loginEmail").value = email;
         }, 3000);
 
     } catch (error) {
-        showAlert("registerAlert", error.message, "danger");
+        const msg = error.message || "";
+
+        if (msg.includes("email existe déjà") || msg.includes("email")) {
+            // Email déjà utilisé → proposer de se connecter
+            const alertEl = document.getElementById("registerAlert");
+            alertEl.style.cssText = `
+                background:#fef3c7; color:#d97706; border-left:3px solid #d97706;
+                padding:12px 14px; border-radius:10px; font-size:0.85rem; margin-bottom:1rem;
+            `;
+            alertEl.innerHTML = `
+                <div class="d-flex align-items-start gap-2">
+                    <i class="bi bi-person-check mt-1" style="font-size:1rem;flex-shrink:0;"></i>
+                    <div style="flex:1;">
+                        <div style="font-weight:700;">Un compte existe déjà avec cet email.</div>
+                        <div style="opacity:0.85;font-size:0.8rem;margin-top:2px;">Vous avez déjà un compte ? Connectez-vous directement.</div>
+                        <button onclick="showTab('login'); prefillLoginEmail('${email}')"
+                            style="margin-top:8px;background:#d97706;color:#fff;border:none;
+                                   border-radius:8px;padding:6px 14px;font-size:0.8rem;
+                                   font-weight:600;cursor:pointer;width:100%;">
+                            Se connecter
+                        </button>
+                    </div>
+                </div>
+            `;
+            alertEl.style.display = "block";
+        } else {
+            showAlert("registerAlert", msg, "danger");
+        }
     } finally {
         // "finally" = toujours exécuté, même en cas d'erreur
         setButtonLoading("registerBtn", "registerBtnText", "registerSpinner", false);
@@ -330,13 +474,28 @@ document.addEventListener("DOMContentLoaded", () => {
         redirectIfAuthenticated();
     }
 
-    // Récupérer le token Google OAuth depuis l'URL (?token=xxx)
-    // Google redirige vers /dashboard?token=xxx après connexion
+    // -------------------------------------------------------
+    // Récupérer le token Google OAuth (cookie ou URL param)
+    // Le backend pose un cookie court "google_token" après OAuth
+    // On le transfère dans localStorage puis on supprime le cookie
+    // -------------------------------------------------------
+    function readCookie(name) {
+        const match = document.cookie.split("; ").find(r => r.startsWith(name + "="));
+        return match ? match.split("=")[1] : null;
+    }
+
+    const cookieToken = readCookie("google_token");
+    if (cookieToken) {
+        localStorage.setItem("access_token", cookieToken);
+        // Supprimer le cookie immédiatement
+        document.cookie = "google_token=; Max-Age=0; path=/";
+    }
+
+    // Fallback : token dans l'URL (ancienne méthode, gardée pour compatibilité)
     const urlParams = new URLSearchParams(window.location.search);
     const tokenFromUrl = urlParams.get("token");
-    if (tokenFromUrl) {
+    if (tokenFromUrl && !cookieToken) {
         localStorage.setItem("access_token", tokenFromUrl);
-        // Nettoyer l'URL (supprimer le token visible dans la barre d'adresse)
         window.history.replaceState({}, document.title, window.location.pathname);
     }
 

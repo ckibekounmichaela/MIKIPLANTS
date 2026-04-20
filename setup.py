@@ -1,6 +1,6 @@
 # ============================================================
 # FICHIER : setup.py
-# ROLE    : Installation automatique du projet WhatAPlant
+# ROLE    : Installation automatique du projet MikiPlants
 #
 # USAGE   : python setup.py
 #           OU double-cliquer sur install.bat
@@ -37,7 +37,7 @@ else:
 def print_header():
     print()
     print("=" * 50)
-    print("   WhatAPlant - Installation automatique")
+    print("   MikiPlants - Installation automatique")
     print("=" * 50)
     print()
 
@@ -213,7 +213,7 @@ def print_summary():
     print("  2. Lancez le serveur : double-cliquez sur start.bat")
     print()
     print("  3. Connectez-vous sur http://localhost:8000 avec :")
-    print("     Email        : admin@whataplant.com")
+    print("     Email        : admin@mikiplants.com")
     print("     Mot de passe : admin123")
     print()
     print("=" * 50)

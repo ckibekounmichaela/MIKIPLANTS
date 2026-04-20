@@ -123,7 +123,7 @@ function renderLocalMatch(localMatch) {
  */
 function renderHeader(scan) {
     // Image de la plante
-    document.getElementById("plantImage").src = `/${scan.image_path}`;
+    document.getElementById("plantImage").src = `/${scan.image_path}?token=${localStorage.getItem('access_token')}`;
 
     // Nom commun et scientifique
     document.getElementById("plantName").textContent = scan.plant_name || "Plante inconnue";

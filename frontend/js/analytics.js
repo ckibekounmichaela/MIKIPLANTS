@@ -29,6 +29,7 @@ let globalLoaded       = false;  // Charger les données globales une seule fois
 document.addEventListener("DOMContentLoaded", async () => {
     if (!requireAuth()) return;
     loadNavUser();
+    checkAdminButton();   // Afficher le bouton export admin si nécessaire
     await Promise.all([
         loadSummary(),
         loadDistribution(),
@@ -41,6 +42,64 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Promise.all exécute toutes les requêtes en parallèle
     // C'est plus rapide qu'attendre chaque requête l'une après l'autre
 });
+
+
+// ============================================================
+// BOUTON ADMIN : affiché uniquement pour l'administrateur
+// ============================================================
+
+/**
+ * Vérifie si l'utilisateur connecté est l'admin via /api/analytics/is-admin.
+ * Si oui, rend visible le bouton d'export global.
+ */
+async function checkAdminButton() {
+    try {
+        const data = await apiGet("/api/analytics/is-admin");
+        if (data.is_admin) {
+            const btn = document.getElementById("btnExportAll");
+            if (btn) btn.classList.remove("d-none");
+        }
+    } catch (e) {
+        // Silencieux — pas d'impact sur l'UX
+    }
+}
+
+/**
+ * Télécharger un fichier CSV depuis une URL protégée (avec token JWT).
+ * Les liens <a href> simples n'envoient pas le token → on utilise fetch.
+ * @param {string} url      - L'URL de l'endpoint CSV
+ * @param {string} filename - Le nom du fichier à télécharger
+ */
+async function downloadCsv(url, filename) {
+    try {
+        const token = localStorage.getItem("access_token");
+        const response = await fetch(url, {
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+
+        if (response.status === 403) {
+            alert("Accès refusé : vous n'êtes pas administrateur.");
+            return;
+        }
+        if (!response.ok) {
+            alert("Erreur lors du téléchargement du fichier CSV.");
+            return;
+        }
+
+        // Créer un lien temporaire pour déclencher le téléchargement
+        const blob = await response.blob();
+        const link = document.createElement("a");
+        link.href  = URL.createObjectURL(blob);
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
+
+    } catch (e) {
+        alert("Erreur réseau lors du téléchargement.");
+    }
+}
 
 
 // ============================================================

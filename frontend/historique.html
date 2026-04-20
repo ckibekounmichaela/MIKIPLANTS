@@ -3,185 +3,248 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WhatAPlant – Historique</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <title>MikiPlants – Historique</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet" crossorigin="anonymous">
     <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        body { background:#f4f6f9; }
+        .top-nav { background:linear-gradient(90deg,#0d5c2e,#198754); box-shadow:0 2px 16px rgba(0,0,0,0.15); }
+
+        /* Hero */
+        .page-hero {
+            background:linear-gradient(135deg,#0d5c2e 0%,#198754 50%,#20c997 100%);
+            padding:2.2rem 0 3.5rem; position:relative; overflow:hidden;
+        }
+        .page-hero::after {
+            content:""; position:absolute; bottom:-2px; left:0; right:0; height:40px;
+            background:#f4f6f9; clip-path:ellipse(55% 100% at 50% 100%);
+        }
+
+        /* Filter pills */
+        .filter-pill {
+            padding:7px 16px; border-radius:50px; border:2px solid #e9ecef;
+            background:#fff; font-size:0.82rem; font-weight:600; color:#6c757d;
+            cursor:pointer; transition:all 0.2s; white-space:nowrap;
+        }
+        .filter-pill:hover { border-color:#198754; color:#198754; }
+        .filter-pill.active-all   { background:#198754; color:#fff; border-color:#198754; }
+        .filter-pill.active-toxic { background:#dc3545; color:#fff; border-color:#dc3545; }
+        .filter-pill.active-edible{ background:#198754; color:#fff; border-color:#198754; }
+        .filter-pill.active-medic { background:#0dcaf0; color:#fff; border-color:#0dcaf0; }
+        .filter-pill.active-inv   { background:#ffc107; color:#212529; border-color:#ffc107; }
+
+        /* Search */
+        .search-box {
+            background:#fff; border:2px solid #e9ecef; border-radius:50px;
+            padding:8px 16px; display:flex; align-items:center; gap:8px;
+            transition:border-color 0.2s;
+        }
+        .search-box:focus-within { border-color:#198754; }
+        .search-box input { border:none; outline:none; font-size:0.88rem; flex:1; background:transparent; }
+
+        /* Scan card */
+        .scan-card-new {
+            background:#fff; border-radius:16px; overflow:hidden;
+            box-shadow:0 2px 12px rgba(0,0,0,0.07);
+            transition:transform 0.2s, box-shadow 0.2s;
+            cursor:pointer; height:100%;
+        }
+        .scan-card-new:hover { transform:translateY(-5px); box-shadow:0 10px 28px rgba(0,0,0,0.13); }
+        .scan-card-new img { height:170px; object-fit:cover; width:100%; display:block; }
+        .scan-card-new .card-content { padding:0.85rem; }
+        .scan-card-new .plant-name { font-weight:700; font-size:0.92rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .scan-card-new .plant-sci  { font-size:0.75rem; color:#9ca3af; font-style:italic; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:6px; }
+        .badge-pill { font-size:0.68rem; padding:3px 9px; border-radius:50px; font-weight:600; }
+        .conf-badge { position:absolute; top:8px; right:8px; background:rgba(0,0,0,0.55); color:#fff; font-size:0.7rem; font-weight:700; padding:3px 8px; border-radius:50px; }
+        .del-btn { position:absolute; top:8px; left:8px; background:rgba(220,53,69,0.85); color:#fff; border:none; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; opacity:0; transition:opacity 0.2s; font-size:0.8rem; cursor:pointer; }
+        .scan-card-new:hover .del-btn { opacity:1; }
+
+        /* Skeleton */
+        .skeleton { background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%); background-size:200% 100%; animation:shimmer 1.4s infinite; border-radius:8px; }
+        @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+        /* Pagination */
+        .page-link { border-radius:10px !important; margin:0 2px; border:none; color:#198754; font-weight:600; }
+        .page-item.active .page-link { background:linear-gradient(135deg,#198754,#20c997); border:none; }
+
+        @keyframes fadeInUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+        .anim { animation:fadeInUp 0.35s ease both; }
+    </style>
 </head>
 <body>
 
-<!-- Navbar -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-success sticky-top shadow-sm">
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg navbar-dark top-nav sticky-top">
     <div class="container">
-        <a class="navbar-brand fw-bold" href="/dashboard"><i class="bi bi-flower1 me-2"></i>WhatAPlant</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMenu">
+        <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="/dashboard">
+            <span style="background:rgba(255,255,255,0.2);border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;"><i class="bi bi-flower1"></i></span>
+            MikiPlants
+        </a>
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
             <span class="navbar-toggler-icon"></span>
         </button>
-        <div class="collapse navbar-collapse" id="navbarMenu">
-            <ul class="navbar-nav me-auto">
-                <li class="nav-item"><a class="nav-link" href="/dashboard"><i class="bi bi-house me-1"></i>Accueil</a></li>
+        <div class="collapse navbar-collapse" id="navMenu">
+            <ul class="navbar-nav me-auto gap-1">
+                <li class="nav-item"><a class="nav-link" href="/dashboard"><i class="bi bi-house-fill me-1"></i>Accueil</a></li>
                 <li class="nav-item"><a class="nav-link" href="/scan"><i class="bi bi-camera me-1"></i>Analyser</a></li>
-                <li class="nav-item"><a class="nav-link active" href="/historique"><i class="bi bi-clock-history me-1"></i>Historique</a></li>
+                <li class="nav-item"><a class="nav-link active fw-semibold" href="/historique"><i class="bi bi-clock-history me-1"></i>Historique</a></li>
                 <li class="nav-item"><a class="nav-link" href="/analytics"><i class="bi bi-bar-chart-line me-1"></i>Analytics</a></li>
             </ul>
             <div class="dropdown">
-                <button class="btn btn-outline-light btn-sm dropdown-toggle d-flex align-items-center gap-2"
-                        data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="bi bi-person-circle"></i>
-                    <span id="navUsername">...</span>
+                <button class="btn btn-sm dropdown-toggle d-flex align-items-center gap-2"
+                        style="background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3);border-radius:50px;padding:6px 14px;"
+                        data-bs-toggle="dropdown">
+                    <i class="bi bi-person-fill"></i><span id="navUsername">...</span>
                 </button>
-                <ul class="dropdown-menu dropdown-menu-end">
-                    <li>
-                        <a class="dropdown-item" href="/profil">
-                            <i class="bi bi-person me-2 text-success"></i>Mon profil
-                        </a>
-                    </li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li>
-                        <a class="dropdown-item text-danger" href="#" onclick="logout()">
-                            <i class="bi bi-box-arrow-right me-2"></i>Déconnexion
-                        </a>
-                    </li>
+                <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg" style="border-radius:12px;">
+                    <li><a class="dropdown-item py-2" href="/profil"><i class="bi bi-person me-2 text-success"></i>Mon profil</a></li>
+                    <li><hr class="dropdown-divider my-1"></li>
+                    <li><a class="dropdown-item py-2 text-danger" href="#" onclick="logout()"><i class="bi bi-box-arrow-right me-2"></i>Déconnexion</a></li>
                 </ul>
             </div>
         </div>
     </div>
 </nav>
 
-<main class="container py-4">
-
-    <!-- Titre -->
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-        <div>
-            <h2 class="fw-bold mb-0">
-                <i class="bi bi-clock-history text-success me-2"></i>Historique des analyses
-            </h2>
-            <p class="text-muted mb-0">
-                <span id="totalCount">-</span> analyse(s) au total
-            </p>
-        </div>
-        <a href="/scan" class="btn btn-success">
-            <i class="bi bi-plus-circle me-2"></i>Nouvelle analyse
-        </a>
-    </div>
-
-    <!-- ======================================================
-         FILTRES
-         ====================================================== -->
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body p-3">
-            <div class="row g-2 align-items-center">
-
-                <!-- Filtres par type -->
-                <div class="col-12 col-md-auto">
-                    <div class="btn-group flex-wrap" role="group">
-                        <button class="btn btn-outline-secondary btn-sm active"
-                                onclick="applyFilter('', this)">
-                            <i class="bi bi-grid me-1"></i>Tous
-                        </button>
-                        <button class="btn btn-outline-danger btn-sm"
-                                onclick="applyFilter('toxic', this)">
-                            <i class="bi bi-exclamation-triangle me-1"></i>Toxiques
-                        </button>
-                        <button class="btn btn-outline-success btn-sm"
-                                onclick="applyFilter('edible', this)">
-                            <i class="bi bi-egg-fried me-1"></i>Comestibles
-                        </button>
-                        <button class="btn btn-outline-info btn-sm"
-                                onclick="applyFilter('medicinal', this)">
-                            <i class="bi bi-capsule me-1"></i>Médicinaux
-                        </button>
-                        <button class="btn btn-outline-warning btn-sm"
-                                onclick="applyFilter('invasive', this)">
-                            <i class="bi bi-tree me-1"></i>Invasifs
-                        </button>
-                    </div>
+<!-- HERO -->
+<div class="page-hero">
+    <div class="container text-white anim">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <div style="background:rgba(255,255,255,0.15);border-radius:12px;width:48px;height:48px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;">
+                    <i class="bi bi-clock-history"></i>
                 </div>
-
-                <!-- Barre de recherche -->
-                <div class="col-12 col-md">
-                    <div class="input-group input-group-sm">
-                        <span class="input-group-text bg-white border-end-0">
-                            <i class="bi bi-search text-muted"></i>
-                        </span>
-                        <input type="text" class="form-control border-start-0"
-                               id="searchInput" placeholder="Rechercher une plante..."
-                               oninput="onSearchInput(this.value)">
-                    </div>
+                <div>
+                    <h2 class="fw-bold mb-0" style="font-size:1.6rem;">Historique des analyses</h2>
+                    <p class="mb-0" style="opacity:0.8;font-size:0.9rem;"><span id="totalCount">—</span> analyse(s) au total</p>
                 </div>
-
             </div>
+            <a href="/scan" class="btn fw-bold px-4"
+               style="background:#fff;color:#198754;border-radius:50px;font-size:0.9rem;">
+                <i class="bi bi-plus-circle me-2"></i>Nouvelle analyse
+            </a>
         </div>
     </div>
+</div>
 
-    <!-- ======================================================
-         GRILLE DES SCANS
-         ====================================================== -->
-    <div class="row g-3" id="scansGrid">
-        <!-- Skeleton loaders pendant le chargement -->
-        <div class="col-md-4 col-lg-3 skeleton-card">
-            <div class="card border-0 shadow-sm placeholder-glow">
-                <div class="placeholder" style="height:180px;border-radius:8px 8px 0 0;"></div>
-                <div class="card-body"><div class="placeholder col-8 mb-2"></div><div class="placeholder col-5"></div></div>
-            </div>
-        </div>
-        <div class="col-md-4 col-lg-3 skeleton-card">
-            <div class="card border-0 shadow-sm placeholder-glow">
-                <div class="placeholder" style="height:180px;border-radius:8px 8px 0 0;"></div>
-                <div class="card-body"><div class="placeholder col-8 mb-2"></div><div class="placeholder col-5"></div></div>
-            </div>
-        </div>
-        <div class="col-md-4 col-lg-3 skeleton-card">
-            <div class="card border-0 shadow-sm placeholder-glow">
-                <div class="placeholder" style="height:180px;border-radius:8px 8px 0 0;"></div>
-                <div class="card-body"><div class="placeholder col-8 mb-2"></div><div class="placeholder col-5"></div></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Message si aucun résultat -->
-    <div id="noResultsMessage" class="text-center py-5 d-none">
-        <i class="bi bi-search text-muted" style="font-size: 3rem;"></i>
-        <h5 class="text-muted mt-3">Aucune plante trouvée</h5>
-        <p class="text-muted">Essayez un autre filtre ou <a href="/scan" class="text-success">analysez une nouvelle plante</a>.</p>
-    </div>
-
-    <!-- ======================================================
-         PAGINATION
-         ====================================================== -->
-    <nav class="mt-4" id="paginationNav">
-        <ul class="pagination justify-content-center" id="pagination"></ul>
-    </nav>
-
-</main>
-
-<!-- Modal de confirmation de suppression -->
-<div class="modal fade" id="deleteModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0">
-            <div class="modal-header border-0">
-                <h5 class="modal-title fw-bold text-danger">
-                    <i class="bi bi-trash me-2"></i>Supprimer ce scan ?
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p>Cette action est irréversible. L'analyse et l'image associée seront définitivement supprimées.</p>
-            </div>
-            <div class="modal-footer border-0">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
-                    <i class="bi bi-trash me-1"></i>Supprimer
+<!-- FILTRES -->
+<div class="container mt-4 anim">
+    <div class="bg-white rounded-4 shadow-sm p-3 mb-4">
+        <div class="d-flex flex-wrap align-items-center gap-3">
+            <!-- Pills -->
+            <div class="d-flex flex-wrap gap-2">
+                <button class="filter-pill active-all" onclick="applyFilter('', this)">
+                    <i class="bi bi-grid me-1"></i>Tous
                 </button>
+                <button class="filter-pill" onclick="applyFilter('toxic', this)">
+                    <i class="bi bi-exclamation-triangle me-1"></i>Toxiques
+                </button>
+                <button class="filter-pill" onclick="applyFilter('edible', this)">
+                    <i class="bi bi-check-circle me-1"></i>Comestibles
+                </button>
+                <button class="filter-pill" onclick="applyFilter('medicinal', this)">
+                    <i class="bi bi-capsule me-1"></i>Médicinaux
+                </button>
+                <button class="filter-pill" onclick="applyFilter('invasive', this)">
+                    <i class="bi bi-tree me-1"></i>Invasifs
+                </button>
+            </div>
+            <!-- Search -->
+            <div class="search-box flex-grow-1" style="min-width:180px;">
+                <i class="bi bi-search text-muted" style="font-size:0.85rem;"></i>
+                <input type="text" id="searchInput" placeholder="Rechercher une plante..." oninput="onSearchInput(this.value)">
             </div>
         </div>
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- GRILLE -->
+<div class="container pb-5">
+
+    <!-- Skeleton -->
+    <div class="row g-3" id="scanSkeleton">
+        <div class="col-6 col-md-4 col-lg-3">
+            <div style="border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.07);">
+                <div class="skeleton" style="height:170px;"></div>
+                <div style="background:#fff;padding:0.85rem;">
+                    <div class="skeleton" style="height:13px;width:70%;margin-bottom:8px;"></div>
+                    <div class="skeleton" style="height:10px;width:45%;"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-3">
+            <div style="border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.07);">
+                <div class="skeleton" style="height:170px;"></div>
+                <div style="background:#fff;padding:0.85rem;">
+                    <div class="skeleton" style="height:13px;width:60%;margin-bottom:8px;"></div>
+                    <div class="skeleton" style="height:10px;width:40%;"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-3 d-none d-md-block">
+            <div style="border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.07);">
+                <div class="skeleton" style="height:170px;"></div>
+                <div style="background:#fff;padding:0.85rem;">
+                    <div class="skeleton" style="height:13px;width:75%;margin-bottom:8px;"></div>
+                    <div class="skeleton" style="height:10px;width:50%;"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-3 d-none d-lg-block">
+            <div style="border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.07);">
+                <div class="skeleton" style="height:170px;"></div>
+                <div style="background:#fff;padding:0.85rem;">
+                    <div class="skeleton" style="height:13px;width:65%;margin-bottom:8px;"></div>
+                    <div class="skeleton" style="height:10px;width:38%;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Grille réelle -->
+    <div class="row g-3 d-none" id="scansGrid"></div>
+
+    <!-- Aucun résultat -->
+    <div id="noResultsMessage" class="d-none">
+        <div class="bg-white rounded-4 shadow-sm text-center py-5 px-3">
+            <div style="font-size:3.5rem;color:#ced4da;margin-bottom:1rem;">🔍</div>
+            <h5 class="fw-bold text-muted">Aucune plante trouvée</h5>
+            <p class="text-muted small mb-3">Essayez un autre filtre ou analysez une nouvelle plante.</p>
+            <a href="/scan" class="btn btn-success btn-sm px-4" style="border-radius:50px;">
+                <i class="bi bi-camera me-2"></i>Nouvelle analyse
+            </a>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    <nav class="mt-4" id="paginationNav">
+        <ul class="pagination justify-content-center" id="pagination"></ul>
+    </nav>
+</div>
+
+<!-- Modal suppression -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:16px;">
+            <div class="modal-body p-4 text-center">
+                <div style="font-size:2.5rem;margin-bottom:0.75rem;">🗑️</div>
+                <h6 class="fw-bold mb-2">Supprimer ce scan ?</h6>
+                <p class="text-muted small mb-4">Cette action est irréversible. L'analyse et l'image seront supprimées définitivement.</p>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-light flex-fill" style="border-radius:50px;" data-bs-dismiss="modal">Annuler</button>
+                    <button class="btn btn-danger flex-fill" style="border-radius:50px;" id="confirmDeleteBtn">
+                        <i class="bi bi-trash me-1"></i>Supprimer
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
 <script src="/static/js/api.js?v=2"></script>
 <script src="/static/js/auth.js?v=2"></script>
-<script src="/static/js/historique.js?v=3"></script>
-
+<script src="/static/js/historique.js?v=4"></script>
 </body>
 </html>

@@ -12,8 +12,11 @@
 # ============================================================
 
 import os
+import logging
 import httpx
 from dotenv import load_dotenv
+
+logger = logging.getLogger(__name__)
 
 load_dotenv()
 
@@ -49,7 +52,7 @@ async def identify_plant(image_bytes: bytes, image_filename: str) -> dict:
 
     # Vérifier que la clé API est configurée
     if not PLANTNET_API_KEY:
-        print("ERREUR: Clé API PlantNet manquante dans le fichier .env")
+        logger.error("Clé API PlantNet manquante dans le fichier .env")
         return _default_result(success=False, error="Clé API PlantNet non configurée")
 
     # -------------------------------------------------------
@@ -65,10 +68,15 @@ async def identify_plant(image_bytes: bytes, image_filename: str) -> dict:
             "include-related-images": "false"  # On n'a pas besoin des images similaires
         }
 
+        # Détecter le vrai Content-Type selon l'extension du fichier
+        ext = image_filename.rsplit(".", 1)[-1].lower() if "." in image_filename else "jpg"
+        mime_types = {"jpg": "image/jpeg", "jpeg": "image/jpeg",
+                      "png": "image/png", "webp": "image/webp"}
+        mime_type = mime_types.get(ext, "image/jpeg")
+
         # Fichier à envoyer (l'image de la plante)
-        # "organ=auto" laisse PlantNet deviner s'il s'agit d'une feuille, fleur...
         files = {
-            "images": (image_filename, image_bytes, "image/jpeg"),
+            "images": (image_filename, image_bytes, mime_type),
         }
 
         # IMPORTANT : organs doit etre une STRING, pas une liste
@@ -92,7 +100,7 @@ async def identify_plant(image_bytes: bytes, image_filename: str) -> dict:
         # HTTP 200 = succès, 400+ = erreur client, 500+ = erreur serveur
         # -------------------------------------------------------
         if response.status_code != 200:
-            print(f"ERREUR PlantNet: Code {response.status_code} - {response.text}")
+            logger.error(f"PlantNet: Code {response.status_code} - {response.text}")
             return _default_result(
                 success=False,
                 error=f"PlantNet a retourné une erreur: {response.status_code}"
@@ -139,12 +147,12 @@ async def identify_plant(image_bytes: bytes, image_filename: str) -> dict:
 
     except httpx.TimeoutException:
         # La requête a pris trop de temps (> 30 secondes)
-        print("ERREUR PlantNet: Timeout - le serveur n'a pas répondu à temps")
+        logger.error("PlantNet: Timeout - le serveur n'a pas répondu à temps")
         return _default_result(success=False, error="Timeout lors de l'appel à PlantNet")
 
     except Exception as e:
         # Toute autre erreur inattendue
-        print(f"ERREUR PlantNet inattendue: {str(e)}")
+        logger.error(f"PlantNet: erreur inattendue : {str(e)}")
         return _default_result(success=False, error=str(e))
 
 

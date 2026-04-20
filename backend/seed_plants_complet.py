@@ -1,0 +1,1082 @@
+# ============================================================
+# SCRIPT : seed_plants_complet.py
+# RÔLE   : Insérer toutes les plantes réelles de Côte d'Ivoire
+# USAGE  : python seed_plants_complet.py
+# ============================================================
+
+import os, sys
+sys.path.insert(0, os.path.dirname(__file__))
+from dotenv import load_dotenv
+load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
+from database import SessionLocal, engine, Base
+from models import Plant
+Base.metadata.create_all(bind=engine)
+
+PLANTS = [
+    # ══════════════════════════════════════════════════════════
+    # PLANTES ALIMENTAIRES
+    # ══════════════════════════════════════════════════════════
+    dict(name="Manioc", local_name="Bâkê (Baoulé) / Gnomi (Dioula) / Kpla (Bété)",
+         scientific_name="Manihot esculenta", family="Euphorbiaceae",
+         description="Arbuste tropical dont les racines tubéreuses sont l'aliment de base. Transformé en attiéké, foutou, placali.",
+         habitat="Champs cultivés, jardins villageois", regions="Toute la Côte d'Ivoire",
+         is_edible=True, is_toxic=True, is_medicinal=True, is_invasive=False, toxicity_level="faible",
+         culinary_uses="Attiéké, foutou, placali, farine, tapioca, feuilles en sauce.",
+         medicinal_uses="Feuilles contre la fièvre, cataplasme contre les maux de tête."),
+
+    dict(name="Igname blanche", local_name="Yam (Baoulé) / Yô (Dioula) / Kpa (Senoufo)",
+         scientific_name="Dioscorea rotundata", family="Dioscoreaceae",
+         description="Tubercule sacré, célébrée par la Fête de l'Igname. Plante grimpante aux tubercules riches en amidon.",
+         habitat="Savanes, forêts claires, zones cultivées", regions="Centre, Nord, Ouest",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Foutou, igname pilée, bouillie, grillée, chips.", medicinal_uses="Régulation glycémique, anti-inflammatoire."),
+
+    dict(name="Igname jaune", local_name="Krenglê (Baoulé) / Djô jaune (Dioula)",
+         scientific_name="Dioscorea cayennensis", family="Dioscoreaceae",
+         description="Variété d'igname à chair jaune riche en bêta-carotène, cultivée dans les zones forestières.",
+         habitat="Zones forestières humides", regions="Ouest, Centre-Ouest (Daloa, Gagnoa)",
+         is_edible=True, is_toxic=False, is_medicinal=False, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Bouillie, foutou, frite.", medicinal_uses="Riche en vitamine A."),
+
+    dict(name="Igname de trois mois", local_name="Yam tchiê (Baoulé)", scientific_name="Dioscorea alata",
+         family="Dioscoreaceae", description="Igname à cycle court très cultivée, tubercule pourpre à l'extérieur.",
+         habitat="Champs cultivés", regions="Centre et Sud",
+         is_edible=True, is_toxic=False, is_medicinal=False, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Bouillie, foutou.", medicinal_uses="Source d'énergie."),
+
+    dict(name="Plantain", local_name="Aloco (Akan) / Korogo (Dioula) / Djidji (Baoulé)",
+         scientific_name="Musa paradisiaca", family="Musaceae",
+         description="Bananier à fruits amylacés, l'alloco (plantain frit) est le snack national ivoirien.",
+         habitat="Zones humides, jardins, plantations", regions="Sud, Centre, Ouest",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Alloco, frit, bouilli, kedjenu, foufou, feuilles comme emballage.",
+         medicinal_uses="Traitement diarrhée, cicatrisation, tension artérielle."),
+
+    dict(name="Banane douce", local_name="Figue (CI) / Bananin (Dioula)",
+         scientific_name="Musa acuminata", family="Musaceae",
+         description="Bananier à fruits sucrés consommés mûrs. Très cultivé en zones humides du Sud.",
+         habitat="Plantations, jardins", regions="Sud et Ouest",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Consommée fraîche, en compote, séchée.", medicinal_uses="Riche en potassium, antiacide naturel."),
+
+    dict(name="Gombo", local_name="Kanjà (Dioula) / Gnangnan (Baoulé) / Fêwê (Bété)",
+         scientific_name="Abelmoschus esculentus", family="Malvaceae",
+         description="Plante potagère aux fruits mucilagineuses très utilisés dans les sauces.",
+         habitat="Jardins potagers, champs", regions="Toute la Côte d'Ivoire",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Sauce gombo, soupe, poudre épaississante.", medicinal_uses="Cholestérol, diabète, anti-inflammatoire."),
+
+    dict(name="Aubergine africaine", local_name="Djakato (Baoulé) / Djèkpa (Dioula) / Kpli (Bété)",
+         scientific_name="Solanum macrocarpon", family="Solanaceae",
+         description="Aubergine locale à grand fruit vert ou violet, très présente dans les marchés ivoiriens.",
+         habitat="Jardins, zones cultivées", regions="Sud et Centre",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Sauce aubergine, grillée, en ragoût.", medicinal_uses="Anti-inflammatoire, glycémie, antioxydant."),
+
+    dict(name="Aubergine amère", local_name="Gnégué (Baoulé) / Djô-koungba (Dioula)",
+         scientific_name="Solanum aethiopicum", family="Solanaceae",
+         description="Petite aubergine à fruits rouges ou orangés, légèrement amère, très appréciée dans les sauces.",
+         habitat="Jardins, champs", regions="Centre et Sud",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Sauces, condiment.", medicinal_uses="Antioxydant, anti-inflammatoire."),
+
+    dict(name="Tomate cerise africaine", local_name="Tomatê (Dioula) / Gbota (Baoulé)",
+         scientific_name="Solanum lycopersicum var. cerasiforme", family="Solanaceae",
+         description="Petite tomate sauvage très répandue, base de nombreuses sauces ivoiriennes.",
+         habitat="Jardins, marchés", regions="Toute la Côte d'Ivoire",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Sauces, marinades, jus.", medicinal_uses="Lycopène antioxydant, vitamine C."),
+
+    dict(name="Patate douce", local_name="Wêrêwê (Baoulé) / Patata (Dioula) / Gbêtê (Bété)",
+         scientific_name="Ipomoea batatas", family="Convolvulaceae",
+         description="Plante rampante dont les tubercules et les feuilles sont comestibles.",
+         habitat="Champs cultivés, jardins", regions="Toute la Côte d'Ivoire",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Bouillie, frite, rôtie, feuilles comme légume.", medicinal_uses="Bêta-carotène, antioxydant, glycémie."),
+
+    dict(name="Morelle noire", local_name="Gnégné (Dioula) / N'drowa (Attié) / Dêlê (Baoulé)",
+         scientific_name="Solanum nigrum", family="Solanaceae",
+         description="Petite plante herbacée très consommée comme légume feuille. Baies crues légèrement toxiques.",
+         habitat="Bords de chemins, jardins, zones rudérales", regions="Toute la Côte d'Ivoire",
+         is_edible=True, is_toxic=True, is_medicinal=True, is_invasive=False, toxicity_level="faible",
+         culinary_uses="Sauce gnégné (feuilles cuites).", medicinal_uses="Antipyrétique, anti-inflammatoire, affections cutanées."),
+
+    dict(name="Piment rouge", local_name="Kpimi (Baoulé) / Foronto (Dioula) / Blô (Bété)",
+         scientific_name="Capsicum frutescens", family="Solanaceae",
+         description="Arbuste aux fruits très piquants, incontournable de la cuisine ivoirienne.",
+         habitat="Jardins, marchés", regions="Toute la Côte d'Ivoire",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Condiment universel, sauces, marinades, poudre.", medicinal_uses="Analgésique, digestif, antimicrobien."),
+
+    dict(name="Piment doux", local_name="Poivron (CI) / Foronto dji (Dioula)",
+         scientific_name="Capsicum annuum", family="Solanaceae",
+         description="Variété de piment non piquant, utilisée comme légume dans les sauces.",
+         habitat="Jardins, marchés", regions="Toute la Côte d'Ivoire",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Sauces, crudités, farcis.", medicinal_uses="Vitamine C, antioxydant."),
+
+    dict(name="Taro", local_name="Kokoué (Dioula) / Kwa (Baoulé) / Gbêdê (Bété)",
+         scientific_name="Colocasia esculenta", family="Araceae",
+         description="Plante à grands tubercules et feuilles comestibles, très cultivée dans les zones humides forestières.",
+         habitat="Zones humides, bords de cours d'eau, forêts", regions="Ouest et Sud-Ouest",
+         is_edible=True, is_toxic=True, is_medicinal=True, is_invasive=False, toxicity_level="faible",
+         culinary_uses="Tubercules bouillis, foutou de taro, feuilles en sauce (dobi).",
+         medicinal_uses="Reminéralisant, traitement des affections cutanées."),
+
+    dict(name="Macabo", local_name="Koko sauvage (CI) / Gbêdêgbê (Bété)",
+         scientific_name="Xanthosoma sagittifolium", family="Araceae",
+         description="Plante voisine du taro aux feuilles en forme de flèche, tubercules très appréciés.",
+         habitat="Forêts humides, zones ombragées", regions="Forêts du Sud et Ouest",
+         is_edible=True, is_toxic=True, is_medicinal=False, is_invasive=False, toxicity_level="faible",
+         culinary_uses="Tubercules bouillis, feuilles cuites.", medicinal_uses="Source de glucides."),
+
+    dict(name="Arachide", local_name="Djugu (Dioula) / Kâkâ (Baoulé) / Kpokpê (Bété)",
+         scientific_name="Arachis hypogaea", family="Fabaceae",
+         description="Légumineuse dont les gousses se développent sous terre. Base de nombreuses sauces ivoiriennes.",
+         habitat="Champs sableux, zones cultivées", regions="Toute la Côte d'Ivoire",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Sauce arachide, beurre de cacahuète, graines grillées, huile d'arachide.",
+         medicinal_uses="Riche en protéines et graisses saines, anti-inflammatoire."),
+
+    dict(name="Niébé", local_name="Sô (Dioula) / Abobô (Baoulé) / Kpimi (Senoufo)",
+         scientific_name="Vigna unguiculata", family="Fabaceae",
+         description="Légumineuse à graines très protéinées, cultivée surtout dans les zones de savane.",
+         habitat="Champs, savanes", regions="Nord et Centre (Korhogo, Bouaké)",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Riz-niébé, beignets de niébé (akara), soupe.", medicinal_uses="Source de protéines végétales, fibres."),
+
+    dict(name="Haricot vert", local_name="Haricot (CI) / Tiê (Dioula)",
+         scientific_name="Phaseolus vulgaris", family="Fabaceae",
+         description="Légumineuse cultivée pour ses gousses vertes consommées comme légume.",
+         habitat="Jardins, zones cultivées", regions="Zones montagneuses de l'Ouest (Man)",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Bouilli, sauté, en salade.", medicinal_uses="Fibres, protéines végétales."),
+
+    dict(name="Maïs", local_name="Kâba (Dioula) / Abodji (Baoulé) / Blêblê (Bété)",
+         scientific_name="Zea mays", family="Poaceae",
+         description="Céréale de base dans de nombreuses régions ivoiriennes, utilisée fraîche, en farine ou fermentée.",
+         habitat="Champs cultivés", regions="Toute la Côte d'Ivoire",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Tô, pâte de maïs, akassa, dokonu, maïs braisé.", medicinal_uses="Source d'énergie, fibres, antioxydants."),
+
+    dict(name="Mil", local_name="Gana (Dioula) / Sona (Senoufo)",
+         scientific_name="Pennisetum glaucum", family="Poaceae",
+         description="Céréale résistante à la sécheresse, base alimentaire du Nord ivoirien.",
+         habitat="Savanes sèches", regions="Nord (Korhogo, Boundiali, Ferkessédougou)",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Tô de mil, bouillie, bière de mil (dolo).", medicinal_uses="Riche en minéraux, fibres."),
+
+    dict(name="Sorgho", local_name="Gnin (Dioula) / Kâsâ (Senoufo)",
+         scientific_name="Sorghum bicolor", family="Poaceae",
+         description="Céréale africaine résistante, très cultivée dans les zones sèches du Nord.",
+         habitat="Savanes", regions="Nord (Korhogo, Odienné)",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Tô de sorgho, bière traditionnelle (dolo), farine.", medicinal_uses="Antioxydant, fibres."),
+
+    dict(name="Riz de plateau", local_name="Mô (Dioula) / Abodji blan (Baoulé)",
+         scientific_name="Oryza glaberrima", family="Poaceae",
+         description="Riz africain indigène cultivé sans irrigation dans les zones forestières et de savane.",
+         habitat="Champs pluviaux, bas-fonds", regions="Centre-Ouest et Ouest",
+         is_edible=True, is_toxic=False, is_medicinal=False, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Riz gras, placali, bouillie.", medicinal_uses="Source principale de glucides."),
+
+    dict(name="Fonio", local_name="Foni (Dioula) / Tchio (Senoufo)",
+         scientific_name="Digitaria exilis", family="Poaceae",
+         description="Ancienne céréale africaine aux grains minuscules, très nutritive et sans gluten.",
+         habitat="Savanes, zones sèches cultivées", regions="Nord-Ouest (Odienné, Touba)",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Couscous de fonio, bouillie, galettes.", medicinal_uses="Sans gluten, riche en acides aminés."),
+
+    dict(name="Graine de courge", local_name="Kpèdê (Baoulé) / Sô (Bété) / Egussi",
+         scientific_name="Cucumeropsis mannii", family="Cucurbitaceae",
+         description="Courge cultivée principalement pour ses graines oléagineuses, base de la sauce kpèdê.",
+         habitat="Champs cultivés", regions="Centre et Ouest",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Sauce kpèdê (graines moulues), huile de courge.", medicinal_uses="Riche en oméga-6, zinc, protéines."),
+
+    dict(name="Concombre africain", local_name="Kokombre (CI) / Kpata (Dioula)",
+         scientific_name="Cucumis sativus", family="Cucurbitaceae",
+         description="Cucurbitacée cultivée pour ses fruits allongés consommés frais ou en sauce.",
+         habitat="Jardins, champs", regions="Toute la Côte d'Ivoire",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Crudités, salades, jus.", medicinal_uses="Diurétique, hydratant."),
+
+    dict(name="Courgette", local_name="Courge verte (CI)", scientific_name="Cucurbita pepo",
+         family="Cucurbitaceae", description="Cucurbitacée cultivée dans les jardins maraîchers.",
+         habitat="Jardins maraîchers", regions="Abidjan et grandes villes",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Farcies, sautées, en gratin.", medicinal_uses="Légère, digestive."),
+
+    dict(name="Courge musquée", local_name="Gbonflon (Baoulé) / Woro-woro (Dioula)",
+         scientific_name="Cucurbita moschata", family="Cucurbitaceae",
+         description="Grande courge à chair orangée cultivée pour sa pulpe sucrée.",
+         habitat="Champs, jardins", regions="Centre et Nord",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Soupe de courge, purée, farcies, graines grillées.", medicinal_uses="Riche en bêta-carotène."),
+
+    dict(name="Melon amer", local_name="Margose / Kô djimon (Dioula)",
+         scientific_name="Momordica charantia", family="Cucurbitaceae",
+         description="Plante grimpante aux fruits verts bosselés au goût très amer.",
+         habitat="Jardins, clôtures", regions="Sud et Centre",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Sauces (amertume réduite par cuisson), jus.", medicinal_uses="Antidiabétique puissant, antipaludéen."),
+
+    dict(name="Amarante", local_name="Bêtê (Dioula) / Fotê (Baoulé) / Blô-blô (Agni)",
+         scientific_name="Amaranthus hybridus", family="Amaranthaceae",
+         description="Plante herbacée aux jeunes feuilles très nutritives, une des premières légumes-feuilles africaines.",
+         habitat="Bords de chemins, jardins, zones rudérales", regions="Toute la Côte d'Ivoire",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Feuilles en sauce, légume vert accompagnement.", medicinal_uses="Riche en fer, protéines, calcium."),
+
+    dict(name="Amarante tricolore", local_name="Fotê kouman (Baoulé)", scientific_name="Amaranthus tricolor",
+         family="Amaranthaceae", description="Variété décorative et alimentaire d'amarante aux feuilles tricolores.",
+         habitat="Jardins", regions="Zones urbaines",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Feuilles en sauce.", medicinal_uses="Riche en antioxydants."),
+
+    dict(name="Corète potagère", local_name="Dah (Dioula) / Kpanlê (Baoulé) / Bissap vert",
+         scientific_name="Corchorus olitorius", family="Malvaceae",
+         description="Plante dont les feuilles mucilagineuses sont très consommées comme légume-feuille.",
+         habitat="Champs cultivés, zones rudérales", regions="Nord et Centre",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Sauce gluante (kpanlê), mloukhieh.", medicinal_uses="Fibres, constipation, anti-inflammatoire."),
+
+    dict(name="Épinard africain", local_name="Efo (Yoruba) / Ntchô (Dioula)",
+         scientific_name="Celosia argentea", family="Amaranthaceae",
+         description="Plante herbacée cultivée pour ses jeunes feuilles et ses épis floraux comestibles.",
+         habitat="Jardins, zones cultivées", regions="Sud et Centre",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Feuilles en sauce, légume vert.", medicinal_uses="Riche en vitamines A et C."),
+
+    dict(name="Feuille de manioc", local_name="Bâkê fêwê (Baoulé) / Sakasaka (Lingala/CI)",
+         scientific_name="Manihot esculenta var. feuilles", family="Euphorbiaceae",
+         description="Les jeunes feuilles de manioc constituent un légume vert important en Côte d'Ivoire.",
+         habitat="Plantations de manioc", regions="Toute la Côte d'Ivoire",
+         is_edible=True, is_toxic=True, is_medicinal=True, is_invasive=False, toxicity_level="faible",
+         culinary_uses="Sauce feuilles de manioc (sakasaka), soupe.", medicinal_uses="Protéines, vitamines B, fer."),
+
+    dict(name="Cresson de fontaine", local_name="Watercress (CI)", scientific_name="Nasturtium officinale",
+         family="Brassicaceae", description="Plante aquatique aux feuilles piquantes très nutritives.",
+         habitat="Sources, cours d'eau clairs", regions="Zones montagneuses Ouest (Man, Biankouma)",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Salades, soupes.", medicinal_uses="Détoxifiant, riche en vitamines."),
+
+    dict(name="Persil africain", local_name="Effirin (Yoruba) / Ntchêlê (Dioula)",
+         scientific_name="Petroselinum crispum", family="Apiaceae",
+         description="Herbe aromatique cultivée dans les jardins maraîchers urbains.",
+         habitat="Jardins maraîchers", regions="Zones urbaines (Abidjan)",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Condiment, salades, marinades.", medicinal_uses="Diurétique, riche en vitamine K."),
+
+    dict(name="Ciboulette africaine", local_name="Tchiê (Dioula)", scientific_name="Allium fistulosum",
+         family="Amaryllidaceae", description="Plante aromatique aux feuilles creuses utilisée comme condiment.",
+         habitat="Jardins", regions="Zones maraîchères",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Condiment, marinades.", medicinal_uses="Antibactérien, digestif."),
+
+    dict(name="Oignon pays", local_name="Gnon (Dioula) / Bâgnan (Baoulé)",
+         scientific_name="Allium cepa", family="Amaryllidaceae",
+         description="Bulbe aromatique incontournable de la cuisine ivoirienne.",
+         habitat="Champs, jardins maraîchers", regions="Nord (Korhogo), zone maraîchère",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Base de toutes les sauces ivoiriennes, grillé.", medicinal_uses="Antibactérien, antioxydant, cardiovasculaire."),
+
+    dict(name="Ail", local_name="Tchi (Dioula) / Ajo (CI)", scientific_name="Allium sativum",
+         family="Amaryllidaceae", description="Plante bulbeuse aromatique très utilisée comme condiment et remède.",
+         habitat="Jardins, champs", regions="Zones maraîchères",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Condiment universel, marinades.", medicinal_uses="Antibactérien, antifongique, cardiovasculaire, immunitaire."),
+
+    # ══════════════════════════════════════════════════════════
+    # FRUITS TROPICAUX
+    # ══════════════════════════════════════════════════════════
+    dict(name="Ananas", local_name="Gblê (Baoulé) / Nanas (Dioula) / Kpandjô (Agni)",
+         scientific_name="Ananas comosus", family="Bromeliaceae",
+         description="Fruit tropical à la chair juteuse et sucrée. La Côte d'Ivoire est major producteur africain.",
+         habitat="Plantations, zones forestières", regions="Sud (Abidjan, Grand-Bassam, Bonoua)",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Jus, frais, conserves, vin d'ananas.", medicinal_uses="Bromélaïne digestive, vitamine C, anti-inflammatoire."),
+
+    dict(name="Papaye", local_name="Brofwé (Baoulé) / Papali (Dioula) / Kpoko (Bété)",
+         scientific_name="Carica papaya", family="Caricaceae",
+         description="Arbre fruitier tropical omniprésent. Fruit riche en papaïne.",
+         habitat="Jardins, zones tropicales", regions="Toute la Côte d'Ivoire",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Fruit mûr, papaye verte en salade, graines comme poivre.", medicinal_uses="Papaïne digestive, antipaludique (feuilles), cicatrisant."),
+
+    dict(name="Mangue", local_name="Mangoro (Dioula) / Mangwê (Baoulé) / Blêblê (Agni)",
+         scientific_name="Mangifera indica", family="Anacardiaceae",
+         description="Arbre fruitier tropical emblématique dont la mangue est le fruit le plus consommé en CI.",
+         habitat="Jardins, plantations, bords de routes", regions="Toute la Côte d'Ivoire",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Fraîche, jus, confiture, séchée, verte en condiment.", medicinal_uses="Riche en vitamines A et C, antioxydant."),
+
+    dict(name="Avocat", local_name="Aboka (Dioula) / Poire (CI) / Abokafwê (Baoulé)",
+         scientific_name="Persea americana", family="Lauraceae",
+         description="Fruit à chair crémeuse très populaire. Abidjan est entourée d'avocatiers.",
+         habitat="Jardins, plantations", regions="Sud et Ouest (Abidjan, Man)",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Salade d'avocat, sandwich, sauce guacamole.", medicinal_uses="Acides gras monoinsaturés, potassium, vitamine E."),
+
+    dict(name="Goyave", local_name="Gwayaba (Dioula) / Wawayê (Baoulé) / Kofi (Agni)",
+         scientific_name="Psidium guajava", family="Myrtaceae",
+         description="Arbuste fruitier très commun, goyave rose ou blanche, très consommée fraîche.",
+         habitat="Jardins, zones rudérales", regions="Toute la Côte d'Ivoire",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=True, toxicity_level="aucun",
+         culinary_uses="Fraîche, jus, confiture, pâte de goyave.", medicinal_uses="Riche en vitamine C (5x orange), antidiarrhéique (feuilles)."),
+
+    dict(name="Orange", local_name="Lêmô (Dioula) / Ôranci (Baoulé)", scientific_name="Citrus sinensis",
+         family="Rutaceae", description="Agrume largement cultivé en CI pour sa consommation et son jus.",
+         habitat="Vergers, jardins", regions="Toute la Côte d'Ivoire",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Jus, fraîche, confiture.", medicinal_uses="Vitamine C, immunité, antioxydant."),
+
+    dict(name="Citron vert", local_name="Lêmô wôrô (Dioula) / Citronin (Baoulé)",
+         scientific_name="Citrus aurantiifolia", family="Rutaceae",
+         description="Petit agrume acide incontournable dans la cuisine ivoirienne.",
+         habitat="Jardins, marchés", regions="Toute la Côte d'Ivoire",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Jus, marinades, attiéké-poisson, vinaigrette.", medicinal_uses="Vitamine C, antibactérien, détoxifiant."),
+
+    dict(name="Mandarine", local_name="Mandarin (CI)", scientific_name="Citrus reticulata",
+         family="Rutaceae", description="Petit agrume sucré facile à éplucher.",
+         habitat="Jardins, vergers", regions="Sud et Ouest",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Fraîche, jus.", medicinal_uses="Vitamine C, immunité."),
+
+    dict(name="Pamplemousse", local_name="Pamplêmus (CI) / Shaddock (Agni)",
+         scientific_name="Citrus maxima", family="Rutaceae",
+         description="Grand agrume à la chair acidulée, cultivé dans les jardins du Sud.",
+         habitat="Jardins, vergers", regions="Sud (Abidjan, Grand-Lahou)",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Jus, fraîche, confiture.", medicinal_uses="Vitamine C, brûle-graisses naturel."),
+
+    dict(name="Corossol", local_name="Bêrêfê (Baoulé) / Gnamakôdji (Dioula) / Apôsô",
+         scientific_name="Annona muricata", family="Annonaceae",
+         description="Fruit épineux à la chair blanche crémeuse et acidulée, très apprécié en jus.",
+         habitat="Jardins, zones tropicales humides", regions="Sud et Centre",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Jus très populaire, fraîche, glace.", medicinal_uses="Anticancéreux (acétogénines), antiparasitaire, sédatif."),
+
+    dict(name="Pomme cannelle", local_name="Pomme caillette (CI) / Kankê (Baoulé)",
+         scientific_name="Annona squamosa", family="Annonaceae",
+         description="Petit fruit écailleux à la chair blanche sucrée et parfumée.",
+         habitat="Jardins", regions="Sud et Centre",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Fraîche.", medicinal_uses="Antidiabétique, antiparasitaire (graines)."),
+
+    dict(name="Sapotille", local_name="Nèfle d'Amérique (CI) / Sapoti (Dioula)",
+         scientific_name="Manilkara zapota", family="Sapotaceae",
+         description="Fruit brun à la chair fondante au goût de caramel.",
+         habitat="Jardins, plantations", regions="Sud (Abidjan, Bassam)",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Fraîche, jus.", medicinal_uses="Anti-inflammatoire, antidiarrhéique."),
+
+    dict(name="Carambole", local_name="Étoile (CI)", scientific_name="Averrhoa carambola",
+         family="Oxalidaceae", description="Fruit en forme d'étoile à la chair juteuse et acidulée.",
+         habitat="Jardins", regions="Sud (Abidjan)",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Décoration, jus, fraîche.", medicinal_uses="Vitamine C, antioxydant."),
+
+    dict(name="Tamarinier", local_name="Tamarin / Dakhar (Nord) / Tomi (Dioula)",
+         scientific_name="Tamarindus indica", family="Fabaceae",
+         description="Grand arbre aux gousses acidulées, très résistant à la sécheresse.",
+         habitat="Savanes, villages", regions="Nord (Korhogo, Ferkessédougou)",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Boisson tamarin, condiment, bonbons.", medicinal_uses="Laxatif doux, fièvre, riche en vitamine C."),
+
+    dict(name="Jujube", local_name="Sihi (Dioula) / Ntontoê (Baoulé)",
+         scientific_name="Ziziphus mauritiana", family="Rhamnaceae",
+         description="Arbre fruitier des zones sèches aux petits fruits rouges acidulés très consommés.",
+         habitat="Savanes, zones sèches", regions="Nord et Centre",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Fraîche, jus, séchée.", medicinal_uses="Vitamine C, sédatif léger, digestif."),
+
+    dict(name="Fruit du baobab", local_name="Pain de singe / Bohi djiri (Dioula)",
+         scientific_name="Adansonia digitata", family="Malvaceae",
+         description="Pulpe blanche du fruit du baobab, riche en vitamine C, base de boissons.",
+         habitat="Savanes sèches", regions="Nord",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Boisson (bouye), poudre nutritive, condiment.", medicinal_uses="6x plus de vitamine C que l'orange, calcium, antioxydant."),
+
+    dict(name="Jacquier", local_name="Jaque (CI) / Djatôfwê (Baoulé)",
+         scientific_name="Artocarpus heterophyllus", family="Moraceae",
+         description="Arbre aux énormes fruits verts épineux pouvant peser jusqu'à 30kg.",
+         habitat="Jardins, zones tropicales", regions="Sud (Abidjan, Grand-Bassam)",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Chair fraîche ou cuite, graines bouilliess.", medicinal_uses="Riche en vitamine B6, potassium, fibres."),
+
+    dict(name="Fruit de l'arbre à pain", local_name="Pain d'arbre (CI) / Lebê (Baoulé)",
+         scientific_name="Artocarpus altilis", family="Moraceae",
+         description="Fruit amylacé de grande taille pouvant remplacer le pain ou les féculents.",
+         habitat="Jardins côtiers", regions="Sud (Abidjan, littoral)",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Bouilli, frit, en farine.", medicinal_uses="Riche en glucides, potassium."),
+
+    dict(name="Cerise pays", local_name="Cerise tropicale (CI) / Akpi (Agni)",
+         scientific_name="Muntingia calabura", family="Muntingiaceae",
+         description="Petit arbre aux fruits rouges sucrés très appréciés des enfants.",
+         habitat="Bords de routes, jardins", regions="Zones côtières Sud",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Fraîche, confiture.", medicinal_uses="Anti-inflammatoire, antioxydant."),
+
+    # ══════════════════════════════════════════════════════════
+    # PLANTES MÉDICINALES
+    # ══════════════════════════════════════════════════════════
+    dict(name="Neem", local_name="Nim (CI) / Korobâ (Dioula) / Margousier",
+         scientific_name="Azadirachta indica", family="Meliaceae",
+         description="Arbre aux propriétés médicinales exceptionnelles, surnommé 'pharmacie du village'.",
+         habitat="Zones urbaines, villages, savanes", regions="Nord et Centre",
+         is_edible=False, is_toxic=True, is_medicinal=True, is_invasive=True, toxicity_level="moyen",
+         culinary_uses="Non consommé.", medicinal_uses="Antipaludéen, antibactérien, antifongique, anti-inflammatoire."),
+
+    dict(name="Moringa", local_name="Arbre miracle / Néverdié (Dioula) / Benzôlive",
+         scientific_name="Moringa oleifera", family="Moringaceae",
+         description="Surnommé 'arbre miracle', ses feuilles sont parmi les plus nutritives au monde.",
+         habitat="Zones sèches, jardins", regions="Nord (Korhogo, Odienné)",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Feuilles en sauce, poudre nutritionnelle, graines.", medicinal_uses="Antioxydant, anti-inflammatoire, malnutrition, glycémie."),
+
+    dict(name="Vernonia", local_name="Ewuro (Yoruba/CI) / Kponan (Baoulé) / Feuille amère",
+         scientific_name="Vernonia amygdalina", family="Asteraceae",
+         description="Arbuste aux feuilles amères très utilisées en médecine traditionnelle.",
+         habitat="Forêts secondaires, jardins", regions="Sud et Ouest",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Feuilles cuites, soupe de feuilles amères.", medicinal_uses="Antipaludéen, antidiabétique, infections intestinales, foie."),
+
+    dict(name="Citronnelle", local_name="Tiêman (Dioula) / Herbe citron (CI)",
+         scientific_name="Cymbopogon citratus", family="Poaceae",
+         description="Graminée aromatique à l'odeur citronnée intense.",
+         habitat="Jardins, abords de maisons", regions="Toute la Côte d'Ivoire",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Tisane, aromatisation culinaire, marinades.", medicinal_uses="Sédatif, antistress, moustiques, fièvre, estomac."),
+
+    dict(name="Basilic africain", local_name="Efirin (Yoruba/CI) / Kébé-kébé (CI) / Ntchêdji",
+         scientific_name="Ocimum gratissimum", family="Lamiaceae",
+         description="Basilic sauvage africain à l'odeur camphrée très puissante.",
+         habitat="Jardins, forêts secondaires", regions="Toute la Côte d'Ivoire",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Condiment aromatique.", medicinal_uses="Antibactérien, antifongique, toux, fièvre, infections."),
+
+    dict(name="Basilic sacré", local_name="Tulsi (CI) / Efirin pupa (Yoruba)",
+         scientific_name="Ocimum tenuiflorum", family="Lamiaceae",
+         description="Variété de basilic aux propriétés adaptogènes très utilisée en médecine.",
+         habitat="Jardins", regions="Zones urbaines",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Tisane, condiment.", medicinal_uses="Adaptogène, stress, immunité, anti-inflammatoire."),
+
+    dict(name="Menthe africaine", local_name="Mintê (Dioula)", scientific_name="Mentha viridis",
+         family="Lamiaceae", description="Plante aromatique menthée cultivée dans les jardins.",
+         habitat="Jardins humides", regions="Zones maraîchères",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Tisane, condiment, jus.", medicinal_uses="Digestif, antinauséeux, maux de tête."),
+
+    dict(name="Aloe vera", local_name="Aloès (CI) / Zavila (Dioula)",
+         scientific_name="Aloe vera", family="Asphodelaceae",
+         description="Plante succulente aux feuilles charnues remplies d'un gel thérapeutique.",
+         habitat="Zones sèches, jardins", regions="Nord et Centre",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Gel en boissons.", medicinal_uses="Brûlures, cicatrisant, peau, laxatif doux."),
+
+    dict(name="Gingembre", local_name="Jinja (Dioula) / Ginjanin (Baoulé) / Tangawisi (CI)",
+         scientific_name="Zingiber officinale", family="Zingiberaceae",
+         description="Rhizome aromatique et médicinal très populaire.",
+         habitat="Jardins humides", regions="Sud et Ouest",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Boisson gingembre, épice, décoction.", medicinal_uses="Anti-nauséeux, anti-inflammatoire, rhume, toux, circulation."),
+
+    dict(name="Curcuma", local_name="Safran des Indes / Kulkul (Dioula)",
+         scientific_name="Curcuma longa", family="Zingiberaceae",
+         description="Rhizome orange aux propriétés anti-inflammatoires puissantes.",
+         habitat="Jardins", regions="Zones côtières Sud",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Épice, colorant alimentaire (curry).", medicinal_uses="Anti-inflammatoire puissant (curcumine), antioxydant, foie."),
+
+    dict(name="Artemisia", local_name="Armoise africaine / Artémisia (CI)",
+         scientific_name="Artemisia annua", family="Asteraceae",
+         description="Plante antipaludéenne très importante, source d'artémisinine.",
+         habitat="Zones cultivées, jardins médicinaux", regions="Zones cultivées",
+         is_edible=False, is_toxic=True, is_medicinal=True, is_invasive=False, toxicity_level="faible",
+         culinary_uses="Non comestible couramment.", medicinal_uses="Antipaludéen majeur (artémisinine), antipyrétique."),
+
+    dict(name="Euphorbe tirucalli", local_name="Arbre cierge (CI) / Kêlêfê (Dioula)",
+         scientific_name="Euphorbia tirucalli", family="Euphorbiaceae",
+         description="Arbuste succulent en forme de cierge au latex très irritant.",
+         habitat="Haies, zones sèches", regions="Nord et Centre",
+         is_edible=False, is_toxic=True, is_medicinal=False, is_invasive=False, toxicity_level="élevé",
+         culinary_uses="NON COMESTIBLE.", medicinal_uses="Usage très limité. Latex dangereux pour yeux."),
+
+    dict(name="Kalanchoe", local_name="Herbe de vie (CI)", scientific_name="Kalanchoe pinnata",
+         family="Crassulaceae", description="Plante succulente aux propriétés cicatrisantes et anti-inflammatoires.",
+         habitat="Jardins, bords de chemins", regions="Toute la Côte d'Ivoire",
+         is_edible=False, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Non consommé.", medicinal_uses="Cicatrisant, anti-inflammatoire, otite, infections."),
+
+    dict(name="Lemon grass rouge", local_name="Citronnelle rouge (CI)",
+         scientific_name="Cymbopogon nardus", family="Poaceae",
+         description="Graminée aromatique utilisée comme répulsif naturel contre les insectes.",
+         habitat="Jardins, zones cultivées", regions="Toute la Côte d'Ivoire",
+         is_edible=False, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Non consommé.", medicinal_uses="Répulsif moustiques, anti-fongique."),
+
+    dict(name="Senna", local_name="Séné (CI) / Sénévier (Dioula)", scientific_name="Senna siamea",
+         family="Fabaceae", description="Arbre aux petites fleurs jaunes, très commun le long des routes.",
+         habitat="Bords de routes, zones urbaines", regions="Toute la Côte d'Ivoire",
+         is_edible=False, is_toxic=True, is_medicinal=True, is_invasive=True, toxicity_level="faible",
+         culinary_uses="Non comestible.", medicinal_uses="Laxatif (anthraquinones), antipaludéen, antifongique."),
+
+    dict(name="Ricin", local_name="Palma Christi (CI) / Kpakpaya (Dioula)",
+         scientific_name="Ricinus communis", family="Euphorbiaceae",
+         description="Plante aux graines contenant de la ricine, l'une des substances les plus toxiques.",
+         habitat="Bords de routes, zones perturbées", regions="Toute la Côte d'Ivoire",
+         is_edible=False, is_toxic=True, is_medicinal=True, is_invasive=True, toxicity_level="élevé",
+         culinary_uses="NON COMESTIBLE.", medicinal_uses="Huile de ricin externe : laxatif, cheveux, peau."),
+
+    dict(name="Datura", local_name="Herbe du diable (CI) / Pomme épineuse / Datura (CI)",
+         scientific_name="Datura stramonium", family="Solanaceae",
+         description="Plante très toxique aux grandes fleurs blanches en trompette.",
+         habitat="Bords de routes, villages", regions="Centre et Nord",
+         is_edible=False, is_toxic=True, is_medicinal=False, is_invasive=True, toxicity_level="élevé",
+         culinary_uses="STRICTEMENT NON COMESTIBLE.", medicinal_uses="Usage médical strictement contrôlé (alcaloïdes)."),
+
+    dict(name="Morelle de Balbis", local_name="Gnégné sauvage (CI)", scientific_name="Solanum torvum",
+         family="Solanaceae", description="Petit arbuste aux fruits verts consommés comme légume dans plusieurs régions.",
+         habitat="Zones rudérales, bords de chemins", regions="Toute la Côte d'Ivoire",
+         is_edible=True, is_toxic=True, is_medicinal=True, is_invasive=False, toxicity_level="faible",
+         culinary_uses="Petits fruits en sauce (kedjenu, sauce claire).", medicinal_uses="Antihypertenseur, antidiabétique."),
+
+    dict(name="Pervenche de Madagascar", local_name="Cataranthus (CI) / Vinca rose",
+         scientific_name="Catharanthus roseus", family="Apocynaceae",
+         description="Plante ornementale aux fleurs roses ou blanches, source de médicaments anticancéreux.",
+         habitat="Jardins, bords de routes", regions="Toute la Côte d'Ivoire",
+         is_edible=False, is_toxic=True, is_medicinal=True, is_invasive=True, toxicity_level="moyen",
+         culinary_uses="NON COMESTIBLE. Toxique.", medicinal_uses="Antidiabétique traditionnel. Vincristine et vinblastine (anticancéreux modernes)."),
+
+    dict(name="Papyrus", local_name="Roseau des marais (CI)", scientific_name="Cyperus papyrus",
+         family="Cyperaceae", description="Grande plante aquatique des marécages africains.",
+         habitat="Zones marécageuses, bords de rivières", regions="Lagunes du Sud",
+         is_edible=False, is_toxic=False, is_medicinal=False, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Tiges jeunes parfois mâchées.", medicinal_uses="Peu d'usages documentés."),
+
+    # ══════════════════════════════════════════════════════════
+    # ARBRES FORESTIERS
+    # ══════════════════════════════════════════════════════════
+    dict(name="Iroko", local_name="Kambala (CI) / Lok (Attié) / Séwé (Baoulé)",
+         scientific_name="Milicia excelsa", family="Moraceae",
+         description="L'un des bois les plus précieux d'Afrique de l'Ouest. Arbre sacré dans de nombreuses cultures.",
+         habitat="Forêts denses humides", regions="Forêts du Sud et Ouest (Taï, Sassandra)",
+         is_edible=False, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Non consommé.", medicinal_uses="Écorce contre les douleurs rhumatismales et la jaunisse."),
+
+    dict(name="Sipo", local_name="Sipo (CI) / Utile / Etouali (Attié)",
+         scientific_name="Entandrophragma utile", family="Meliaceae",
+         description="Grand arbre forestier à bois rouge très apprécié en menuiserie.",
+         habitat="Forêts denses humides", regions="Forêts du Sud-Ouest",
+         is_edible=False, is_toxic=False, is_medicinal=False, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Non consommé.", medicinal_uses="Peu d'usages médicinaux documentés."),
+
+    dict(name="Sapelli", local_name="Sapelli (CI) / Abébé (Attié)",
+         scientific_name="Entandrophragma cylindricum", family="Meliaceae",
+         description="Grand arbre forestier au bois rose brillant avec un grain en ruban caractéristique.",
+         habitat="Forêts denses humides de basse altitude", regions="Sud et Ouest",
+         is_edible=False, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Non consommé.", medicinal_uses="Écorce utilisée contre la fièvre."),
+
+    dict(name="Acajou d'Afrique", local_name="Acajou (CI) / Khaya (Attié)",
+         scientific_name="Khaya ivorensis", family="Meliaceae",
+         description="Grand arbre au bois rouge très recherché. L'un des acajous africains les plus importants.",
+         habitat="Forêts denses humides", regions="Forêts du Sud et Ouest",
+         is_edible=False, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Non consommé.", medicinal_uses="Écorce fébrifuge et antipaludéenne."),
+
+    dict(name="Fraké", local_name="Fraké (CI) / Limba / Emien (Attié)",
+         scientific_name="Terminalia superba", family="Combretaceae",
+         description="Grand arbre aux contreforts caractéristiques, bois blanc léger très utilisé.",
+         habitat="Forêts denses semidécidues", regions="Centre et Ouest",
+         is_edible=False, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Non consommé.", medicinal_uses="Écorce contre les diarrhées."),
+
+    dict(name="Teck", local_name="Teck (CI) / Diala (Dioula)", scientific_name="Tectona grandis",
+         family="Lamiaceae", description="Bois tropical très résistant aux intempéries. Très planté en Côte d'Ivoire.",
+         habitat="Plantations forestières", regions="Zones de reboisement",
+         is_edible=False, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Non consommé.", medicinal_uses="Fleurs contre les affections cutanées."),
+
+    dict(name="Eucalyptus", local_name="Eucalyptus (CI) / Kaliptus (Dioula)",
+         scientific_name="Eucalyptus camaldulensis", family="Myrtaceae",
+         description="Arbre à croissance rapide très planté pour le bois de chauffe et le reboisement.",
+         habitat="Plantations, zones dégradées", regions="Centre et Nord",
+         is_edible=False, is_toxic=False, is_medicinal=True, is_invasive=True, toxicity_level="aucun",
+         culinary_uses="Non consommé.", medicinal_uses="Huile essentielle : antiseptique respiratoire, rhume, bronchite."),
+
+    dict(name="Palmier à huile", local_name="Palmier (CI) / Ni (Baoulé) / Nion (Dioula)",
+         scientific_name="Elaeis guineensis", family="Arecaceae",
+         description="Principale culture de rente CI. Source d'huile de palme et de vin de palme.",
+         habitat="Forêts humides, plantations", regions="Sud et Ouest (Abidjan, San-Pédro)",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Huile de palme, vin de palme, noix de palme.", medicinal_uses="Vitamine E et A, malnutrition."),
+
+    dict(name="Karité", local_name="Sii (Dioula) / Ku (Senoufo) / Beurre de karité (CI)",
+         scientific_name="Vitellaria paradoxa", family="Sapotaceae",
+         description="Arbre sacré des savanes africaines. Symbole économique du Nord ivoirien.",
+         habitat="Savanes soudaniennes", regions="Nord (Korhogo, Boundiali, Odienné)",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Beurre de karité en cuisine, amandes grillées.", medicinal_uses="Cicatrisant, anti-inflammatoire, hydratant."),
+
+    dict(name="Baobab", local_name="Bohi (Dioula) / Ose (Senoufo) / Boo (Baoulé)",
+         scientific_name="Adansonia digitata", family="Malvaceae",
+         description="Géant des savanes africaines pouvant vivre plusieurs millénaires.",
+         habitat="Savanes sèches", regions="Nord (Korhogo, Ferkessédougou)",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Pulpe en boisson, feuilles séchées (lalo), graines.", medicinal_uses="Vitamine C, calcium, antioxydant, fièvre, diarrhée."),
+
+    dict(name="Kapokier", local_name="Fromager (CI) / Bê (Baoulé) / Fro (Dioula)",
+         scientific_name="Ceiba pentandra", family="Malvaceae",
+         description="Arbre géant pouvant dépasser 60m, souvent sacré. Fournit le kapok.",
+         habitat="Forêts tropicales, villages", regions="Sud et Centre",
+         is_edible=False, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Graines et feuilles parfois consommées.", medicinal_uses="Écorce contre fièvre, paludisme, rhumatismes."),
+
+    dict(name="Rônier", local_name="Ronier (CI) / Ron (Dioula) / Ôsê (Senoufo)",
+         scientific_name="Borassus aethiopum", family="Arecaceae",
+         description="Grand palmier des savanes du Nord, emblème du paysage soudanais ivoirien.",
+         habitat="Savanes, bords de marigots", regions="Nord (Korhogo, Boundiali)",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Pulpe des jeunes fruits, vin de rônier, cœur de palmier.", medicinal_uses="Sève tonique et reconstructive."),
+
+    dict(name="Noix de kola", local_name="Ora (Baoulé) / Wolo (Dioula) / Cola (CI)",
+         scientific_name="Cola nitida", family="Malvaceae",
+         description="Arbre sacré. La noix est symbole d'hospitalité et d'offrande.",
+         habitat="Forêts humides denses", regions="Ouest et Sud-Ouest (Man, San-Pédro)",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Noix mâchées, offrandes.", medicinal_uses="Stimulant (caféine), coupe-faim, céphalées."),
+
+    dict(name="Néré", local_name="Néré (CI) / Daw (Dioula) / Nêlê (Senoufo)",
+         scientific_name="Parkia biglobosa", family="Fabaceae",
+         description="Grand arbre des savanes. Ses graines fermentées donnent le soumbala, condiment fondamental.",
+         habitat="Savanes soudaniennes", regions="Nord (Korhogo, Boundiali, Ferkessédougou)",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Soumbala (dadawa) condiment, pulpe jaune en boisson sucrée, graines.", medicinal_uses="Anti-inflammatoire, traitement des plaies."),
+
+    dict(name="Vène", local_name="Vène (CI) / Pterocarpus (Agni)", scientific_name="Pterocarpus erinaceus",
+         family="Fabaceae", description="Arbre de savane au bois rouge précieux, source de teinture.",
+         habitat="Savanes", regions="Nord",
+         is_edible=False, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Non consommé.", medicinal_uses="Antidiabétique, anti-inflammatoire."),
+
+    dict(name="Flamboyant", local_name="Arbre de feu (CI) / Flamboyant (CI)",
+         scientific_name="Delonix regia", family="Fabaceae",
+         description="Arbre ornemental aux fleurs rouge écarlate spectaculaires.",
+         habitat="Zones urbaines, avenues", regions="Abidjan et villes côtières",
+         is_edible=False, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Graines parfois consommées après torréfaction.", medicinal_uses="Écorce contre paludisme et fièvre."),
+
+    # ══════════════════════════════════════════════════════════
+    # PLANTES DE RENTE
+    # ══════════════════════════════════════════════════════════
+    dict(name="Cacaoyer", local_name="Cacao (CI) / Kaka (Baoulé) / Choco (Dioula)",
+         scientific_name="Theobroma cacao", family="Malvaceae",
+         description="1er producteur mondial. Les fèves fermentées servent à fabriquer le chocolat.",
+         habitat="Sous-bois forestiers humides, plantations", regions="Centre-Ouest, Ouest, Sud",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Chocolat, boisson locale, pulpe du fruit.", medicinal_uses="Théobromine, antioxydants, beurre de cacao cicatrisant."),
+
+    dict(name="Caféier robusta", local_name="Café (CI) / Kafé (Dioula)",
+         scientific_name="Coffea canephora", family="Rubiaceae",
+         description="2ème producteur africain. Café robusta plus corsé que l'arabica.",
+         habitat="Forêts humides, plantations", regions="Ouest (Man, Daloa, Gagnoa)",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Café torréfié, cerises fraîches.", medicinal_uses="Stimulant, antioxydants."),
+
+    dict(name="Caféier arabica", local_name="Café doux (CI)", scientific_name="Coffea arabica",
+         family="Rubiaceae", description="Café de qualité supérieure cultivé en altitude.",
+         habitat="Zones montagneuses", regions="Ouest (Man, Biankouma)",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Café fin, cerises fraîches.", medicinal_uses="Stimulant, antioxydants."),
+
+    dict(name="Hévéa", local_name="Caoutchouc (CI) / Lêkê (Baoulé)",
+         scientific_name="Hevea brasiliensis", family="Euphorbiaceae",
+         description="Source du caoutchouc naturel. Production en plein essor en CI.",
+         habitat="Plantations, forêts humides", regions="Sud-Ouest (San-Pédro, Sassandra, Soubré)",
+         is_edible=False, is_toxic=True, is_medicinal=False, is_invasive=False, toxicity_level="faible",
+         culinary_uses="Non comestible.", medicinal_uses="Peu d'usages. Peut provoquer allergies."),
+
+    dict(name="Coton", local_name="Kotô (Dioula) / Tchio (Senoufo)",
+         scientific_name="Gossypium hirsutum", family="Malvaceae",
+         description="Culture de rente majeure du Nord ivoirien. Fibre textile importante.",
+         habitat="Champs cultivés, savanes", regions="Nord (Korhogo, Boundiali, Ferkessédougou)",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Huile de coton, graines grillées.", medicinal_uses="Racines contre douleurs menstruelles."),
+
+    dict(name="Anacardier", local_name="Noix de cajou (CI) / Kajou (Dioula) / Kachew",
+         scientific_name="Anacardium occidentale", family="Anacardiaceae",
+         description="1er exportateur africain de cajou. La pomme de cajou est un fruit très consommé.",
+         habitat="Zones de savane, plantations", regions="Centre et Nord",
+         is_edible=True, is_toxic=True, is_medicinal=True, is_invasive=False, toxicity_level="faible",
+         culinary_uses="Noix de cajou grillée, pomme de cajou en jus.", medicinal_uses="Antioxydants, magnésium. Baume de cajou cicatrisant."),
+
+    # ══════════════════════════════════════════════════════════
+    # PLANTES AQUATIQUES ET ENVAHISSANTES
+    # ══════════════════════════════════════════════════════════
+    dict(name="Jacinthe d'eau", local_name="Herbe flottante (CI)",
+         scientific_name="Eichhornia crassipes", family="Pontederiaceae",
+         description="Plante aquatique envahissante aux fleurs violettes colonisant les lagunes.",
+         habitat="Lagunes, rivières, lacs", regions="Lagune Ébrié (Abidjan), fleuves du Sud",
+         is_edible=True, is_toxic=False, is_medicinal=False, is_invasive=True, toxicity_level="aucun",
+         culinary_uses="Feuilles consommables après cuisson.", medicinal_uses="Peu d'usages documentés."),
+
+    dict(name="Pistia", local_name="Laitue d'eau (CI) / Pistia (CI)", scientific_name="Pistia stratiotes",
+         family="Araceae", description="Plante aquatique flottante envahissante.",
+         habitat="Lagunes, mares, cours d'eau", regions="Sud (lagunes côtières)",
+         is_edible=False, is_toxic=False, is_medicinal=True, is_invasive=True, toxicity_level="aucun",
+         culinary_uses="Non comestible directement.", medicinal_uses="Affections cutanées, hémorroïdes."),
+
+    dict(name="Nénuphar africain", local_name="Lotus africain (CI)", scientific_name="Nymphaea lotus",
+         family="Nymphaeaceae", description="Magnifique plante aquatique aux grandes fleurs blanches.",
+         habitat="Mares, étangs, zones marécageuses", regions="Sud et Ouest",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Graines et rhizomes comestibles.", medicinal_uses="Sédatif, traitement des diarrhées."),
+
+    dict(name="Papyrus", local_name="Roseau (CI)", scientific_name="Cyperus papyrus",
+         family="Cyperaceae", description="Grande plante aquatique des marécages.",
+         habitat="Zones marécageuses, bords de rivières", regions="Lagunes du Sud",
+         is_edible=False, is_toxic=False, is_medicinal=False, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Tiges jeunes mâchées.", medicinal_uses="Peu d'usages documentés."),
+
+    # ══════════════════════════════════════════════════════════
+    # ÉPICES ET CONDIMENTS
+    # ══════════════════════════════════════════════════════════
+    dict(name="Poivre de Guinée", local_name="Kani (Dioula) / Yiri-wulên (Baoulé) / Poivre selim",
+         scientific_name="Xylopia aethiopica", family="Annonaceae",
+         description="Épice africaine aux fruits allongés aromatiques. Incontournable en CI.",
+         habitat="Forêts humides secondaires", regions="Forêts du Sud et Ouest",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Épice dans soupes, marinades, boissons (gnimini).", medicinal_uses="Stimulant, carminatif, infections bronchiques."),
+
+    dict(name="Graine de selim", local_name="Yiri tchêtchê (Baoulé) / Djar (Dioula)",
+         scientific_name="Xylopia parviflora", family="Annonaceae",
+         description="Épice proche du poivre de Guinée, fruits très aromatiques.",
+         habitat="Forêts humides", regions="Ouest et Sud-Ouest",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Épice, condiment.", medicinal_uses="Digestif, carminatif."),
+
+    dict(name="Cannelle africaine", local_name="Cannelle (CI) / Kinamon (Dioula)",
+         scientific_name="Cinnamomum verum", family="Lauraceae",
+         description="Écorce aromatique importée mais cultivée dans quelques jardins de CI.",
+         habitat="Jardins, zones tropicales humides", regions="Zones humides du Sud",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Épice dans boissons et pâtisseries.", medicinal_uses="Antidiabétique, antibactérien, anti-inflammatoire."),
+
+    dict(name="Graines de paradis", local_name="Maniguette / Akudjura (CI) / Atariko (Yoruba)",
+         scientific_name="Aframomum melegueta", family="Zingiberaceae",
+         description="Épice africaine aux graines piquantes, cousine du gingembre.",
+         habitat="Forêts humides, zones côtières", regions="Sud et Ouest",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Épice dans sauces et marinades.", medicinal_uses="Digestif, stimulant, anti-inflammatoire."),
+
+    dict(name="Poivre noir", local_name="Poivre (CI) / Kologna (Dioula)",
+         scientific_name="Piper nigrum", family="Piperaceae",
+         description="Liane épicée dont les baies donnent le poivre noir, blanc ou vert.",
+         habitat="Zones tropicales humides, jardins", regions="Zones forestières du Sud",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Épice universelle.", medicinal_uses="Pipérine : biodisponibilité, digestif, antimicrobien."),
+
+    dict(name="Poivre long africain", local_name="Poivre long (CI) / Gbafilo (Dioula)",
+         scientific_name="Piper guineense", family="Piperaceae",
+         description="Liane africaine aux fruits allongés très aromatiques et piquants.",
+         habitat="Forêts humides, sous-bois", regions="Forêts du Sud et Ouest",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Épice en sauce, marinade, soupe.", medicinal_uses="Antipaludéen, antiseptique."),
+
+    dict(name="Hibiscus sabdariffa", local_name="Bissap (CI) / Wonjo (Dioula) / Dabileni",
+         scientific_name="Hibiscus sabdariffa", family="Malvaceae",
+         description="Plante dont les calices rouge vif servent à préparer la célèbre boisson bissap.",
+         habitat="Champs cultivés, jardins", regions="Nord et Centre",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Boisson bissap (très populaire), confiture, gelée.", medicinal_uses="Antihypertenseur, antioxydant, diurétique."),
+
+    dict(name="Sésame", local_name="Bêni (Dioula) / Gbêlo (Baoulé)",
+         scientific_name="Sesamum indicum", family="Pedaliaceae",
+         description="Plante oléagineuse cultivée pour ses petites graines riches en huile.",
+         habitat="Champs sableux", regions="Nord",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Huile de sésame, graines en pâtisserie, tahini.", medicinal_uses="Riche en calcium, magnésium, antioxydants."),
+
+    # ══════════════════════════════════════════════════════════
+    # PLANTES ORNEMENTALES
+    # ══════════════════════════════════════════════════════════
+    dict(name="Bougainvillée", local_name="Bougainvillier (CI)", scientific_name="Bougainvillea spectabilis",
+         family="Nyctaginaceae", description="Liane ornementale aux bractées colorées omniprésente à Abidjan.",
+         habitat="Jardins, haies ornementales", regions="Zones urbaines",
+         is_edible=False, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Non comestible.", medicinal_uses="Infusion contre toux et bronchites."),
+
+    dict(name="Hibiscus rosa-sinensis", local_name="Fleur chaussure (CI) / Kôkô wulên (Baoulé)",
+         scientific_name="Hibiscus rosa-sinensis", family="Malvaceae",
+         description="Arbuste ornemental aux grandes fleurs rouges très communes dans les jardins ivoiriens.",
+         habitat="Jardins, haies", regions="Toute la Côte d'Ivoire",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Fleurs et feuilles comestibles.", medicinal_uses="Antihypertenseur, anti-inflammatoire, cheveux."),
+
+    dict(name="Croton", local_name="Croton (CI)", scientific_name="Codiaeum variegatum",
+         family="Euphorbiaceae", description="Arbuste ornemental aux feuilles multicolores très décoratives.",
+         habitat="Jardins ornementaux", regions="Zones urbaines",
+         is_edible=False, is_toxic=True, is_medicinal=False, is_invasive=False, toxicity_level="faible",
+         culinary_uses="NON COMESTIBLE.", medicinal_uses="Non utilisé médicalement."),
+
+    dict(name="Frangipane", local_name="Pompe funèbre (CI) / Franjipanier",
+         scientific_name="Plumeria rubra", family="Apocynaceae",
+         description="Petit arbre aux fleurs parfumées blanc-rose, souvent planté dans les cimetières.",
+         habitat="Jardins, cimetières", regions="Zones urbaines",
+         is_edible=False, is_toxic=True, is_medicinal=True, is_invasive=False, toxicity_level="faible",
+         culinary_uses="Non comestible. Latex irritant.", medicinal_uses="Écorce contre fièvre, fleurs parfum."),
+
+    dict(name="Canna", local_name="Balisier (CI)", scientific_name="Canna indica",
+         family="Cannaceae", description="Plante ornementale aux grandes feuilles et fleurs colorées.",
+         habitat="Jardins, zones humides", regions="Zones urbaines",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Rhizomes et graines comestibles.", medicinal_uses="Anti-inflammatoire, diurétique."),
+
+    dict(name="Lantana", local_name="Gattilier africain (CI)", scientific_name="Lantana camara",
+         family="Verbenaceae", description="Arbuste aux fleurs multicolores très envahissant.",
+         habitat="Zones rudérales, bords de routes", regions="Toute la Côte d'Ivoire",
+         is_edible=False, is_toxic=True, is_medicinal=True, is_invasive=True, toxicity_level="moyen",
+         culinary_uses="NON COMESTIBLE. Baies toxiques.", medicinal_uses="Feuilles contre fièvre, plaies (usage externe)."),
+
+    dict(name="Sensitive", local_name="Mimosa pudique / Herbe qui se cache (CI) / Kpalê (Baoulé)",
+         scientific_name="Mimosa pudica", family="Fabaceae",
+         description="Petite plante rampante qui replie ses feuilles au moindre contact.",
+         habitat="Bords de chemins, pelouses", regions="Toute la Côte d'Ivoire",
+         is_edible=False, is_toxic=False, is_medicinal=True, is_invasive=True, toxicity_level="aucun",
+         culinary_uses="Non comestible.", medicinal_uses="Insomnie, anxiété, anti-inflammatoire."),
+
+    # ══════════════════════════════════════════════════════════
+    # CHAMPIGNONS ET AUTRES
+    # ══════════════════════════════════════════════════════════
+    dict(name="Termitière champignon", local_name="Gnôhi (Baoulé) / Kpandiê (Agni)",
+         scientific_name="Termitomyces robustus", family="Lyophyllaceae",
+         description="Grand champignon comestible poussant sur les termitières, très apprécié en CI.",
+         habitat="Termitières, savanes", regions="Toute la Côte d'Ivoire (saison des pluies)",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Sauce champignon, séché, en omelette.", medicinal_uses="Protéines, minéraux, immunité."),
+
+    dict(name="Champignon de termite petit", local_name="Gnôhi kpiti (Baoulé)",
+         scientific_name="Termitomyces striatus", family="Lyophyllaceae",
+         description="Petite variété de champignon de termitière très savoureuse.",
+         habitat="Termitières en savane", regions="Toute la Côte d'Ivoire",
+         is_edible=True, is_toxic=False, is_medicinal=False, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Sauce, grillé.", medicinal_uses="Source de protéines."),
+
+    # ══════════════════════════════════════════════════════════
+    # PLANTES DES SAVANES DU NORD
+    # ══════════════════════════════════════════════════════════
+    dict(name="Acacia seyal", local_name="Épineux rouge (CI) / Ganna woyo (Dioula)",
+         scientific_name="Acacia seyal", family="Fabaceae",
+         description="Acacia aux épines rouges caractéristiques, très commun dans les savanes du Nord.",
+         habitat="Savanes sèches", regions="Nord (Korhogo, Boundiali)",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Gomme comestible.", medicinal_uses="Gomme protectrice des muqueuses, toux."),
+
+    dict(name="Acacia nilotica", local_name="Gonakier (Nord CI) / Babul (Dioula)",
+         scientific_name="Acacia nilotica", family="Fabaceae",
+         description="Acacia aux gousses en chapelet, source de gomme arabique.",
+         habitat="Savanes, bords de cours d'eau", regions="Extrême Nord",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Gousses jeunes comestibles, gomme.", medicinal_uses="Antiseptique, antidiarrhéique."),
+
+    dict(name="Prosopis", local_name="Faux acacia (CI) / Wasota (Dioula)",
+         scientific_name="Prosopis africana", family="Fabaceae",
+         description="Arbre des savanes sèches au bois très dur, graines fermentées comme condiment.",
+         habitat="Savanes sèches", regions="Nord",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Graines fermentées en condiment (dawadawa), gousses.", medicinal_uses="Fièvre, maux de dents."),
+
+    dict(name="Detarium", local_name="Tallow tree (CI) / Dattier du Sénégal",
+         scientific_name="Detarium microcarpum", family="Fabaceae",
+         description="Arbre des savanes sèches aux fruits sucrés comestibles.",
+         habitat="Savanes sèches", regions="Nord",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Pulpe des fruits fraîche ou séchée.", medicinal_uses="Antidiarrhéique, astringent."),
+
+    dict(name="Lannea", local_name="Raisinier sauvage (CI) / Gnon têtê (Dioula)",
+         scientific_name="Lannea acida", family="Anacardiaceae",
+         description="Arbre à feuilles caduques des savanes donnant de petits fruits acidulés.",
+         habitat="Savanes, zones dégradées", regions="Nord et Centre",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Fruits frais, boisson fermentée.", medicinal_uses="Antidiarrhéique, cicatrisant."),
+
+    dict(name="Combretum", local_name="Raisinier (CI) / Kinkiliba (Dioula)",
+         scientific_name="Combretum micranthum", family="Combretaceae",
+         description="Liane de savane aux feuilles utilisées en tisane médicinale.",
+         habitat="Savanes, forêts claires", regions="Nord et Centre",
+         is_edible=False, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Tisane (kinkiliba).", medicinal_uses="Tonique, dépuratif, antipaludéen, digestif."),
+
+    dict(name="Ziziphus mucronata", local_name="Jujubier sauvage (CI) / Sihi gnin (Dioula)",
+         scientific_name="Ziziphus mucronata", family="Rhamnaceae",
+         description="Arbuste épineux des savanes aux petits fruits rouge-brun.",
+         habitat="Savanes, zones dégradées", regions="Nord et Centre",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Fruits frais consommés.", medicinal_uses="Antidouleur, cicatrisant."),
+
+    # ══════════════════════════════════════════════════════════
+    # PLANTES DES FORÊTS DU SUD-OUEST
+    # ══════════════════════════════════════════════════════════
+    dict(name="Kolatier sauvage", local_name="Faux cola (CI) / Kola garouké",
+         scientific_name="Cola acuminata", family="Malvaceae",
+         description="Variété de colatier aux noix amères, utilisées différemment de Cola nitida.",
+         habitat="Forêts denses humides", regions="Forêts du Sud",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Noix mâchées, cérémonies.", medicinal_uses="Stimulant, aphrodisiaque traditionnel."),
+
+    dict(name="Okoumé", local_name="Okoumé (CI)", scientific_name="Aucoumea klaineana",
+         family="Burseraceae", description="Arbre de forêt dense au bois léger, source de résine.",
+         habitat="Forêts humides", regions="Extrême Sud-Ouest",
+         is_edible=False, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Non consommé.", medicinal_uses="Résine cicatrisante."),
+
+    dict(name="Colatier", local_name="Arbrekola (CI) / Wolo-ji (Dioula)",
+         scientific_name="Cola lateritia", family="Malvaceae",
+         description="Espèce sauvage de colatier des forêts denses.",
+         habitat="Forêts denses humides", regions="Forêts du Sud-Ouest",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Noix mâchées.", medicinal_uses="Stimulant, digestif."),
+
+    dict(name="Raphia", local_name="Raphia (CI) / Bambou raphia / Pan (Attié)",
+         scientific_name="Raphia hookeri", family="Arecaceae",
+         description="Grand palmier des zones marécageuses aux feuilles utilisées en artisanat.",
+         habitat="Zones marécageuses, bords de rivières", regions="Forêts du Sud",
+         is_edible=True, is_toxic=False, is_medicinal=False, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Sève fermentée en vin de raphia (bandji).", medicinal_uses="Peu d'usages documentés."),
+
+    dict(name="Canne à sucre", local_name="Sukari (Dioula) / Fomê (Baoulé) / Kôrôtê",
+         scientific_name="Saccharum officinarum", family="Poaceae",
+         description="Grande graminée sucrée cultivée et vendue fraîche dans les marchés.",
+         habitat="Zones humides cultivées", regions="Sud et Centre",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Jus de canne, canne fraîche à mâcher, sucre.", medicinal_uses="Énergie rapide, cicatrisant (applications locales)."),
+
+    dict(name="Bambou commun", local_name="Bambu (Dioula) / Bambou (CI)",
+         scientific_name="Bambusa vulgaris", family="Poaceae",
+         description="Grande graminée ligneuse aux nombreux usages en construction et alimentation.",
+         habitat="Zones humides, bords de rivières", regions="Sud et Ouest",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=True, toxicity_level="aucun",
+         culinary_uses="Pousses de bambou (jeunes pousses comestibles).", medicinal_uses="Feuilles fébrifuges, silice pour os."),
+
+    dict(name="Lantana sage", local_name="Verveine sauvage (CI)", scientific_name="Lippia multiflora",
+         family="Verbenaceae", description="Petit arbuste aromatique utilisé en tisane.",
+         habitat="Savanes, zones rudérales", regions="Centre et Nord",
+         is_edible=False, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Tisane.", medicinal_uses="Fébrifuge, toux, troubles digestifs."),
+
+    dict(name="Thym africain", local_name="Thym sauvage (CI)", scientific_name="Lippia javanica",
+         family="Verbenaceae", description="Arbuste aromatique aux propriétés médicinales proches du thym.",
+         habitat="Savanes, bords de routes", regions="Centre",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Tisane, condiment.", medicinal_uses="Antiseptique respiratoire, toux, rhume."),
+
+    dict(name="Nauclea latifolia", local_name="African peach / Gbêlê (Baoulé)",
+         scientific_name="Nauclea latifolia", family="Rubiaceae",
+         description="Arbre fruitier sauvage aux fruits orangés comestibles, très utilisé en médecine.",
+         habitat="Forêts galeries, savanes humides", regions="Centre et Ouest",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Fruits frais.", medicinal_uses="Antipaludéen, antidiarrhéique, analgésique."),
+
+    dict(name="Pterocarpus santalinoides", local_name="Padouk d'eau (CI) / Kpaï (Dioula)",
+         scientific_name="Pterocarpus santalinoides", family="Fabaceae",
+         description="Arbre des galeries forestières au bois rouge très apprécié.",
+         habitat="Forêts galeries, bords de rivières", regions="Centre et Ouest",
+         is_edible=False, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Non consommé.", medicinal_uses="Feuilles comme émollient, affections cutanées."),
+
+    dict(name="Daniellia oliveri", local_name="Faux karité (CI) / Santan (Dioula)",
+         scientific_name="Daniellia oliveri", family="Fabaceae",
+         description="Grand arbre de savane source d'une résine (copal) utilisée en fumigation.",
+         habitat="Savanes soudaniennes", regions="Nord",
+         is_edible=False, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Non consommé.", medicinal_uses="Résine en fumigation anti-rhumatismale, céphalées."),
+
+    dict(name="Piliostigma thonningii", local_name="Camel's foot (CI) / Tonzonmon (Dioula)",
+         scientific_name="Piliostigma thonningii", family="Fabaceae",
+         description="Arbre de savane aux grandes feuilles bilobées caractéristiques.",
+         habitat="Savanes et forêts claires", regions="Nord et Centre",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Gousses et graines consommées.", medicinal_uses="Antidiarrhéique, cicatrisant."),
+
+    dict(name="Ficus gnaphalocarpa", local_name="Figuier sacré (CI) / Téni (Dioula)",
+         scientific_name="Ficus gnaphalocarpa", family="Moraceae",
+         description="Grand figuier des savanes très souvent planté et sacré dans les villages.",
+         habitat="Villages, bords de marigots", regions="Nord et Centre",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Petits fruits consommés frais.", medicinal_uses="Écorce contre fièvre et paludisme."),
+
+    dict(name="Ficus sur", local_name="Figuier sauvage (CI) / Sossô (Baoulé)",
+         scientific_name="Ficus sur", family="Moraceae",
+         description="Figuier sauvage aux fruits apparaissant directement sur le tronc (cauliflorie).",
+         habitat="Forêts galeries, bords de rivières", regions="Toute la Côte d'Ivoire",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Fruits frais consommés.", medicinal_uses="Contre diarrhée et infections cutanées."),
+
+    dict(name="Ceiba africaine", local_name="Pochote (CI) / Gbondou (Baoulé)",
+         scientific_name="Bombax buonopozense", family="Malvaceae",
+         description="Grand arbre aux fleurs rouges éclatantes, floraison spectaculaire en saison sèche.",
+         habitat="Forêts denses", regions="Sud et Centre",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Fleurs consommées cuites, graines.", medicinal_uses="Écorce contre rhumatismes et plaies."),
+
+    dict(name="Oncoba spinosa", local_name="Snuff box tree (CI) / Kpôklô (Baoulé)",
+         scientific_name="Oncoba spinosa", family="Salicaceae",
+         description="Arbuste épineux aux fleurs blanches et fruits durs utilisés comme tabatières.",
+         habitat="Forêts secondaires", regions="Sud",
+         is_edible=False, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Non consommé.", medicinal_uses="Fruits contre les maladies de peau."),
+
+    dict(name="Parinari excelsa", local_name="Gingerbread tree (CI) / Abèni (Attié)",
+         scientific_name="Parinari excelsa", family="Chrysobalanaceae",
+         description="Grand arbre de forêt dense aux fruits oblongs comestibles.",
+         habitat="Forêts denses humides", regions="Sud et Ouest",
+         is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Fruits frais.", medicinal_uses="Écorce antipyrétique."),
+
+    dict(name="Lophira alata", local_name="Azobé (CI) / Bôlê (Baoulé)",
+         scientific_name="Lophira alata", family="Ochnaceae",
+         description="Grand arbre au bois le plus dense d'Afrique, utilisé en construction lourde.",
+         habitat="Forêts denses humides", regions="Forêts du Sud",
+         is_edible=False, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
+         culinary_uses="Non consommé.", medicinal_uses="Huile de graines contre rhumatismes."),
+]
+
+
+def seed():
+    db = SessionLocal()
+    inserted = 0
+    skipped  = 0
+
+    print(f"\n{'='*55}")
+    print("  MikiPlants – Insertion des plantes réelles de CI")
+    print(f"{'='*55}\n")
+
+    for data in PLANTS:
+        existing = db.query(Plant).filter(Plant.scientific_name == data["scientific_name"]).first()
+        if existing:
+            skipped += 1
+            continue
+        plant = Plant(**data)
+        db.add(plant)
+        try:
+            db.commit()
+            print(f"  [OK]  {data['name']} — {data['scientific_name']}")
+            inserted += 1
+        except Exception as e:
+            db.rollback()
+            print(f"  [ERR] {data['name']} : {e}")
+
+    db.close()
+    total = inserted + skipped
+    print(f"\n{'='*55}")
+    print(f"  Terminé : {inserted} nouvelles | {skipped} déjà en base | {total} total")
+    print(f"{'='*55}\n")
+
+
+if __name__ == "__main__":
+    seed()

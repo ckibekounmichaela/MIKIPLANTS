@@ -1,16 +1,3 @@
-# ============================================================
-# FICHIER : backend/services/report.py
-# RÔLE    : Assembler et extraire les métadonnées du rapport final
-#
-# CONCEPT POUR DÉBUTANT :
-#   Ce fichier est un "assembleur". Il prend les résultats
-#   de PlantNet et de Groq, les combine, et extrait les
-#   métadonnées importantes (is_toxic, is_edible...) pour
-#   les stocker séparément dans la base de données.
-#   Cela facilite les recherches et les statistiques.
-# ============================================================
-
-
 def extract_metadata_from_report(report: dict) -> dict:
     """
     Extrait les métadonnées importantes du rapport JSON.
@@ -81,37 +68,3 @@ def extract_metadata_from_report(report: dict) -> dict:
     metadata["is_invasive"] = environment.get("invasive", False)
 
     return metadata
-
-
-def build_full_scan_result(plantnet_result: dict, report: dict, metadata: dict) -> dict:
-    """
-    Combine tous les résultats en un seul dictionnaire complet.
-
-    C'est ce dictionnaire final qui sera renvoyé au frontend
-    après une analyse de plante.
-
-    PARAMÈTRES :
-        plantnet_result : Résultat de l'identification PlantNet
-        report          : Rapport généré par Groq
-        metadata        : Métadonnées extraites du rapport
-
-    RETOUR :
-        Dictionnaire complet prêt à être envoyé au client.
-    """
-    return {
-        # Informations d'identification (PlantNet)
-        "plant_name": plantnet_result.get("plant_name", "Inconnue"),
-        "scientific_name": plantnet_result.get("scientific_name", ""),
-        "family": plantnet_result.get("family", ""),
-        "confidence_score": plantnet_result.get("confidence_score", 0.0),
-
-        # Rapport d'analyse (Groq)
-        "report": report,
-
-        # Métadonnées extraites
-        "is_edible": metadata.get("is_edible", False),
-        "is_toxic": metadata.get("is_toxic", False),
-        "is_medicinal": metadata.get("is_medicinal", False),
-        "is_invasive": metadata.get("is_invasive", False),
-        "toxicity_level": metadata.get("toxicity_level", "aucun"),
-    }

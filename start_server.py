@@ -1,6 +1,6 @@
 # ============================================================
 # FICHIER : start_server.py
-# ROLE    : Demarrer le serveur WhatAPlant
+# ROLE    : Demarrer le serveur MikiPlants
 #
 # USAGE   : python start_server.py
 #           OU double-cliquer sur start.bat
@@ -36,7 +36,7 @@ APP_URL = "http://localhost:8000"
 def print_header():
     print()
     print("=" * 50)
-    print("   WhatAPlant - Demarrage du serveur")
+    print("   MikiPlants - Demarrage du serveur")
     print("=" * 50)
     print()
 
@@ -116,7 +116,7 @@ def open_browser_delayed(delay=2):
 def start_uvicorn():
     """Lancer le serveur uvicorn."""
     print("=" * 50)
-    print("   Serveur WhatAPlant demarre !")
+    print("   Serveur MikiPlants demarre !")
     print()
     print(f"   Acces local   : {APP_URL}")
     print(f"   Documentation : {APP_URL}/docs")

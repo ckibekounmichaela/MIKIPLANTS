@@ -15,8 +15,12 @@
 
 import os
 import json
+import asyncio
+import logging
 from groq import Groq
 from dotenv import load_dotenv
+
+logger = logging.getLogger(__name__)
 
 load_dotenv()
 
@@ -119,28 +123,31 @@ Génère exactement ce JSON :
 
     try:
         # -------------------------------------------------------
-        # Appeler l'API Groq
-        # messages = liste de messages comme dans une conversation
+        # Appeler l'API Groq dans un thread séparé (non-bloquant)
+        # asyncio.to_thread() permet d'exécuter une fonction synchrone
+        # sans bloquer l'event loop FastAPI pendant l'appel réseau
         # -------------------------------------------------------
-        response = client.chat.completions.create(
-            model=GROQ_MODEL,
-            messages=[
-                {
-                    "role": "system",
-                    "content": (
-                        "Tu es un expert botaniste. "
-                        "Tu réponds TOUJOURS avec un JSON valide et structuré. "
-                        "Jamais de texte hors du JSON."
-                    )
-                },
-                {
-                    "role": "user",
-                    "content": prompt
-                }
-            ],
-            temperature=0.3,    # Faible = réponses plus cohérentes et précises
-            max_tokens=4096,    # Augmenté pour les rapports détaillés
-        )
+        def _call_groq():
+            return client.chat.completions.create(
+                model=GROQ_MODEL,
+                messages=[
+                    {
+                        "role": "system",
+                        "content": (
+                            "Tu es un expert botaniste. "
+                            "Tu réponds TOUJOURS avec un JSON valide et structuré. "
+                            "Jamais de texte hors du JSON."
+                        )
+                    },
+                    {
+                        "role": "user",
+                        "content": prompt
+                    }
+                ],
+                temperature=0.3,
+                max_tokens=4096,
+            )
+        response = await asyncio.to_thread(_call_groq)
 
         # Extraire le texte de la réponse
         response_text = response.choices[0].message.content.strip()
@@ -148,25 +155,37 @@ Génère exactement ce JSON :
         # -------------------------------------------------------
         # Parser le JSON retourné par l'IA
         # L'IA peut parfois ajouter des ```json ... ``` autour
-        # On nettoie ça avant de parser
+        # ou du texte avant/après le JSON — on nettoie tout ça
         # -------------------------------------------------------
         if "```json" in response_text:
             response_text = response_text.split("```json")[1].split("```")[0].strip()
         elif "```" in response_text:
             response_text = response_text.split("```")[1].split("```")[0].strip()
 
-        # Convertir le texte JSON en dictionnaire Python
-        report = json.loads(response_text)
-        return report
+        # Tentative 1 : parser directement
+        try:
+            return json.loads(response_text)
+        except json.JSONDecodeError:
+            pass
+
+        # Tentative 2 : extraire le premier bloc JSON {...} dans le texte
+        start = response_text.find("{")
+        end   = response_text.rfind("}")
+        if start != -1 and end != -1 and end > start:
+            try:
+                return json.loads(response_text[start:end + 1])
+            except json.JSONDecodeError:
+                pass
+
+        logger.error("Groq: impossible de parser le JSON de la réponse")
+        return _default_report()
 
     except json.JSONDecodeError as e:
-        # L'IA n'a pas renvoyé un JSON valide
-        print(f"ERREUR: L'IA n'a pas retourné un JSON valide: {e}")
+        logger.error(f"Groq: JSON invalide reçu : {e}")
         return _default_report()
 
     except Exception as e:
-        # Toute autre erreur (réseau, clé API invalide, etc.)
-        print(f"ERREUR Groq: {str(e)}")
+        logger.error(f"Groq: erreur appel API : {e}")
         return _default_report()
 
 
@@ -244,19 +263,19 @@ RÈGLES DE COMPORTEMENT :
     messages.append({"role": "user", "content": user_message})
 
     try:
-        # Appeler l'API Groq
-        response = client.chat.completions.create(
-            model=GROQ_MODEL,
-            messages=messages,
-            temperature=0.7,    # Un peu plus créatif que pour les rapports
-            max_tokens=1024,
-        )
-
-        # Extraire et retourner la réponse
+        # Appeler l'API Groq dans un thread séparé (non-bloquant)
+        def _call_groq():
+            return client.chat.completions.create(
+                model=GROQ_MODEL,
+                messages=messages,
+                temperature=0.7,
+                max_tokens=1024,
+            )
+        response = await asyncio.to_thread(_call_groq)
         return response.choices[0].message.content.strip()
 
     except Exception as e:
-        print(f"ERREUR agent Groq: {str(e)}")
+        logger.error(f"Groq agent: erreur appel API : {e}")
         return (
             "Désolé, je rencontre un problème technique momentané. "
             "Veuillez réessayer dans quelques instants."

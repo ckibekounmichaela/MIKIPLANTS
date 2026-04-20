@@ -3,379 +3,357 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WhatAPlant – Catalogue des plantes</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/style.css">
+    <title>MikiPlants – Catalogue des plantes</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet" crossorigin="anonymous">
     <style>
-        /* ── Cards catalogue ─────────────────────────────────── */
+        * { box-sizing:border-box; }
+        body { margin:0; background:#f4f6f9; font-family:'Segoe UI',sans-serif; }
+
+        /* ── Navbar ── */
+        .navbar {
+            background:linear-gradient(90deg,#0d5c2e,#198754) !important;
+            padding:0.75rem 0; box-shadow:0 2px 16px rgba(0,0,0,0.15);
+        }
+        .navbar-brand { font-weight:800; font-size:1.1rem; letter-spacing:-0.3px; }
+        .nav-link { font-weight:500; font-size:0.88rem; border-radius:8px; padding:6px 12px !important; transition:background 0.2s; }
+        .nav-link:hover, .nav-link.active { background:rgba(255,255,255,0.15) !important; }
+        .btn-logout {
+            background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.25);
+            color:#fff; border-radius:50px; font-size:0.82rem; padding:6px 16px;
+            font-weight:600; transition:all 0.2s;
+        }
+        .btn-logout:hover { background:rgba(255,255,255,0.22); color:#fff; }
+
+        /* ── Hero ── */
+        .hero {
+            background:linear-gradient(135deg,#0d5c2e 0%,#198754 50%,#20c997 100%);
+            padding:2.5rem 0 5rem; position:relative; overflow:hidden;
+        }
+        .hero::after {
+            content:""; position:absolute; bottom:0; left:0; right:0; height:60px;
+            background:#f4f6f9;
+            clip-path:ellipse(55% 100% at 50% 100%);
+        }
+        .hero h1 { color:#fff; font-size:1.9rem; font-weight:800; letter-spacing:-0.5px; margin-bottom:0.4rem; }
+        .hero p  { color:rgba(255,255,255,0.82); font-size:0.95rem; margin-bottom:0; }
+
+        /* Stat chips in hero */
+        .stat-chip {
+            display:inline-flex; align-items:center; gap:6px;
+            background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.2);
+            color:#fff; border-radius:50px; padding:7px 16px; font-size:0.82rem; font-weight:600;
+        }
+
+        /* ── Filter bar ── */
+        .filter-bar {
+            background:#fff; border-radius:16px;
+            box-shadow:0 2px 14px rgba(0,0,0,0.07);
+            padding:1.2rem 1.4rem; margin-bottom:1.5rem;
+        }
+        .search-box {
+            display:flex; align-items:center; gap:10px;
+            background:#f4f6f9; border:2px solid #e9ecef; border-radius:12px;
+            padding:8px 14px; transition:border-color 0.2s;
+        }
+        .search-box:focus-within { border-color:#198754; background:#fff; }
+        .search-box i { color:#9ca3af; font-size:0.95rem; flex-shrink:0; }
+        .search-box input {
+            border:none; background:transparent; outline:none; flex:1;
+            font-size:0.88rem; color:#374151;
+        }
+        .search-box input::placeholder { color:#9ca3af; }
+        .clear-btn { background:none; border:none; color:#9ca3af; cursor:pointer; padding:0; font-size:0.9rem; }
+
+        /* Filter pills */
+        .filter-pill {
+            border:2px solid #e9ecef; background:#fff; color:#6b7280;
+            border-radius:50px; padding:6px 16px; font-size:0.82rem; font-weight:600;
+            cursor:pointer; transition:all 0.2s; display:inline-flex; align-items:center; gap:5px;
+        }
+        .filter-pill:hover { border-color:#198754; color:#198754; }
+        .filter-pill.active-all      { border-color:#198754; background:#198754; color:#fff; }
+        .filter-pill.active-edible   { border-color:#16a34a; background:#16a34a; color:#fff; }
+        .filter-pill.active-medicinal{ border-color:#0ea5e9; background:#0ea5e9; color:#fff; }
+        .filter-pill.active-toxic    { border-color:#ef4444; background:#ef4444; color:#fff; }
+        .filter-pill.active-invasive { border-color:#f59e0b; background:#f59e0b; color:#fff; }
+
+        /* Sort select */
+        .sort-select {
+            border:2px solid #e9ecef; border-radius:12px; padding:8px 14px;
+            font-size:0.85rem; color:#374151; outline:none; background:#fff;
+            cursor:pointer; transition:border-color 0.2s;
+        }
+        .sort-select:focus { border-color:#198754; }
+
+        /* ── Plant cards ── */
         .plant-card {
-            cursor: pointer;
-            transition: transform .18s, box-shadow .18s;
-            border-radius: 12px;
-            overflow: hidden;
+            background:#fff; border-radius:16px; overflow:hidden;
+            box-shadow:0 2px 14px rgba(0,0,0,0.07);
+            cursor:pointer; transition:transform 0.18s, box-shadow 0.18s;
+            height:100%;
         }
-        .plant-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 24px rgba(0,0,0,.12) !important;
-        }
+        .plant-card:hover { transform:translateY(-4px); box-shadow:0 8px 28px rgba(0,0,0,0.12); }
+
         .plant-icon-wrap {
-            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
-            height: 110px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 3rem;
+            height:110px; display:flex; align-items:center; justify-content:center;
+            font-size:3rem;
         }
-        .plant-icon-toxic   { background: linear-gradient(135deg,#ffeaea,#ffcdd2); }
-        .plant-icon-medicin { background: linear-gradient(135deg,#e3f2fd,#bbdefb); }
-        .plant-icon-invasiv { background: linear-gradient(135deg,#fffde7,#fff9c4); }
-        .plant-icon-edible  { background: linear-gradient(135deg,#e8f5e9,#c8e6c9); }
+        .plant-icon-edible   { background:linear-gradient(135deg,#d1fae5,#a7f3d0); }
+        .plant-icon-medicinal{ background:linear-gradient(135deg,#dbeafe,#bfdbfe); }
+        .plant-icon-toxic    { background:linear-gradient(135deg,#fee2e2,#fecaca); }
+        .plant-icon-invasive { background:linear-gradient(135deg,#fef3c7,#fde68a); }
+        .plant-icon-default  { background:linear-gradient(135deg,#f0fdf4,#dcfce7); }
 
-        /* ── Barre de stats ─────────────────────────────────── */
-        .stat-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: .4rem;
-            padding: .45rem 1rem;
-            border-radius: 50px;
-            font-size: .85rem;
-            font-weight: 600;
+        .plant-card-body { padding:0.9rem 1rem 1rem; }
+        .plant-name { font-weight:700; font-size:0.88rem; color:#111827; margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .plant-sci  { font-size:0.75rem; color:#9ca3af; font-style:italic; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:8px; }
+        .plant-badges { display:flex; flex-wrap:wrap; gap:4px; }
+        .badge-pill {
+            font-size:0.68rem; font-weight:600; padding:3px 9px; border-radius:50px;
         }
 
-        /* ── Modal détail ───────────────────────────────────── */
-        .detail-header-band {
-            background: linear-gradient(135deg, #1b5e20, #388e3c);
-            color: #fff;
-            padding: 1.5rem;
-            border-radius: 12px 12px 0 0;
+        /* ── Skeleton ── */
+        .skeleton-card .skel-img {
+            height:110px; background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);
+            background-size:200% 100%; animation:shimmer 1.4s infinite;
         }
-        .detail-section-title {
-            font-size: .7rem;
-            text-transform: uppercase;
-            letter-spacing: .08em;
-            color: #6c757d;
-            font-weight: 700;
-            margin-bottom: .4rem;
+        .skel-line {
+            height:10px; border-radius:6px; margin-bottom:8px;
+            background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);
+            background-size:200% 100%; animation:shimmer 1.4s infinite;
         }
+        @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+        /* ── Pagination ── */
+        .page-btn {
+            width:36px; height:36px; border-radius:10px; border:2px solid #e9ecef;
+            background:#fff; color:#374151; font-size:0.85rem; font-weight:600;
+            cursor:pointer; display:inline-flex; align-items:center; justify-content:center;
+            transition:all 0.2s;
+        }
+        .page-btn:hover    { border-color:#198754; color:#198754; }
+        .page-btn.active   { background:#198754; border-color:#198754; color:#fff; }
+        .page-btn:disabled { opacity:0.4; cursor:not-allowed; }
+
+        /* ── Modal ── */
+        .modal-content { border:none; border-radius:20px; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,0.2); }
+        .modal-header-band {
+            background:linear-gradient(135deg,#0d5c2e,#198754);
+            color:#fff; padding:1.5rem 1.8rem;
+        }
+        .modal-header-band h4 { font-weight:800; font-size:1.2rem; margin-bottom:3px; }
+        .modal-header-band .sci { font-style:italic; opacity:0.75; font-size:0.88rem; }
+        .modal-header-band .local { opacity:0.6; font-size:0.78rem; }
+        .btn-close-white { filter:invert(1); opacity:0.8; }
+
         .info-block {
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 1rem;
+            background:#f8f9fa; border-radius:12px; padding:1rem 1.1rem;
         }
+        .section-label {
+            font-size:0.7rem; text-transform:uppercase; letter-spacing:0.08em;
+            color:#9ca3af; font-weight:700; margin-bottom:0.5rem;
+            display:flex; align-items:center; gap:5px;
+        }
+        .info-row { display:flex; gap:0.5rem; margin-bottom:4px; font-size:0.85rem; }
+        .info-key { color:#9ca3af; min-width:90px; flex-shrink:0; }
+        .info-val { font-weight:600; color:#374151; }
 
-        /* ── Pagination ─────────────────────────────────────── */
-        .page-link { color: #388e3c; }
-        .page-item.active .page-link { background: #388e3c; border-color: #388e3c; }
+        .modal-footer { background:#f8f9fa; border-top:1px solid #f0f0f0; }
+
+        /* No results */
+        .no-results { text-align:center; padding:4rem 1rem; }
+        .no-results i { font-size:3rem; color:#d1d5db; display:block; margin-bottom:1rem; }
+
+        /* anim */
+        .anim  { animation:fadeInUp 0.5s ease both; }
+        .anim2 { animation:fadeInUp 0.5s 0.1s ease both; }
+        .anim3 { animation:fadeInUp 0.5s 0.2s ease both; }
+        @keyframes fadeInUp {
+            from { opacity:0; transform:translateY(16px); }
+            to   { opacity:1; transform:translateY(0); }
+        }
     </style>
 </head>
 <body>
 
-<!-- ======================================================
-     NAVBAR
-     ====================================================== -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-success sticky-top shadow-sm">
+<!-- ── NAVBAR ── -->
+<nav class="navbar navbar-expand-lg navbar-dark sticky-top">
     <div class="container">
-        <a class="navbar-brand fw-bold" href="/dashboard">
-            <i class="bi bi-flower1 me-2"></i>WhatAPlant
+        <a class="navbar-brand text-white" href="/dashboard">
+            <i class="bi bi-flower1 me-2"></i>MikiPlants
         </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMenu">
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
             <span class="navbar-toggler-icon"></span>
         </button>
-        <div class="collapse navbar-collapse" id="navbarMenu">
-            <ul class="navbar-nav me-auto">
-                <li class="nav-item">
-                    <a class="nav-link" href="/dashboard"><i class="bi bi-house me-1"></i>Accueil</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/scan"><i class="bi bi-camera me-1"></i>Analyser</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/historique"><i class="bi bi-clock-history me-1"></i>Historique</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link active" href="/catalogue"><i class="bi bi-book me-1"></i>Catalogue</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/analytics"><i class="bi bi-bar-chart-line me-1"></i>Analytics</a>
-                </li>
+        <div class="collapse navbar-collapse" id="navMenu">
+            <ul class="navbar-nav me-auto gap-1 mt-2 mt-lg-0">
+                <li class="nav-item"><a class="nav-link text-white" href="/dashboard"><i class="bi bi-house me-1"></i>Accueil</a></li>
+                <li class="nav-item"><a class="nav-link text-white" href="/scan"><i class="bi bi-camera me-1"></i>Analyser</a></li>
+                <li class="nav-item"><a class="nav-link text-white" href="/historique"><i class="bi bi-clock-history me-1"></i>Historique</a></li>
+                <li class="nav-item"><a class="nav-link text-white active" href="/catalogue"><i class="bi bi-book me-1"></i>Catalogue</a></li>
+                <li class="nav-item"><a class="nav-link text-white" href="/analytics"><i class="bi bi-bar-chart-line me-1"></i>Analytics</a></li>
             </ul>
-            <div class="d-flex align-items-center gap-2">
-                <span class="text-white-50 small">
-                    <i class="bi bi-person-circle me-1"></i>
-                    <span id="navUsername">…</span>
-                </span>
-                <button class="btn btn-outline-light btn-sm" onclick="logout()">
-                    <i class="bi bi-box-arrow-right me-1"></i>Déconnexion
-                </button>
+            <div class="d-flex align-items-center gap-2 mt-2 mt-lg-0">
+                <span class="text-white-50 small"><i class="bi bi-person-circle me-1"></i><span id="navUsername">…</span></span>
+                <button class="btn-logout btn" onclick="logout()"><i class="bi bi-box-arrow-right me-1"></i>Déconnexion</button>
             </div>
         </div>
     </div>
 </nav>
 
-<!-- ======================================================
-     HERO BANNER
-     ====================================================== -->
-<div class="bg-success bg-opacity-10 border-bottom py-4 mb-4">
-    <div class="container">
-        <div class="row align-items-center g-3">
+<!-- ── HERO ── -->
+<div class="hero">
+    <div class="container position-relative" style="z-index:2;">
+        <div class="row align-items-center g-3 anim">
             <div class="col-md-6">
-                <h2 class="fw-bold mb-1">
-                    <i class="bi bi-book-half text-success me-2"></i>Catalogue des plantes
-                </h2>
-                <p class="text-muted mb-0">
-                    Base de données botanique — principalement <strong>Côte d'Ivoire</strong>
-                    et Afrique de l'Ouest
-                </p>
+                <h1><i class="bi bi-book-half me-2" style="opacity:0.85;"></i>Catalogue des plantes</h1>
+                <p>Base botanique — <strong style="color:#fff;">Côte d'Ivoire</strong> & Afrique de l'Ouest</p>
             </div>
-            <!-- Stats pills -->
             <div class="col-md-6">
                 <div class="d-flex flex-wrap gap-2 justify-content-md-end">
-                    <span class="stat-pill bg-success-subtle text-success">
-                        <i class="bi bi-collection"></i>
-                        <span id="statTotal">…</span> plantes
-                    </span>
-                    <span class="stat-pill bg-success-subtle text-success">
-                        <i class="bi bi-egg-fried"></i>
-                        <span id="statEdible">…</span> comestibles
-                    </span>
-                    <span class="stat-pill bg-info-subtle text-info">
-                        <i class="bi bi-capsule"></i>
-                        <span id="statMedicinal">…</span> médicinales
-                    </span>
-                    <span class="stat-pill bg-danger-subtle text-danger">
-                        <i class="bi bi-exclamation-triangle"></i>
-                        <span id="statToxic">…</span> toxiques
-                    </span>
+                    <span class="stat-chip"><i class="bi bi-collection"></i><span id="statTotal">…</span> plantes</span>
+                    <span class="stat-chip"><i class="bi bi-egg-fried"></i><span id="statEdible">…</span> comestibles</span>
+                    <span class="stat-chip"><i class="bi bi-capsule"></i><span id="statMedicinal">…</span> médicinales</span>
+                    <span class="stat-chip"><i class="bi bi-exclamation-triangle"></i><span id="statToxic">…</span> toxiques</span>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- ======================================================
-     CONTENU PRINCIPAL
-     ====================================================== -->
-<main class="container pb-5">
+<!-- ── MAIN ── -->
+<main class="container pb-5" style="margin-top:-2rem; position:relative; z-index:3;">
 
-    <!-- ── BARRE DE RECHERCHE + FILTRES ─────────────────── -->
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body p-3">
-            <div class="row g-2 align-items-center">
-
-                <!-- Recherche texte -->
-                <div class="col-12 col-md-4">
-                    <div class="input-group">
-                        <span class="input-group-text bg-white border-end-0">
-                            <i class="bi bi-search text-muted"></i>
-                        </span>
-                        <input type="text" id="searchInput"
-                               class="form-control border-start-0"
-                               placeholder="Nom, nom local, famille…"
-                               oninput="onSearch(this.value)">
-                        <button class="btn btn-outline-secondary" id="clearSearch"
-                                onclick="clearSearch()" style="display:none">
-                            <i class="bi bi-x"></i>
-                        </button>
-                    </div>
+    <!-- Filter bar -->
+    <div class="filter-bar anim2">
+        <div class="row g-2 align-items-center">
+            <!-- Search -->
+            <div class="col-12 col-md-4">
+                <div class="search-box">
+                    <i class="bi bi-search"></i>
+                    <input type="text" id="searchInput" placeholder="Nom, famille, nom local…" oninput="onSearch(this.value)">
+                    <button class="clear-btn" id="clearSearch" onclick="clearSearch()" style="display:none;">
+                        <i class="bi bi-x-circle-fill"></i>
+                    </button>
                 </div>
+            </div>
 
-                <!-- Filtres boutons -->
-                <div class="col-12 col-md-auto">
-                    <div class="btn-group flex-wrap" role="group">
-                        <button class="btn btn-outline-secondary btn-sm active"
-                                data-filter="" onclick="setFilter('', this)">
-                            <i class="bi bi-grid me-1"></i>Tous
-                        </button>
-                        <button class="btn btn-outline-success btn-sm"
-                                data-filter="edible" onclick="setFilter('edible', this)">
-                            <i class="bi bi-egg-fried me-1"></i>Comestibles
-                        </button>
-                        <button class="btn btn-outline-info btn-sm"
-                                data-filter="medicinal" onclick="setFilter('medicinal', this)">
-                            <i class="bi bi-capsule me-1"></i>Médicinales
-                        </button>
-                        <button class="btn btn-outline-danger btn-sm"
-                                data-filter="toxic" onclick="setFilter('toxic', this)">
-                            <i class="bi bi-exclamation-triangle me-1"></i>Toxiques
-                        </button>
-                        <button class="btn btn-outline-warning btn-sm"
-                                data-filter="invasive" onclick="setFilter('invasive', this)">
-                            <i class="bi bi-tree me-1"></i>Invasives
-                        </button>
-                    </div>
+            <!-- Filters -->
+            <div class="col-12 col-md-auto">
+                <div class="d-flex flex-wrap gap-2">
+                    <button class="filter-pill active-all" data-filter="" onclick="setFilter('',this)">
+                        <i class="bi bi-grid"></i>Tous
+                    </button>
+                    <button class="filter-pill" data-filter="edible" onclick="setFilter('edible',this)">
+                        <i class="bi bi-egg-fried"></i>Comestibles
+                    </button>
+                    <button class="filter-pill" data-filter="medicinal" onclick="setFilter('medicinal',this)">
+                        <i class="bi bi-capsule"></i>Médicinales
+                    </button>
+                    <button class="filter-pill" data-filter="toxic" onclick="setFilter('toxic',this)">
+                        <i class="bi bi-exclamation-triangle"></i>Toxiques
+                    </button>
+                    <button class="filter-pill" data-filter="invasive" onclick="setFilter('invasive',this)">
+                        <i class="bi bi-tree"></i>Invasives
+                    </button>
                 </div>
+            </div>
 
-                <!-- Tri -->
-                <div class="col-12 col-md-auto ms-md-auto">
-                    <select class="form-select form-select-sm" id="sortSelect"
-                            onchange="setSort(this.value)" style="min-width:160px">
-                        <option value="name">Trier : A → Z</option>
-                        <option value="family">Trier : Famille</option>
-                        <option value="edible">Trier : Comestibles</option>
-                        <option value="medicinal">Trier : Médicinales</option>
-                    </select>
-                </div>
+            <!-- Sort -->
+            <div class="col-12 col-md-auto ms-md-auto">
+                <select class="sort-select" id="sortSelect" onchange="setSort(this.value)">
+                    <option value="name">Trier : A → Z</option>
+                    <option value="family">Trier : Famille</option>
+                    <option value="edible">Trier : Comestibles</option>
+                    <option value="medicinal">Trier : Médicinales</option>
+                </select>
             </div>
         </div>
     </div>
 
-    <!-- Résumé des résultats -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <small class="text-muted">
-            <span id="resultCount">…</span> résultat(s)
-        </small>
+    <!-- Result summary -->
+    <div class="d-flex justify-content-between align-items-center mb-3 px-1 anim3">
+        <small class="text-muted"><span id="resultCount">…</span> résultat(s)</small>
         <small class="text-muted" id="pageInfo"></small>
     </div>
 
-    <!-- ── GRILLE DES PLANTES ─────────────────────────────── -->
+    <!-- Plants grid -->
     <div class="row g-3" id="plantsGrid">
-        <!-- Skeleton loaders -->
-        <div class="col-6 col-md-4 col-lg-3 skeleton-card" id="sk1">
-            <div class="card border-0 shadow-sm placeholder-glow">
-                <div class="placeholder" style="height:110px;border-radius:12px 12px 0 0"></div>
-                <div class="card-body">
-                    <div class="placeholder col-8 mb-2"></div>
-                    <div class="placeholder col-5 mb-2"></div>
-                    <div class="placeholder col-3"></div>
-                </div>
-            </div>
-        </div>
-        <div class="col-6 col-md-4 col-lg-3 skeleton-card" id="sk2">
-            <div class="card border-0 shadow-sm placeholder-glow">
-                <div class="placeholder" style="height:110px;border-radius:12px 12px 0 0"></div>
-                <div class="card-body">
-                    <div class="placeholder col-8 mb-2"></div>
-                    <div class="placeholder col-5 mb-2"></div>
-                    <div class="placeholder col-3"></div>
-                </div>
-            </div>
-        </div>
-        <div class="col-6 col-md-4 col-lg-3 skeleton-card" id="sk3">
-            <div class="card border-0 shadow-sm placeholder-glow">
-                <div class="placeholder" style="height:110px;border-radius:12px 12px 0 0"></div>
-                <div class="card-body">
-                    <div class="placeholder col-8 mb-2"></div>
-                    <div class="placeholder col-5 mb-2"></div>
-                    <div class="placeholder col-3"></div>
-                </div>
-            </div>
-        </div>
-        <div class="col-6 col-md-4 col-lg-3 skeleton-card" id="sk4">
-            <div class="card border-0 shadow-sm placeholder-glow">
-                <div class="placeholder" style="height:110px;border-radius:12px 12px 0 0"></div>
-                <div class="card-body">
-                    <div class="placeholder col-8 mb-2"></div>
-                    <div class="placeholder col-5 mb-2"></div>
-                    <div class="placeholder col-3"></div>
-                </div>
-            </div>
-        </div>
+        <!-- Skeletons -->
+        <div class="col-6 col-md-4 col-lg-3 skeleton-card"><div class="plant-card"><div class="skel-img"></div><div class="plant-card-body"><div class="skel-line" style="width:70%"></div><div class="skel-line" style="width:45%"></div><div class="skel-line" style="width:35%"></div></div></div></div>
+        <div class="col-6 col-md-4 col-lg-3 skeleton-card"><div class="plant-card"><div class="skel-img"></div><div class="plant-card-body"><div class="skel-line" style="width:70%"></div><div class="skel-line" style="width:45%"></div><div class="skel-line" style="width:35%"></div></div></div></div>
+        <div class="col-6 col-md-4 col-lg-3 skeleton-card"><div class="plant-card"><div class="skel-img"></div><div class="plant-card-body"><div class="skel-line" style="width:70%"></div><div class="skel-line" style="width:45%"></div><div class="skel-line" style="width:35%"></div></div></div></div>
+        <div class="col-6 col-md-4 col-lg-3 skeleton-card"><div class="plant-card"><div class="skel-img"></div><div class="plant-card-body"><div class="skel-line" style="width:70%"></div><div class="skel-line" style="width:45%"></div><div class="skel-line" style="width:35%"></div></div></div></div>
     </div>
 
-    <!-- Aucun résultat -->
-    <div id="noResults" class="text-center py-5 d-none">
-        <i class="bi bi-search text-muted" style="font-size:3rem"></i>
-        <h5 class="text-muted mt-3">Aucune plante trouvée</h5>
-        <p class="text-muted">Essayez un autre terme ou supprimez les filtres.</p>
-        <button class="btn btn-outline-success" onclick="resetAll()">
-            <i class="bi bi-arrow-counterclockwise me-1"></i>Réinitialiser
+    <!-- No results -->
+    <div id="noResults" class="no-results d-none">
+        <i class="bi bi-search"></i>
+        <h5 class="text-muted">Aucune plante trouvée</h5>
+        <p class="text-muted small">Essayez un autre terme ou supprimez les filtres.</p>
+        <button class="filter-pill active-all mt-2" onclick="resetAll()">
+            <i class="bi bi-arrow-counterclockwise"></i>Réinitialiser
         </button>
     </div>
 
-    <!-- ── PAGINATION ─────────────────────────────────────── -->
-    <nav class="mt-4" id="paginationNav">
-        <ul class="pagination justify-content-center flex-wrap gap-1" id="pagination"></ul>
-    </nav>
+    <!-- Pagination -->
+    <div class="d-flex justify-content-center gap-2 mt-4 flex-wrap" id="pagination"></div>
 
 </main>
 
-<!-- ======================================================
-     MODAL DÉTAIL PLANTE
-     ====================================================== -->
-<div class="modal fade" id="plantModal" tabindex="-1" aria-labelledby="plantModalLabel">
+<!-- ── MODAL DÉTAIL ── -->
+<div class="modal fade" id="plantModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
-        <div class="modal-content border-0 shadow-lg" style="border-radius:12px;overflow:hidden">
+        <div class="modal-content">
 
-            <!-- Header coloré -->
-            <div class="detail-header-band" id="modalHeader">
+            <div class="modal-header-band" id="modalHeader">
                 <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <h4 class="fw-bold mb-1" id="modalName">—</h4>
-                        <p class="mb-1 opacity-75 fst-italic" id="modalSciName">—</p>
-                        <small class="opacity-60" id="modalLocalName"></small>
+                    <div style="flex:1; min-width:0;">
+                        <h4 id="modalName">—</h4>
+                        <div class="sci" id="modalSciName">—</div>
+                        <div class="local" id="modalLocalName"></div>
                     </div>
-                    <button type="button" class="btn-close btn-close-white ms-2 mt-1"
-                            data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close btn-close-white ms-3 mt-1" data-bs-dismiss="modal"></button>
                 </div>
-                <!-- Badges -->
                 <div class="mt-3 d-flex flex-wrap gap-2" id="modalBadges"></div>
             </div>
 
-            <!-- Corps -->
             <div class="modal-body p-4">
                 <div class="row g-4">
-
-                    <!-- Colonne gauche -->
                     <div class="col-md-6">
-                        <!-- Infos générales -->
                         <div class="mb-4">
-                            <p class="detail-section-title">
-                                <i class="bi bi-info-circle me-1"></i>Informations générales
-                            </p>
+                            <div class="section-label"><i class="bi bi-info-circle"></i>Informations générales</div>
                             <div class="info-block">
-                                <div class="row g-2 small">
-                                    <div class="col-5 text-muted">Famille</div>
-                                    <div class="col-7 fw-semibold" id="modalFamily">—</div>
-                                    <div class="col-5 text-muted">Habitat</div>
-                                    <div class="col-7" id="modalHabitat">—</div>
-                                    <div class="col-5 text-muted">Régions CI</div>
-                                    <div class="col-7" id="modalRegions">—</div>
-                                    <div class="col-5 text-muted">Toxicité</div>
-                                    <div class="col-7" id="modalToxLevel">—</div>
-                                </div>
+                                <div class="info-row"><span class="info-key">Famille</span><span class="info-val" id="modalFamily">—</span></div>
+                                <div class="info-row"><span class="info-key">Habitat</span><span class="info-val" id="modalHabitat">—</span></div>
+                                <div class="info-row"><span class="info-key">Régions CI</span><span class="info-val" id="modalRegions">—</span></div>
+                                <div class="info-row"><span class="info-key">Toxicité</span><span class="info-val" id="modalToxLevel">—</span></div>
                             </div>
                         </div>
-
-                        <!-- Description -->
-                        <div class="mb-4">
-                            <p class="detail-section-title">
-                                <i class="bi bi-file-text me-1"></i>Description
-                            </p>
-                            <p class="small text-muted" id="modalDescription">—</p>
+                        <div>
+                            <div class="section-label"><i class="bi bi-file-text"></i>Description</div>
+                            <p class="small text-muted" id="modalDescription" style="line-height:1.7;">—</p>
                         </div>
                     </div>
-
-                    <!-- Colonne droite -->
                     <div class="col-md-6">
-                        <!-- Usages culinaires -->
                         <div class="mb-4" id="culinaryBlock">
-                            <p class="detail-section-title">
-                                <i class="bi bi-egg-fried me-1"></i>Usages culinaires
-                            </p>
-                            <div class="info-block">
-                                <p class="small mb-0" id="modalCulinary">—</p>
-                            </div>
+                            <div class="section-label"><i class="bi bi-egg-fried"></i>Usages culinaires</div>
+                            <div class="info-block"><p class="small mb-0" id="modalCulinary" style="line-height:1.7;">—</p></div>
                         </div>
-
-                        <!-- Usages médicinaux -->
-                        <div class="mb-4" id="medicinalBlock">
-                            <p class="detail-section-title">
-                                <i class="bi bi-capsule me-1"></i>Usages médicinaux
-                            </p>
-                            <div class="info-block">
-                                <p class="small mb-0" id="modalMedicinal">—</p>
-                            </div>
+                        <div id="medicinalBlock">
+                            <div class="section-label"><i class="bi bi-capsule"></i>Usages médicinaux</div>
+                            <div class="info-block"><p class="small mb-0" id="modalMedicinal" style="line-height:1.7;">—</p></div>
                         </div>
                     </div>
-
                 </div>
             </div>
 
-            <!-- Footer -->
-            <div class="modal-footer border-0 bg-light justify-content-between">
+            <div class="modal-footer justify-content-between">
                 <small class="text-muted fst-italic" id="modalSciNameFooter"></small>
-                <button type="button" class="btn btn-success btn-sm" data-bs-dismiss="modal">
+                <button type="button"
+                    style="background:linear-gradient(135deg,#198754,#20c997);border:none;color:#fff;border-radius:50px;padding:8px 22px;font-weight:600;font-size:0.85rem;"
+                    data-bs-dismiss="modal">
                     <i class="bi bi-check-lg me-1"></i>Fermer
                 </button>
             </div>
@@ -383,10 +361,9 @@
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
 <script src="/static/js/api.js?v=2"></script>
 <script src="/static/js/auth.js?v=2"></script>
 <script src="/static/js/catalogue.js?v=2"></script>
-
 </body>
 </html>

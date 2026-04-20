@@ -3,272 +3,257 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WhatAPlant – Connexion</title>
-
-    <!-- Bootstrap 5 CSS (framework de mise en page) -->
+    <title>MikiPlants – Connexion</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
-    <!-- Notre CSS personnalisé -->
     <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        * { box-sizing:border-box; }
+        body { margin:0; min-height:100vh; background:#f4f6f9; font-family:'Segoe UI',sans-serif; }
+
+        /* Layout */
+        .auth-wrapper { display:flex; min-height:100vh; }
+
+        /* Panel gauche */
+        .left-panel {
+            width:45%; background:linear-gradient(150deg,#0d4f2b 0%,#198754 50%,#20c997 100%);
+            display:flex; flex-direction:column; justify-content:center; align-items:center;
+            padding:3rem 2.5rem; position:relative; overflow:hidden;
+        }
+        .left-panel::before {
+            content:""; position:absolute; top:-80px; right:-80px;
+            width:280px; height:280px; background:rgba(255,255,255,0.07); border-radius:50%;
+        }
+        .left-panel::after {
+            content:""; position:absolute; bottom:-100px; left:-60px;
+            width:240px; height:240px; background:rgba(255,255,255,0.05); border-radius:50%;
+        }
+        .left-content { position:relative; z-index:2; text-align:center; color:#fff; max-width:340px; }
+        .left-logo { font-size:3.5rem; margin-bottom:0.5rem; filter:drop-shadow(0 4px 12px rgba(0,0,0,0.2)); }
+        .left-title { font-size:2rem; font-weight:800; letter-spacing:-0.5px; margin-bottom:0.5rem; }
+        .left-sub { font-size:0.95rem; opacity:0.82; line-height:1.6; margin-bottom:2rem; }
+        .feature-chip {
+            background:rgba(255,255,255,0.15); backdrop-filter:blur(6px);
+            border:1px solid rgba(255,255,255,0.2); border-radius:50px;
+            padding:8px 16px; font-size:0.82rem; color:#fff;
+            display:inline-flex; align-items:center; gap:6px; margin:4px;
+        }
+
+        /* Panel droit */
+        .right-panel {
+            flex:1; display:flex; align-items:center; justify-content:center;
+            padding:2rem 1.5rem; background:#fff;
+        }
+        .form-box { width:100%; max-width:400px; }
+
+        /* Tabs */
+        .auth-tabs { display:flex; background:#f4f6f9; border-radius:12px; padding:4px; margin-bottom:1.8rem; }
+        .auth-tab {
+            flex:1; padding:9px; border:none; background:transparent; border-radius:9px;
+            font-weight:600; font-size:0.88rem; color:#9ca3af; cursor:pointer; transition:all 0.2s;
+        }
+        .auth-tab.active { background:#fff; color:#198754; box-shadow:0 2px 8px rgba(0,0,0,0.08); }
+
+        /* Inputs */
+        .input-field {
+            width:100%; padding:12px 16px; border:2px solid #e9ecef; border-radius:12px;
+            font-size:0.92rem; outline:none; transition:border-color 0.2s; background:#fafafa;
+        }
+        .input-field:focus { border-color:#198754; background:#fff; }
+        .input-group-custom { position:relative; }
+        .input-group-custom .input-field { padding-right:44px; }
+        .eye-btn { position:absolute; right:12px; top:50%; transform:translateY(-50%); background:none; border:none; color:#9ca3af; cursor:pointer; font-size:1rem; padding:4px; }
+
+        /* Buttons */
+        .btn-primary-custom {
+            width:100%; padding:13px; border:none; border-radius:12px;
+            background:linear-gradient(135deg,#198754,#20c997); color:#fff;
+            font-weight:700; font-size:0.95rem; cursor:pointer; transition:all 0.2s;
+            display:flex; align-items:center; justify-content:center; gap:8px;
+        }
+        .btn-primary-custom:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(25,135,84,0.35); }
+        .btn-primary-custom:disabled { opacity:0.7; transform:none; }
+
+        .btn-google {
+            width:100%; padding:12px; border:2px solid #e9ecef; border-radius:12px;
+            background:#fff; font-weight:600; font-size:0.9rem; cursor:pointer;
+            transition:all 0.2s; display:flex; align-items:center; justify-content:center; gap:10px;
+            text-decoration:none; color:#374151;
+        }
+        .btn-google:hover { border-color:#dadce0; box-shadow:0 2px 12px rgba(0,0,0,0.1); color:#374151; }
+
+        /* Divider */
+        .divider { display:flex; align-items:center; gap:12px; margin:1.2rem 0; color:#9ca3af; font-size:0.82rem; }
+        .divider::before, .divider::after { content:""; flex:1; height:1px; background:#e9ecef; }
+
+        /* Alert */
+        .alert-custom { padding:10px 14px; border-radius:10px; font-size:0.85rem; margin-bottom:1rem; display:none; }
+        .alert-danger-custom  { background:#fee2e2; color:#dc2626; border-left:3px solid #dc2626; }
+        .alert-success-custom { background:#d1fae5; color:#059669; border-left:3px solid #059669; }
+        .alert-info-custom    { background:#dbeafe; color:#2563eb; border-left:3px solid #2563eb; }
+
+        /* Label */
+        .field-label { font-size:0.82rem; font-weight:600; color:#374151; margin-bottom:6px; display:block; }
+
+        /* Mobile */
+        @media (max-width: 768px) {
+            .left-panel { display:none; }
+            .right-panel { background:linear-gradient(160deg,#0d4f2b,#1a7a42 40%,#25a55a); padding:2rem 1.2rem; align-items:flex-start; padding-top:3rem; }
+            .form-box { background:#fff; border-radius:20px; padding:2rem 1.5rem; box-shadow:0 8px 32px rgba(0,0,0,0.2); }
+        }
+    </style>
 </head>
-<body class="auth-page">
+<body>
+<div class="auth-wrapper">
 
-<!-- ======================================================
-     PAGE D'ACCUEIL : Connexion & Inscription
-     Structure : colonne gauche (branding) + colonne droite (formulaire)
-     ====================================================== -->
-
-<div class="container-fluid min-vh-100 d-flex">
-    <div class="row w-100 g-0">
-
-        <!-- ---- Colonne gauche : Présentation de l'app ---- -->
-        <div class="col-lg-6 d-none d-lg-flex auth-left-panel">
-            <div class="text-center text-white p-5">
-                <!-- Logo -->
-                <div class="auth-logo mb-4">
-                    <i class="bi bi-flower1" style="font-size: 4rem;"></i>
-                </div>
-                <h1 class="display-5 fw-bold mb-3">WhatAPlant</h1>
-                <p class="lead mb-5">
-                    Identifiez n'importe quelle plante en une photo.<br>
-                    Santé, comestibilité, toxicité et plus encore.
-                </p>
-
-                <!-- Fonctionnalités clés -->
-                <div class="row g-3 text-start">
-                    <div class="col-6">
-                        <div class="feature-card">
-                            <i class="bi bi-shield-check text-success me-2"></i>
-                            <span>Santé de la plante</span>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="feature-card">
-                            <i class="bi bi-egg-fried text-warning me-2"></i>
-                            <span>Comestibilité</span>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="feature-card">
-                            <i class="bi bi-capsule text-info me-2"></i>
-                            <span>Propriétés médicinales</span>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="feature-card">
-                            <i class="bi bi-exclamation-triangle text-danger me-2"></i>
-                            <span>Toxicité & sécurité</span>
-                        </div>
-                    </div>
-                </div>
+    <!-- PANEL GAUCHE -->
+    <div class="left-panel">
+        <div class="left-content">
+            <div class="left-logo"><i class="bi bi-flower1"></i></div>
+            <div class="left-title">MikiPlants</div>
+            <p class="left-sub">Identifiez n'importe quelle plante en une photo.<br>Santé, comestibilité, toxicité et bien plus.</p>
+            <div class="mb-3">
+                <span class="feature-chip"><i class="bi bi-shield-check"></i> Santé de la plante</span>
+                <span class="feature-chip"><i class="bi bi-egg-fried"></i> Comestibilité</span>
+                <span class="feature-chip"><i class="bi bi-capsule"></i> Propriétés médicinales</span>
+                <span class="feature-chip"><i class="bi bi-exclamation-triangle"></i> Toxicité & sécurité</span>
+                <span class="feature-chip"><i class="bi bi-geo-alt"></i> Flore d'Afrique de l'Ouest</span>
+            </div>
+            <div style="background:rgba(255,255,255,0.12);border-radius:14px;padding:14px 18px;font-size:0.82rem;opacity:0.9;text-align:left;">
+                <i class="bi bi-stars me-2"></i>Propulsé par PlantNet + Groq IA — Spécialisé Côte d'Ivoire
             </div>
         </div>
-
-        <!-- ---- Colonne droite : Formulaires ---- -->
-        <div class="col-lg-6 d-flex align-items-center justify-content-center auth-right-panel">
-            <div class="auth-form-container">
-
-                <!-- Logo mobile (visible seulement sur petit écran) -->
-                <div class="text-center d-lg-none mb-4">
-                    <i class="bi bi-flower1 text-success" style="font-size: 2.5rem;"></i>
-                    <h2 class="fw-bold text-dark">WhatAPlant</h2>
-                </div>
-
-                <!-- Onglets Connexion / Inscription -->
-                <ul class="nav nav-pills nav-fill mb-4" id="authTabs">
-                    <li class="nav-item">
-                        <button class="nav-link active" id="loginTab"
-                                onclick="showTab('login')">
-                            <i class="bi bi-box-arrow-in-right me-1"></i>
-                            Connexion
-                        </button>
-                    </li>
-                    <li class="nav-item">
-                        <button class="nav-link" id="registerTab"
-                                onclick="showTab('register')">
-                            <i class="bi bi-person-plus me-1"></i>
-                            Inscription
-                        </button>
-                    </li>
-                </ul>
-
-                <!-- ---- Formulaire de CONNEXION ---- -->
-                <div id="loginForm">
-                    <h4 class="fw-bold mb-4">Bon retour !</h4>
-
-                    <!-- Zone d'alerte pour les erreurs -->
-                    <div id="loginAlert" class="alert d-none" role="alert"></div>
-
-                    <form onsubmit="handleLogin(event)">
-                        <!-- Email -->
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">
-                                <i class="bi bi-envelope me-1"></i>Email
-                            </label>
-                            <input type="email" class="form-control form-control-lg"
-                                   id="loginEmail" placeholder="votre@email.com" required>
-                        </div>
-
-                        <!-- Mot de passe -->
-                        <div class="mb-4">
-                            <label class="form-label fw-semibold">
-                                <i class="bi bi-lock me-1"></i>Mot de passe
-                            </label>
-                            <div class="input-group">
-                                <input type="password" class="form-control form-control-lg"
-                                       id="loginPassword" placeholder="••••••••" required>
-                                <!-- Bouton pour afficher/masquer le mot de passe -->
-                                <button class="btn btn-outline-secondary" type="button"
-                                        onclick="togglePassword('loginPassword')">
-                                    <i class="bi bi-eye" id="loginPasswordEye"></i>
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Bouton de connexion -->
-                        <button type="submit" class="btn btn-success btn-lg w-100"
-                                id="loginBtn">
-                            <span id="loginBtnText">
-                                <i class="bi bi-box-arrow-in-right me-2"></i>Se connecter
-                            </span>
-                            <!-- Spinner affiché pendant le chargement -->
-                            <span id="loginSpinner" class="d-none">
-                                <span class="spinner-border spinner-border-sm me-2"></span>
-                                Connexion en cours...
-                            </span>
-                        </button>
-
-                        <!-- Lien mot de passe oublié -->
-                        <div class="text-center mt-3">
-                            <a href="#" class="text-muted small"
-                               onclick="showTab('forgot'); return false;">
-                                <i class="bi bi-question-circle me-1"></i>Mot de passe oublié ?
-                            </a>
-                        </div>
-                    </form>
-
-                    <!-- Séparateur -->
-                    <div class="d-flex align-items-center my-3 gap-2">
-                        <hr class="flex-grow-1 m-0">
-                        <span class="text-muted small px-2">ou</span>
-                        <hr class="flex-grow-1 m-0">
-                    </div>
-
-                    <!-- Bouton Google -->
-                    <a href="/api/auth/google/login"
-                       class="btn btn-outline-secondary btn-lg w-100 d-flex align-items-center justify-content-center gap-2">
-                        <img src="https://www.svgrepo.com/show/475656/google-color.svg"
-                             alt="Google" width="22" height="22">
-                        Se connecter avec Google
-                    </a>
-
-                </div>
-
-                <!-- ---- Formulaire MOT DE PASSE OUBLIÉ ---- -->
-                <div id="forgotForm" class="d-none">
-                    <h4 class="fw-bold mb-1">Mot de passe oublié ?</h4>
-                    <p class="text-muted small mb-4">
-                        Entrez votre email et nous vous enverrons un lien pour réinitialiser votre mot de passe.
-                    </p>
-
-                    <div id="forgotAlert" class="alert d-none" role="alert"></div>
-
-                    <form onsubmit="handleForgotPassword(event)">
-                        <div class="mb-4">
-                            <label class="form-label fw-semibold">
-                                <i class="bi bi-envelope me-1"></i>Email
-                            </label>
-                            <input type="email" class="form-control form-control-lg"
-                                   id="forgotEmail" placeholder="votre@email.com" required>
-                        </div>
-
-                        <button type="submit" class="btn btn-warning btn-lg w-100 text-dark"
-                                id="forgotBtn">
-                            <span id="forgotBtnText">
-                                <i class="bi bi-send me-2"></i>Envoyer le lien
-                            </span>
-                            <span id="forgotSpinner" class="d-none">
-                                <span class="spinner-border spinner-border-sm me-2"></span>
-                                Envoi en cours...
-                            </span>
-                        </button>
-
-                        <div class="text-center mt-3">
-                            <a href="#" class="text-muted small"
-                               onclick="showTab('login'); return false;">
-                                <i class="bi bi-arrow-left me-1"></i>Retour à la connexion
-                            </a>
-                        </div>
-                    </form>
-                </div>
-
-                <!-- ---- Formulaire d'INSCRIPTION ---- -->
-                <div id="registerForm" class="d-none">
-                    <h4 class="fw-bold mb-4">Créer un compte</h4>
-
-                    <div id="registerAlert" class="alert d-none" role="alert"></div>
-
-                    <form onsubmit="handleRegister(event)">
-                        <!-- Nom d'utilisateur -->
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">
-                                <i class="bi bi-person me-1"></i>Nom d'utilisateur
-                            </label>
-                            <input type="text" class="form-control form-control-lg"
-                                   id="registerUsername" placeholder="jean_dupont" required>
-                        </div>
-
-                        <!-- Email -->
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">
-                                <i class="bi bi-envelope me-1"></i>Email
-                            </label>
-                            <input type="email" class="form-control form-control-lg"
-                                   id="registerEmail" placeholder="votre@email.com" required>
-                        </div>
-
-                        <!-- Mot de passe -->
-                        <div class="mb-4">
-                            <label class="form-label fw-semibold">
-                                <i class="bi bi-lock me-1"></i>Mot de passe
-                            </label>
-                            <div class="input-group">
-                                <input type="password" class="form-control form-control-lg"
-                                       id="registerPassword"
-                                       placeholder="Minimum 6 caractères" required minlength="6">
-                                <button class="btn btn-outline-secondary" type="button"
-                                        onclick="togglePassword('registerPassword')">
-                                    <i class="bi bi-eye" id="registerPasswordEye"></i>
-                                </button>
-                            </div>
-                        </div>
-
-                        <button type="submit" class="btn btn-success btn-lg w-100"
-                                id="registerBtn">
-                            <span id="registerBtnText">
-                                <i class="bi bi-person-plus me-2"></i>Créer mon compte
-                            </span>
-                            <span id="registerSpinner" class="d-none">
-                                <span class="spinner-border spinner-border-sm me-2"></span>
-                                Création en cours...
-                            </span>
-                        </button>
-                    </form>
-                </div>
-
-            </div>
-        </div>
-
     </div>
+
+    <!-- PANEL DROIT -->
+    <div class="right-panel">
+        <div class="form-box">
+
+            <!-- Logo mobile -->
+            <div class="text-center d-md-none mb-4">
+                <i class="bi bi-flower1 text-success" style="font-size:2.2rem;"></i>
+                <div class="fw-bold fs-5 text-dark">MikiPlants</div>
+            </div>
+
+            <!-- TABS -->
+            <div class="auth-tabs" id="authTabs">
+                <button class="auth-tab active" id="loginTab" onclick="showTab('login')">
+                    <i class="bi bi-box-arrow-in-right me-1"></i>Connexion
+                </button>
+                <button class="auth-tab" id="registerTab" onclick="showTab('register')">
+                    <i class="bi bi-person-plus me-1"></i>Inscription
+                </button>
+            </div>
+
+            <!-- ── CONNEXION ── -->
+            <div id="loginForm">
+                <h5 class="fw-bold mb-1">Bon retour ! 👋</h5>
+                <p class="text-muted small mb-4">Connectez-vous à votre compte</p>
+
+                <div id="loginAlert" class="alert-custom alert-danger-custom" role="alert"></div>
+
+                <form onsubmit="handleLogin(event)">
+                    <div class="mb-3">
+                        <label class="field-label"><i class="bi bi-envelope me-1 text-success"></i>Email</label>
+                        <input type="email" class="input-field" id="loginEmail" placeholder="votre@email.com" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="field-label"><i class="bi bi-lock me-1 text-success"></i>Mot de passe</label>
+                        <div class="input-group-custom">
+                            <input type="password" class="input-field" id="loginPassword" placeholder="••••••••" required>
+                            <button class="eye-btn" type="button" onclick="togglePassword('loginPassword')">
+                                <i class="bi bi-eye" id="loginPasswordEye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-primary-custom mb-3" id="loginBtn">
+                        <span id="loginBtnText"><i class="bi bi-box-arrow-in-right"></i>Se connecter</span>
+                        <span id="loginSpinner" class="d-none"><span class="spinner-border spinner-border-sm"></span>Connexion...</span>
+                    </button>
+                    <div class="text-center">
+                        <a href="#" class="text-muted small" style="text-decoration:none;" onclick="showTab('forgot'); return false;">
+                            <i class="bi bi-question-circle me-1"></i>Mot de passe oublié ?
+                        </a>
+                    </div>
+                </form>
+
+                <div class="divider">ou</div>
+
+                <a href="/api/auth/google/login" class="btn-google">
+                    <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" width="20" height="20">
+                    Continuer avec Google
+                </a>
+            </div>
+
+            <!-- ── MOT DE PASSE OUBLIÉ ── -->
+            <div id="forgotForm" class="d-none">
+                <h5 class="fw-bold mb-1">Mot de passe oublié 🔑</h5>
+                <p class="text-muted small mb-4">Entrez votre email pour recevoir un lien de réinitialisation.</p>
+
+                <div id="forgotAlert" class="alert-custom" role="alert"></div>
+
+                <form onsubmit="handleForgotPassword(event)">
+                    <div class="mb-4">
+                        <label class="field-label"><i class="bi bi-envelope me-1 text-success"></i>Email</label>
+                        <input type="email" class="input-field" id="forgotEmail" placeholder="votre@email.com" required>
+                    </div>
+                    <button type="submit" class="btn-primary-custom mb-3" id="forgotBtn">
+                        <span id="forgotBtnText"><i class="bi bi-send"></i>Envoyer le lien</span>
+                        <span id="forgotSpinner" class="d-none"><span class="spinner-border spinner-border-sm"></span>Envoi...</span>
+                    </button>
+                    <div class="text-center">
+                        <a href="#" class="text-muted small" style="text-decoration:none;" onclick="showTab('login'); return false;">
+                            <i class="bi bi-arrow-left me-1"></i>Retour à la connexion
+                        </a>
+                    </div>
+                </form>
+            </div>
+
+            <!-- ── INSCRIPTION ── -->
+            <div id="registerForm" class="d-none">
+                <h5 class="fw-bold mb-1">Créer un compte 🌿</h5>
+                <p class="text-muted small mb-4">Rejoignez la communauté MikiPlants</p>
+
+                <div id="registerAlert" class="alert-custom alert-danger-custom" role="alert"></div>
+
+                <form onsubmit="handleRegister(event)">
+                    <div class="mb-3">
+                        <label class="field-label"><i class="bi bi-person me-1 text-success"></i>Nom d'utilisateur</label>
+                        <input type="text" class="input-field" id="registerUsername" placeholder="jean_dupont" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="field-label"><i class="bi bi-envelope me-1 text-success"></i>Email</label>
+                        <input type="email" class="input-field" id="registerEmail" placeholder="votre@email.com" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="field-label"><i class="bi bi-lock me-1 text-success"></i>Mot de passe</label>
+                        <div class="input-group-custom">
+                            <input type="password" class="input-field" id="registerPassword" placeholder="Minimum 6 caractères" required minlength="6">
+                            <button class="eye-btn" type="button" onclick="togglePassword('registerPassword')">
+                                <i class="bi bi-eye" id="registerPasswordEye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-primary-custom mb-3" id="registerBtn">
+                        <span id="registerBtnText"><i class="bi bi-person-plus"></i>Créer mon compte</span>
+                        <span id="registerSpinner" class="d-none"><span class="spinner-border spinner-border-sm"></span>Création...</span>
+                    </button>
+                </form>
+
+                <div class="divider">ou</div>
+                <a href="/api/auth/google/login" class="btn-google">
+                    <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" width="20" height="20">
+                    Continuer avec Google
+                </a>
+            </div>
+
+        </div>
+    </div>
+
 </div>
 
-<!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<!-- Fonctions utilitaires API -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
 <script src="/static/js/api.js?v=2"></script>
-<!-- Logique d'authentification -->
-<script src="/static/js/auth.js?v=2"></script>
-
+<script src="/static/js/auth.js?v=3"></script>
 </body>
 </html>
