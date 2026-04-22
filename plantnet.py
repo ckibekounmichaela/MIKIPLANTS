@@ -164,7 +164,7 @@ def _default_result(success: bool, error: str = "") -> dict:
         "plant_name": "Plante non identifiée",
         "scientific_name": "Espèce inconnue",
         "family": "Famille inconnue",
-        "confidence_score": 59.99,
+        "confidence_score": 0.0,
         "success": success,
         "error": error
     }
