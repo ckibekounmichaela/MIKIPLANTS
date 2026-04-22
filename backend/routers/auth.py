@@ -25,9 +25,7 @@ from services import email_service
 
 load_dotenv()
 
-# -------------------------------------------------------
 # Configuration JWT
-# -------------------------------------------------------
 SECRET_KEY = os.getenv("SECRET_KEY", "cle_secrete_par_defaut_changer_en_prod")
 ALGORITHM  = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 1440))
@@ -47,20 +45,17 @@ def get_google_redirect_uri(request: Request) -> str:
     Sinon : construite depuis APP_BASE_URL
     Sinon : construite depuis la requête en cours.
     """
-    # 1. URI explicite dans .env → priorité absolue
     explicit = os.getenv("GOOGLE_REDIRECT_URI", "").strip()
     if explicit:
         logger.info(f"[Google OAuth] redirect_uri (depuis .env) : {explicit}")
         return explicit
 
-    # 2. APP_BASE_URL dans .env
     base_url = os.getenv("APP_BASE_URL", "").strip().rstrip("/")
     if base_url:
         uri = f"{base_url}/api/auth/google/callback"
         logger.info(f"[Google OAuth] redirect_uri (depuis APP_BASE_URL) : {uri}")
         return uri
 
-    # 3. Fallback : depuis la requête HTTP
     host = request.url.hostname or "localhost"
     port = request.url.port
     if host in ("localhost", "127.0.0.1"):
@@ -76,9 +71,6 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 router = APIRouter()
 
 
-# ============================================================
-# FONCTIONS UTILITAIRES
-# ============================================================
 
 def hash_password(password: str) -> str:
     """
@@ -161,9 +153,6 @@ def _send_email_async(func, *args):
     thread.start()
 
 
-# ============================================================
-# ENDPOINTS
-# ============================================================
 
 @router.post("/register", response_model=UserResponse, status_code=201)
 def register(user_data: UserCreate, db: Session = Depends(get_db)):
@@ -195,7 +184,7 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
         username                    = user_data.username,
         email                       = user_data.email,
         password_hash               = hash_password(user_data.password),
-        is_verified                 = False,
+        is_verified                 = True,
         verification_token          = verification_token,
         verification_token_expires  = datetime.utcnow() + timedelta(hours=24)
     )
