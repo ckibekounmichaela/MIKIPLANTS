@@ -241,11 +241,12 @@ def login(user_data: UserLogin, request: Request, db: Session = Depends(get_db))
         )
 
     # Vérifier que le compte est activé (email confirmé)
-    if not user.is_verified:
-        raise HTTPException(
-            status_code=401,
-            detail="Compte non vérifié. Consultez vos emails et cliquez sur le lien de vérification."
-        )
+    # Temporairement désactivé — réactiver après configuration SMTP
+    # if not user.is_verified:
+    #     raise HTTPException(
+    #         status_code=401,
+    #         detail="Compte non vérifié. Consultez vos emails et cliquez sur le lien de vérification."
+    #     )
 
     # Créer le token JWT (tv = token_version pour invalidation future)
     access_token = create_access_token(
