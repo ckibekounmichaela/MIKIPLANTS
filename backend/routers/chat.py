@@ -1,14 +1,3 @@
-# ============================================================
-# FICHIER : backend/routers/chat.py
-# RÔLE    : Endpoints pour l'agent conversationnel IA
-#
-# CONCEPT POUR DÉBUTANT :
-#   L'agent conversationnel permet à l'utilisateur de poser
-#   des questions sur la plante qu'il vient d'analyser.
-#   L'IA (Groq) connaît le contexte du scan et peut répondre
-#   de manière précise et personnalisée.
-# ============================================================
-
 import json
 from typing import List
 
@@ -62,7 +51,6 @@ async def send_message(
             detail="Scan non trouvé ou accès non autorisé."
         )
 
-    # Étape 2 : Récupérer l'historique des messages
     # On limite à 10 messages pour ne pas surcharger l'IA
     previous_messages = db.query(ChatMessage).filter(
         ChatMessage.scan_id == scan_id
@@ -74,7 +62,6 @@ async def send_message(
         for msg in previous_messages
     ]
 
-    # Étape 3 : Construire le contexte de la plante
     plant_context = {
         "plant_name": scan.plant_name,
         "scientific_name": scan.plant_scientific_name,
@@ -83,9 +70,6 @@ async def send_message(
         "report": json.loads(scan.report_json) if scan.report_json else {}
     }
 
-    # Étape 3.5 : Enrichir avec les données de notre catalogue local
-    # L'agent conversationnel connaît ainsi les usages locaux ivoiriens,
-    # les noms en dioula/baoulé, les régions de présence en CI, etc.
     local_data    = find_local_plant(db, {
         "plant_name":     scan.plant_name,
         "scientific_name": scan.plant_scientific_name,
@@ -93,7 +77,6 @@ async def send_message(
     })
     local_context = build_local_context_block(local_data) if local_data else ""
 
-    # Étape 4 : Obtenir la réponse de l'IA (avec contexte local enrichi)
     ai_response = await groq_ai.chat_with_agent(
         plant_context=plant_context,
         conversation_history=conversation_history,
@@ -101,7 +84,6 @@ async def send_message(
         local_context=local_context
     )
 
-    # Étape 5 : Sauvegarder le message de l'utilisateur
     user_message_record = ChatMessage(
         scan_id=scan_id,
         role="user",
@@ -109,7 +91,6 @@ async def send_message(
     )
     db.add(user_message_record)
 
-    # Sauvegarder la réponse de l'IA
     ai_message_record = ChatMessage(
         scan_id=scan_id,
         role="assistant",
@@ -119,7 +100,6 @@ async def send_message(
     db.commit()
     db.refresh(ai_message_record)
 
-    # Étape 6 : Retourner la réponse
     return ChatResponse(
         response=ai_response,
         message_id=ai_message_record.id

@@ -134,7 +134,6 @@ async def identify_plant(image_bytes: bytes, image_filename: str) -> dict:
         # Famille botanique
         family = species.get("family", {}).get("scientificNameWithoutAuthor", "Inconnue")
 
-        # Score de confiance (entre 0 et 1)
         confidence_score = round(best_result.get("score", 0.0), 4)
 
         return {

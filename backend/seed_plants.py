@@ -1,9 +1,3 @@
-# ============================================================
-# SCRIPT : seed_plants.py
-# RÔLE   : Insérer les plantes de Côte d'Ivoire en base
-# USAGE  : python seed_plants.py
-# ============================================================
-
 import os, sys
 sys.path.insert(0, os.path.dirname(__file__))
 
@@ -16,7 +10,6 @@ from models import Plant
 Base.metadata.create_all(bind=engine)
 
 PLANTS = [
-    # ── PLANTES ALIMENTAIRES ──────────────────────────────────
     dict(
         name="Manioc", local_name="Attiéké (Dida)", scientific_name="Manihot esculenta",
         family="Euphorbiaceae",
@@ -106,7 +99,6 @@ PLANTS = [
         medicinal_uses="Analgésique local, stimulant digestif, antimicrobien, traitement des douleurs articulaires."
     ),
 
-    # ── PLANTES MÉDICINALES ───────────────────────────────────
     dict(
         name="Neem", local_name="Nim / Lilas des Indes", scientific_name="Azadirachta indica",
         family="Meliaceae",
@@ -207,7 +199,6 @@ PLANTS = [
         medicinal_uses="Huile de ricin (usage externe) : laxatif puissant, soin des cheveux et de la peau. ATTENTION : graines mortelles."
     ),
 
-    # ── ARBRES EMBLÉMATIQUES ──────────────────────────────────
     dict(
         name="Karité", local_name="Sii (Dioula)", scientific_name="Vitellaria paradoxa",
         family="Sapotaceae",
@@ -275,7 +266,6 @@ PLANTS = [
         medicinal_uses="Gomme arabique : protecteur des muqueuses digestives, traitement de la toux."
     ),
 
-    # ── PLANTES TOXIQUES / DANGEREUSES ───────────────────────
     dict(
         name="Datura", local_name="Herbe du diable / Pomme épineuse", scientific_name="Datura stramonium",
         family="Solanaceae",
@@ -310,7 +300,6 @@ PLANTS = [
         medicinal_uses="Latex cicatrisant, huile purifiée laxative puissante. Usage traditionnel contre les parasites cutanés."
     ),
 
-    # ── PLANTES AQUATIQUES / ENVAHISSANTES ───────────────────
     dict(
         name="Jacinthe d'eau", local_name="Herbe flottante", scientific_name="Eichhornia crassipes",
         family="Pontederiaceae",
@@ -334,7 +323,6 @@ PLANTS = [
         medicinal_uses="Utilisée en médecine traditionnelle contre les affections cutanées et les hémorroïdes."
     ),
 
-    # ── PLANTES AROMATIQUES ET ÉPICES ────────────────────────
     dict(
         name="Poivre de Guinée", local_name="Poivre selim / Kani", scientific_name="Xylopia aethiopica",
         family="Annonaceae",
@@ -369,7 +357,6 @@ PLANTS = [
         medicinal_uses="Laxatif doux, traitement de la fièvre, riche en acide tartrique et vitamine C."
     ),
 
-    # ── PLANTES DE RENTE ──────────────────────────────────────
     dict(
         name="Cacaoyer", local_name="Cacao", scientific_name="Theobroma cacao",
         family="Malvaceae",
@@ -404,7 +391,6 @@ PLANTS = [
         medicinal_uses="Peu d'usages médicinaux. Latex peut provoquer des allergies."
     ),
 
-    # ── PLANTES ORNEMENTALES / COMMUNES ──────────────────────
     dict(
         name="Bougainvillée", local_name="Bougainvillier", scientific_name="Bougainvillea spectabilis",
         family="Nyctaginaceae",

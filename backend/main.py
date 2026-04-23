@@ -3,12 +3,8 @@ import time
 import collections
 from dotenv import load_dotenv
 
-# load_dotenv() DOIT être appelé EN PREMIER, avant tous les autres imports
-# car les modules comme scan.py lisent os.getenv() au moment de leur import
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '.env'))
 
-# Chemins absolus basés sur l'emplacement de ce fichier (backend/)
-# Fonctionne quel que soit le répertoire depuis lequel uvicorn est lancé
 BASE_DIR     = os.path.dirname(os.path.abspath(__file__))   # .../backend
 ROOT_DIR     = os.path.dirname(BASE_DIR)                     # .../MIKIPLANTS
 FRONTEND_DIR = os.path.join(ROOT_DIR, "frontend")
@@ -24,16 +20,11 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Importer la configuration de la base de données
 from database import engine, Base
 
-# Importer tous les routers (groupes d'endpoints)
 from routers import auth, scan, chat, analytics, plants
 
-# -------------------------------------------------------
-# Créer toutes les tables dans la base de données au démarrage
-# Si les tables existent déjà, elles ne sont pas recréées
-# -------------------------------------------------------
+
 try:
     Base.metadata.create_all(bind=engine)
     logger.info("Tables créées / vérifiées avec succès.")
@@ -41,7 +32,6 @@ except Exception as e:
     logger.error(f"Erreur lors de la création des tables : {e}")
     logger.warning("L'app démarre quand même — vérifie DATABASE_URL et la connexion SSL.")
 
-# Migration : ajouter les colonnes manquantes si elles n'existent pas
 from sqlalchemy import text, inspect
 try:
     with engine.connect() as conn:
@@ -55,7 +45,6 @@ try:
             logger.info("Migration : colonne google_id ajoutée.")
 
         if "password_hash" in columns:
-            # Rendre password_hash nullable pour les comptes Google
             is_postgres = str(engine.url).startswith("postgresql")
             if is_postgres:
                 conn.execute(text("ALTER TABLE users ALTER COLUMN password_hash DROP NOT NULL"))
@@ -79,7 +68,6 @@ try:
 except Exception as e:
     logger.warning(f"Migration optionnelle échouée (peut être déjà appliquée) : {e}")
 
-# Migration : index de performance
 try:
     with engine.connect() as conn:
         is_pg = str(engine.url).startswith("postgresql")
@@ -93,9 +81,8 @@ try:
                 conn.execute(text(stmt))
                 conn.commit()
             except Exception:
-                pass  # index déjà existant
+                pass  
 
-        # Colonne soft-delete sur scans
         scan_cols = [c["name"] for c in inspector.get_columns("scans")]
         if "deleted_at" not in scan_cols:
             is_pg = str(engine.url).startswith("postgresql")
@@ -107,16 +94,9 @@ try:
 except Exception as e:
     logger.warning(f"Migration optionnelle échouée (peut être déjà appliquée) : {e}")
 
-# -------------------------------------------------------
-# Créer le dossier "uploads" si il n'existe pas
-# C'est là qu'on stockera les images uploadées
-# -------------------------------------------------------
+
 os.makedirs(UPLOADS_DIR, exist_ok=True)
 
-# -------------------------------------------------------
-# Initialiser l'application FastAPI
-# title et description apparaissent dans la doc auto (/docs)
-# -------------------------------------------------------
 app = FastAPI(
     title="MikiPlants API",
     description="""
@@ -133,14 +113,9 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# -------------------------------------------------------
-# Rate limiting simple en mémoire
-# Protège les endpoints d'auth contre le brute-force et le spam
-# Limite : 10 requêtes par minute par IP sur /api/auth/*
-# -------------------------------------------------------
+
 _rate_limit_store: dict = collections.defaultdict(list)
 
-# Règles : (max_requêtes, fenêtre_secondes)
 RATE_RULES = {
     "/api/auth/":         (10, 60),   # 10 req/min — anti brute-force
     "/api/scan/analyze":  (5,  60),   # 5 analyses/min — protège quota PlantNet+Groq
@@ -168,9 +143,7 @@ async def rate_limit_middleware(request: Request, call_next):
     return await call_next(request)
 
 
-# -------------------------------------------------------
-# Handler d'erreurs de validation (422) — log les détails
-# -------------------------------------------------------
+
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     body = await request.body()
@@ -180,11 +153,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     return JSONResponse(status_code=422, content={"detail": exc.errors()})
 
 
-# -------------------------------------------------------
-# Configuration CORS (Cross-Origin Resource Sharing)
-# En développement : toutes les origines sont autorisées.
-# En production    : seul le domaine APP_BASE_URL est autorisé.
-# -------------------------------------------------------
+
 _app_base_url = os.getenv("APP_BASE_URL", "").rstrip("/")
 _cors_origins  = [_app_base_url] if _app_base_url else ["*"]
 
@@ -196,13 +165,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# -------------------------------------------------------
-# Inclure les routers avec leurs préfixes d'URL
-#
-# Exemple avec prefix="/api/auth" :
-#   auth.py définit POST "/login"
-#   → l'URL finale sera POST "/api/auth/login"
-# -------------------------------------------------------
+
 app.include_router(
     auth.router,
     prefix="/api/auth",
@@ -234,23 +197,13 @@ app.include_router(
 )
 
 
-# -------------------------------------------------------
-# Servir les fichiers statiques (frontend HTML/CSS/JS)
-# StaticFiles permet à FastAPI de servir des fichiers
-# comme le ferait un serveur web classique (Apache, Nginx)
-# -------------------------------------------------------
 app.mount(
     "/static",
     StaticFiles(directory=FRONTEND_DIR),
     name="static"
 )
 
-# /uploads/ est servi via un endpoint protégé (voir ci-dessous)
-# Ne pas monter StaticFiles ici — les photos sont privées
 
-# -------------------------------------------------------
-# Route racine : page de démarrage (splash screen)
-# -------------------------------------------------------
 @app.get("/", include_in_schema=False)
 def read_root():
     """Page de démarrage — redirige vers /login via le bouton COMMENCER."""
@@ -262,9 +215,6 @@ def login_page():
     return FileResponse(os.path.join(FRONTEND_DIR, "index.html"))
 
 
-# -------------------------------------------------------
-# Routes pour les pages HTML (navigation directe par URL)
-# -------------------------------------------------------
 @app.get("/dashboard", include_in_schema=False)
 def dashboard():
     return FileResponse(os.path.join(FRONTEND_DIR, "dashboard.html"))
@@ -302,10 +252,6 @@ def catalogue_page():
     return FileResponse(os.path.join(FRONTEND_DIR, "catalogue.html"))
 
 
-# -------------------------------------------------------
-# Endpoint protégé pour servir les images uploadées.
-# Seul le propriétaire du scan (ou l'admin) peut y accéder.
-# -------------------------------------------------------
 from routers.auth import SECRET_KEY as _SECRET_KEY, ALGORITHM as _ALGORITHM
 from database import get_db as _gdb
 from models import Scan as _Scan, User as _User
@@ -378,10 +324,6 @@ def serve_upload_file_legacy(
     return _serve_image(filename, token, db)
 
 
-# -------------------------------------------------------
-# Endpoint de vérification de santé de l'API
-# Utile pour tester si le serveur tourne correctement
-# -------------------------------------------------------
 @app.get("/api/health", tags=["Système"])
 def health_check():
     """

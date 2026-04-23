@@ -1,25 +1,3 @@
-# ============================================================
-# FICHIER : backend/services/email_service.py
-# RÔLE    : Envoi d'emails transactionnels via SMTP
-#
-# FONCTIONNALITÉS :
-#   1. Email de vérification du compte à l'inscription
-#   2. Email de notification de connexion
-#   3. Email de réinitialisation du mot de passe
-#
-# CONFIGURATION REQUISE dans .env :
-#   SMTP_HOST     : ex. smtp.gmail.com
-#   SMTP_PORT     : ex. 587 (TLS) ou 465 (SSL)
-#   SMTP_USER     : votre adresse email (ex. monapp@gmail.com)
-#   SMTP_PASSWORD : mot de passe ou "App Password" Google
-#   APP_BASE_URL  : ex. http://localhost:8000
-#
-# POUR GMAIL :
-#   Activez "Accès aux applications moins sécurisées" OU
-#   créez un "Mot de passe d'application" (recommandé) :
-#   Compte Google → Sécurité → Validation en 2 étapes → Mots de passe d'application
-# ============================================================
-
 import html as _html
 import os
 import smtplib
@@ -55,33 +33,30 @@ def _send_email(to_email: str, subject: str, html_body: str) -> bool:
         4. On envoie le message
         5. On ferme la connexion
     """
-    # Vérifier que les identifiants SMTP sont configurés
+    
     if not SMTP_USER or not SMTP_PASSWORD:
         print(f"[EMAIL] AVERTISSEMENT: SMTP non configuré. Email NON envoyé à {to_email}")
         print(f"[EMAIL] Sujet: {subject}")
         return False
 
     try:
-        # Créer le message email (format MIME multipart)
-        # MIMEMultipart("alternative") = message avec plusieurs versions (texte + HTML)
+
         msg = MIMEMultipart("alternative")
         msg["Subject"] = subject
         msg["From"]    = f"{FROM_NAME} <{SMTP_USER}>"
         msg["To"]      = to_email
 
-        # Ajouter le corps HTML
-        # MIMEText avec "html" = le navigateur email affichera le HTML
+
         html_part = MIMEText(html_body, "html", "utf-8")
         msg.attach(html_part)
 
-        # Se connecter au serveur SMTP avec STARTTLS (port 587)
-        # STARTTLS = commence en texte clair puis passe en chiffré
+        
         with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
-            server.ehlo()           # Identifier notre client au serveur
-            server.starttls()       # Activer le chiffrement TLS
-            server.ehlo()           # Re-identifier après TLS
-            server.login(SMTP_USER, SMTP_PASSWORD)  # S'authentifier
-            server.sendmail(SMTP_USER, to_email, msg.as_string())  # Envoyer
+            server.ehlo()           
+            server.starttls()       
+            server.ehlo()           
+            server.login(SMTP_USER, SMTP_PASSWORD)  
+            server.sendmail(SMTP_USER, to_email, msg.as_string())  
 
         print(f"[EMAIL] Email envoyé avec succès à {to_email} : {subject}")
         return True
@@ -97,9 +72,6 @@ def _send_email(to_email: str, subject: str, html_body: str) -> bool:
         return False
 
 
-# ============================================================
-# EMAIL 1 : VÉRIFICATION DU COMPTE (à l'inscription)
-# ============================================================
 
 def send_verification_email(to_email: str, username: str, token: str) -> bool:
     """
@@ -172,9 +144,6 @@ def send_verification_email(to_email: str, username: str, token: str) -> bool:
     return _send_email(to_email, "✅ Vérifiez votre adresse email – MikiPlants", html)
 
 
-# ============================================================
-# EMAIL 2 : NOTIFICATION DE CONNEXION
-# ============================================================
 
 def send_login_notification(to_email: str, username: str, ip_address: str = "Inconnue") -> bool:
     """
@@ -253,10 +222,6 @@ def send_login_notification(to_email: str, username: str, ip_address: str = "Inc
 
     return _send_email(to_email, "🔐 Nouvelle connexion sur votre compte MikiPlants", html)
 
-
-# ============================================================
-# EMAIL 3 : RÉINITIALISATION DU MOT DE PASSE
-# ============================================================
 
 def send_password_reset_email(to_email: str, username: str, token: str) -> bool:
     """

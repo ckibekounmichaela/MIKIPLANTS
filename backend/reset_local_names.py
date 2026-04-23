@@ -1,9 +1,3 @@
-# ============================================================
-# SCRIPT : reset_local_names.py
-# ROLE   : Remet le nom courant utilise en Cote d'Ivoire
-#          pour chaque plante. Simple et honnete.
-# ============================================================
-
 import os, sys
 sys.path.insert(0, os.path.dirname(__file__))
 from dotenv import load_dotenv
@@ -11,7 +5,6 @@ load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
 from database import SessionLocal
 from models import Plant
 
-# Cle = scientific_name | Valeur = nom courant en CI
 NOMS = {
     # ── ALIMENTAIRES ─────────────────────────────────────────
     "Manihot esculenta":                    "manioc",

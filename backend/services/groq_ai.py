@@ -1,18 +1,3 @@
-# ============================================================
-# FICHIER : backend/services/groq_ai.py
-# RÔLE    : Communiquer avec l'API Groq pour générer les rapports
-#           et répondre aux questions de l'agent conversationnel
-#
-# CONCEPT POUR DÉBUTANT :
-#   Groq est un service d'IA ultra-rapide qui fait tourner
-#   des modèles de langage open-source comme LLaMA 3.
-#   On lui envoie un "prompt" (instruction) et il génère
-#   une réponse textuelle.
-#
-#   Inscription gratuite : https://console.groq.com/
-#   Modèles disponibles  : https://console.groq.com/docs/models
-# ============================================================
-
 import os
 import json
 import asyncio
@@ -24,18 +9,9 @@ logger = logging.getLogger(__name__)
 
 load_dotenv()
 
-# Récupérer les configurations depuis .env
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
 
-# Initialiser le client Groq uniquement si la clé est disponible
-# (évite un crash au démarrage si la variable d'env est manquante)
-client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
-
-
-# ============================================================
-# GÉNÉRATION DU RAPPORT COMPLET
-# ============================================================
 
 async def generate_plant_report(plant_data: dict, local_context: str = "") -> dict:
     """
@@ -122,11 +98,7 @@ Génère exactement ce JSON :
 """
 
     try:
-        # -------------------------------------------------------
-        # Appeler l'API Groq dans un thread séparé (non-bloquant)
-        # asyncio.to_thread() permet d'exécuter une fonction synchrone
-        # sans bloquer l'event loop FastAPI pendant l'appel réseau
-        # -------------------------------------------------------
+        
         def _call_groq():
             return client.chat.completions.create(
                 model=GROQ_MODEL,
@@ -149,26 +121,21 @@ Génère exactement ce JSON :
             )
         response = await asyncio.to_thread(_call_groq)
 
-        # Extraire le texte de la réponse
         response_text = response.choices[0].message.content.strip()
 
-        # -------------------------------------------------------
-        # Parser le JSON retourné par l'IA
-        # L'IA peut parfois ajouter des ```json ... ``` autour
-        # ou du texte avant/après le JSON — on nettoie tout ça
+       
         # -------------------------------------------------------
         if "```json" in response_text:
             response_text = response_text.split("```json")[1].split("```")[0].strip()
         elif "```" in response_text:
             response_text = response_text.split("```")[1].split("```")[0].strip()
 
-        # Tentative 1 : parser directement
+    
         try:
             return json.loads(response_text)
         except json.JSONDecodeError:
             pass
 
-        # Tentative 2 : extraire le premier bloc JSON {...} dans le texte
         start = response_text.find("{")
         end   = response_text.rfind("}")
         if start != -1 and end != -1 and end > start:
@@ -188,10 +155,6 @@ Génère exactement ce JSON :
         logger.error(f"Groq: erreur appel API : {e}")
         return _default_report()
 
-
-# ============================================================
-# AGENT CONVERSATIONNEL
-# ============================================================
 
 async def chat_with_agent(
     plant_context: dict,
@@ -217,10 +180,6 @@ async def chat_with_agent(
         donner des réponses cohérentes et contextualisées.
     """
 
-    # -------------------------------------------------------
-    # Créer le message "system" qui définit le comportement de l'IA
-    # Ce message est envoyé en premier et donne le contexte global
-    # -------------------------------------------------------
     system_message = f"""
 Tu es un assistant botaniste expert et bienveillant, spécialisé en Afrique de l'Ouest.
 Tu aides l'utilisateur à comprendre la plante qu'il a photographiée.
@@ -246,13 +205,9 @@ RÈGLES DE COMPORTEMENT :
 7. Garde tes réponses concises (max 300 mots)
 """
 
-    # -------------------------------------------------------
-    # Construire la liste de messages pour l'API Groq
-    # Format : [système, message1, réponse1, message2, réponse2, ...]
-    # -------------------------------------------------------
     messages = [{"role": "system", "content": system_message}]
 
-    # Ajouter l'historique de la conversation
+    
     for msg in conversation_history:
         messages.append({
             "role": msg["role"],
@@ -282,9 +237,6 @@ RÈGLES DE COMPORTEMENT :
         )
 
 
-# ============================================================
-# RAPPORT PAR DÉFAUT (en cas d'erreur)
-# ============================================================
 
 def _default_report() -> dict:
     """

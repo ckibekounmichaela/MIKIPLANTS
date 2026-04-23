@@ -3,9 +3,6 @@ from typing import Optional, List
 from pydantic import BaseModel, EmailStr
 
 
-# ============================================================
-# SCHEMAS D'AUTHENTIFICATION
-# ============================================================
 
 class UserCreate(BaseModel):
     """
@@ -71,10 +68,6 @@ class Token(BaseModel):
     token_type: str     # Toujours "bearer" (standard HTTP)
 
 
-# ============================================================
-# SCHEMAS DE SCAN
-# ============================================================
-
 class PlantNetResult(BaseModel):
     """
     Résultat brut de l'API PlantNet après identification.
@@ -94,32 +87,32 @@ class HealthReport(BaseModel):
 
 class EdibilityReport(BaseModel):
     """Rapport sur la comestibilité."""
-    verdict: str                # "oui", "non", ou "partiel"
-    edible_parts: List[str]     # Parties comestibles (feuilles, fruits...)
-    recipes: List[str]          # Idées de recettes simples
-    warnings: List[str]         # Précautions à prendre
+    verdict: str                
+    edible_parts: List[str]     
+    recipes: List[str]          
+    warnings: List[str]         
 
 
 class MedicinalReport(BaseModel):
     """Rapport sur les propriétés médicinales."""
-    uses: List[str]             # Usages traditionnels documentés
-    dosage: str                 # Posologie de base
-    contraindications: List[str] # Contre-indications
+    uses: List[str]             
+    dosage: str                 
+    contraindications: List[str] 
 
 
 class ToxicityReport(BaseModel):
     """Rapport sur la toxicité."""
-    level: str                  # "aucun", "faible", "moyen", "élevé"
-    symptoms: List[str]         # Symptômes possibles en cas d'ingestion
-    first_aid: str              # Premiers secours
+    level: str                  
+    symptoms: List[str]         
+    first_aid: str              
 
 
 class EnvironmentReport(BaseModel):
     """Rapport sur l'impact environnemental."""
-    invasive: bool              # Espèce invasive ?
-    allelopathic: bool          # Nuit aux autres plantes ?
-    soil_impact: str            # Impact sur le sol
-    agricultural_impact: str    # Impact sur les cultures
+    invasive: bool              
+    allelopathic: bool          
+    soil_impact: str            
+    agricultural_impact: str    
 
 
 class PlantReport(BaseModel):
@@ -160,14 +153,13 @@ class ScanResponse(BaseModel):
     plant_family: str
     confidence_score: float
     image_path: str
-    report: Optional[dict]      # Le rapport JSON complet
+    report: Optional[dict]      
     is_edible: bool
     is_toxic: bool
     is_medicinal: bool
     is_invasive: bool
     toxicity_level: str
     local_match: Optional[LocalPlantMatch] = None
-    # Données locales CI trouvées dans notre catalogue (None si non trouvé)
     created_at: datetime
 
     class Config:
@@ -197,9 +189,6 @@ class ScanListItem(BaseModel):
         from_attributes = True
 
 
-# ============================================================
-# SCHEMAS DE CHAT
-# ============================================================
 
 class ChatMessageCreate(BaseModel):
     """Données envoyées par l'utilisateur pour poser une question."""
@@ -223,9 +212,7 @@ class ChatResponse(BaseModel):
     message_id: int             # ID du message sauvegardé
 
 
-# ============================================================
-# SCHEMAS D'ANALYTICS
-# ============================================================
+
 
 class AnalyticsSummary(BaseModel):
     """Statistiques globales pour le tableau de bord."""
@@ -247,13 +234,10 @@ class TopPlant(BaseModel):
 
 class TimelinePoint(BaseModel):
     """Point de données pour le graphique d'évolution dans le temps."""
-    date: str       # Format "YYYY-MM-DD"
-    count: int      # Nombre de scans ce jour-là
+    date: str       
+    count: int      
 
 
-# ============================================================
-# SCHEMAS DU CATALOGUE DE PLANTES
-# ============================================================
 
 class PlantResponse(BaseModel):
     """Réponse complète pour une plante du catalogue."""

@@ -1,18 +1,3 @@
-# ============================================================
-# FICHIER : start_server.py
-# ROLE    : Demarrer le serveur MikiPlants
-#
-# USAGE   : python start_server.py
-#           OU double-cliquer sur start.bat
-#
-# CE QUE CE SCRIPT FAIT :
-#   1. Verifie que l'installation a ete faite (venv existe)
-#   2. Verifie que .env est present
-#   3. Avertit si les cles API ne sont pas configurees
-#   4. Ouvre le navigateur automatiquement
-#   5. Lance le serveur uvicorn via le venv
-# ============================================================
-
 import sys
 import os
 import subprocess
@@ -91,7 +76,6 @@ def check_api_keys():
         print()
         warned = True
 
-    # Si des cles manquent, attendre 3s avant de continuer
     if warned:
         print("  Le serveur va demarrer mais certaines fonctions")
         print("  ne fonctionneront pas sans les cles API.")
@@ -125,8 +109,6 @@ def start_uvicorn():
     print("=" * 50)
     print()
 
-    # subprocess.run() avec le chemin absolu vers uvicorn du venv
-    # Avantage : pas besoin d'activer le venv manuellement
     result = subprocess.run(
         [
             UVICORN,
@@ -143,9 +125,6 @@ def start_uvicorn():
     print("  Le serveur s'est arrete.")
 
 
-# ============================================================
-# POINT D'ENTREE
-# ============================================================
 if __name__ == "__main__":
     print_header()
     check_venv()

@@ -1,22 +1,3 @@
-# ============================================================
-# FICHIER : backend/services/plant_lookup.py
-# RÔLE    : Rechercher une plante dans notre catalogue local
-#           pour enrichir les analyses PlantNet + Groq
-#
-# CONCEPT :
-#   Après que PlantNet identifie une plante, on interroge
-#   notre propre base de données. Si on trouve une correspondance,
-#   on retourne toutes nos données locales sur cette plante
-#   (habitats en CI, usages locaux, noms en dioula/baoulé...).
-#   Ces données servent ensuite de contexte fiable pour Groq.
-#
-# STRATÉGIE DE RECHERCHE (du plus précis au plus large) :
-#   1. Nom scientifique exact          → correspondance certaine
-#   2. Genre botanique commun          → même famille de plantes
-#   3. Famille botanique               → enrichissement partiel
-#   4. Nom commun (recherche floue)    → dernier recours
-# ============================================================
-
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, func
 from models import Plant
@@ -50,31 +31,20 @@ def find_local_plant(db: Session, plantnet_result: dict) -> dict | None:
             func.lower(Plant.scientific_name) == scientific_name.lower()
         ).first()
 
-    # ──────────────────────────────────────────────────────────
-    # NIVEAU 2 : Même genre botanique
-    # Ex : "Mangifera sylvatica" → cherche "Mangifera %"
-    # Le genre est le premier mot du nom scientifique
-    # ──────────────────────────────────────────────────────────
+   
     if not plant and scientific_name and " " in scientific_name:
         genre = scientific_name.split(" ")[0]
         plant = db.query(Plant).filter(
             Plant.scientific_name.ilike(f"{genre} %")
         ).first()
 
-    # ──────────────────────────────────────────────────────────
-    # NIVEAU 3 : Même famille botanique
-    # Ex : famille "Anacardiaceae" → on prend la première plante
-    #      de cette famille dans notre base
-    # ──────────────────────────────────────────────────────────
+   
     if not plant and family:
         plant = db.query(Plant).filter(
             func.lower(Plant.family) == family.lower()
         ).first()
 
-    # ──────────────────────────────────────────────────────────
-    # NIVEAU 4 : Recherche floue sur le nom commun
-    # Ex : "Mango tree" → cherche "mango" dans les noms
-    # ──────────────────────────────────────────────────────────
+   
     if not plant and plant_name:
         mots = [m for m in plant_name.lower().split() if len(m) > 3]
         for mot in mots:
@@ -90,9 +60,6 @@ def find_local_plant(db: Session, plantnet_result: dict) -> dict | None:
     if not plant:
         return None
 
-    # ──────────────────────────────────────────────────────────
-    # Retourner un dictionnaire propre avec les données locales
-    # ──────────────────────────────────────────────────────────
     return {
         "id":             plant.id,
         "name":           plant.name,

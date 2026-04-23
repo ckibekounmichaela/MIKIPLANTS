@@ -1,33 +1,16 @@
-# ============================================================
-# FICHIER : backend/database.py
-# RÔLE    : Configuration de la connexion à la base de données SQLite
-#
-# CONCEPT POUR DÉBUTANT :
-#   SQLAlchemy est un ORM (Object Relational Mapper).
-#   Cela signifie qu'on peut manipuler la base de données
-#   en écrivant du Python, sans écrire du SQL directement.
-#   Ex: au lieu de "SELECT * FROM users", on écrit User.query.all()
-# ============================================================
-
 import os
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from dotenv import load_dotenv
 
-# Charger les variables d'environnement depuis le fichier .env
 load_dotenv()
 
-# -------------------------------------------------------
-# URL de connexion à MySQL (XAMPP)
-# Format : mysql+pymysql://utilisateur:motdepasse@hote/nom_base
-# Par défaut XAMPP : root sans mot de passe, port 3306
-# -------------------------------------------------------
+
 import urllib.parse
 
 DATABASE_URL = os.getenv("DATABASE_URL", "")
 
-# Corriger le préfixe postgres:// → postgresql:// (Render/Railway PG)
 if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
@@ -35,7 +18,6 @@ if DATABASE_URL.startswith("postgres://"):
 if DATABASE_URL.startswith("mysql://"):
     DATABASE_URL = DATABASE_URL.replace("mysql://", "mysql+pymysql://", 1)
 
-# Fallback : variables MySQL individuelles de Railway
 if not DATABASE_URL or "://" not in DATABASE_URL:
     mysql_host     = os.getenv("MYSQLHOST", os.getenv("MYSQL_HOST", ""))
     mysql_port     = os.getenv("MYSQLPORT", os.getenv("MYSQL_PORT", "3306"))
@@ -97,20 +79,9 @@ else:
         },
     )
 
-# -------------------------------------------------------
-# SessionLocal : Une "session" est comme une connexion
-# temporaire à la base de données pour effectuer des opérations
-# autocommit=False → les changements ne sont pas sauvegardés
-#                    automatiquement (on doit appeler db.commit())
-# autoflush=False  → les données ne sont pas envoyées à la BD
-#                    avant qu'on le demande explicitement
-# -------------------------------------------------------
+
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# -------------------------------------------------------
-# Base : classe parente de tous nos modèles (tables)
-# Chaque modèle (User, Scan, etc.) va hériter de cette Base
-# -------------------------------------------------------
 Base = declarative_base()
 
 
@@ -134,6 +105,5 @@ def get_db():
         # Fournir la session au code qui en a besoin
         yield db
     finally:
-        # Toujours fermer la session après utilisation
-        # Le mot "finally" garantit que c'est exécuté même en cas d'erreur
+
         db.close()

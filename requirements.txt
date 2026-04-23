@@ -1,9 +1,3 @@
-# ============================================================
-# FICHIER : requirements.txt
-# RÔLE    : Dependances Python du projet WhatAPlant
-# USAGE   : pip install -r requirements.txt
-# NOTE    : Versions compatibles Python 3.10 → 3.14
-# ============================================================
 
 # --- Serveur Web ---
 fastapi>=0.111.0

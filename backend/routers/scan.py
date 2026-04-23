@@ -146,7 +146,7 @@ async def analyze_plant(
             status_code=422,
             detail=(
                 f"Plante non identifiée avec certitude suffisante "
-                f"(score : {round(confidence * 100, 1)}%, minimum : {round(MIN_CONFIDENCE * 100)}%). "
+                f"(score : {round(confidence * 100, 1)}%). "
                 "Essayez une photo plus nette, mieux éclairée et centrée sur la plante."
             )
         )

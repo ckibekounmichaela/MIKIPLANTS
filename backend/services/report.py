@@ -23,9 +23,6 @@ def extract_metadata_from_report(report: dict) -> dict:
         }
     """
 
-    # -------------------------------------------------------
-    # Valeurs par défaut (au cas où le rapport est incomplet)
-    # -------------------------------------------------------
     metadata = {
         "is_edible": False,
         "is_toxic": False,

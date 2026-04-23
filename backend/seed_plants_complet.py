@@ -1,9 +1,3 @@
-# ============================================================
-# SCRIPT : seed_plants_complet.py
-# RÔLE   : Insérer toutes les plantes réelles de Côte d'Ivoire
-# USAGE  : python seed_plants_complet.py
-# ============================================================
-
 import os, sys
 sys.path.insert(0, os.path.dirname(__file__))
 from dotenv import load_dotenv
@@ -13,9 +7,6 @@ from models import Plant
 Base.metadata.create_all(bind=engine)
 
 PLANTS = [
-    # ══════════════════════════════════════════════════════════
-    # PLANTES ALIMENTAIRES
-    # ══════════════════════════════════════════════════════════
     dict(name="Manioc", local_name="Bâkê (Baoulé) / Gnomi (Dioula) / Kpla (Bété)",
          scientific_name="Manihot esculenta", family="Euphorbiaceae",
          description="Arbuste tropical dont les racines tubéreuses sont l'aliment de base. Transformé en attiéké, foutou, placali.",
@@ -287,9 +278,6 @@ PLANTS = [
          is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
          culinary_uses="Condiment universel, marinades.", medicinal_uses="Antibactérien, antifongique, cardiovasculaire, immunitaire."),
 
-    # ══════════════════════════════════════════════════════════
-    # FRUITS TROPICAUX
-    # ══════════════════════════════════════════════════════════
     dict(name="Ananas", local_name="Gblê (Baoulé) / Nanas (Dioula) / Kpandjô (Agni)",
          scientific_name="Ananas comosus", family="Bromeliaceae",
          description="Fruit tropical à la chair juteuse et sucrée. La Côte d'Ivoire est major producteur africain.",
@@ -420,9 +408,6 @@ PLANTS = [
          is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
          culinary_uses="Fraîche, confiture.", medicinal_uses="Anti-inflammatoire, antioxydant."),
 
-    # ══════════════════════════════════════════════════════════
-    # PLANTES MÉDICINALES
-    # ══════════════════════════════════════════════════════════
     dict(name="Neem", local_name="Nim (CI) / Korobâ (Dioula) / Margousier",
          scientific_name="Azadirachta indica", family="Meliaceae",
          description="Arbre aux propriétés médicinales exceptionnelles, surnommé 'pharmacie du village'.",
@@ -558,9 +543,6 @@ PLANTS = [
          is_edible=False, is_toxic=False, is_medicinal=False, is_invasive=False, toxicity_level="aucun",
          culinary_uses="Tiges jeunes parfois mâchées.", medicinal_uses="Peu d'usages documentés."),
 
-    # ══════════════════════════════════════════════════════════
-    # ARBRES FORESTIERS
-    # ══════════════════════════════════════════════════════════
     dict(name="Iroko", local_name="Kambala (CI) / Lok (Attié) / Séwé (Baoulé)",
          scientific_name="Milicia excelsa", family="Moraceae",
          description="L'un des bois les plus précieux d'Afrique de l'Ouest. Arbre sacré dans de nombreuses cultures.",
@@ -671,9 +653,6 @@ PLANTS = [
          is_edible=False, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
          culinary_uses="Graines parfois consommées après torréfaction.", medicinal_uses="Écorce contre paludisme et fièvre."),
 
-    # ══════════════════════════════════════════════════════════
-    # PLANTES DE RENTE
-    # ══════════════════════════════════════════════════════════
     dict(name="Cacaoyer", local_name="Cacao (CI) / Kaka (Baoulé) / Choco (Dioula)",
          scientific_name="Theobroma cacao", family="Malvaceae",
          description="1er producteur mondial. Les fèves fermentées servent à fabriquer le chocolat.",
@@ -715,9 +694,6 @@ PLANTS = [
          is_edible=True, is_toxic=True, is_medicinal=True, is_invasive=False, toxicity_level="faible",
          culinary_uses="Noix de cajou grillée, pomme de cajou en jus.", medicinal_uses="Antioxydants, magnésium. Baume de cajou cicatrisant."),
 
-    # ══════════════════════════════════════════════════════════
-    # PLANTES AQUATIQUES ET ENVAHISSANTES
-    # ══════════════════════════════════════════════════════════
     dict(name="Jacinthe d'eau", local_name="Herbe flottante (CI)",
          scientific_name="Eichhornia crassipes", family="Pontederiaceae",
          description="Plante aquatique envahissante aux fleurs violettes colonisant les lagunes.",
@@ -743,9 +719,6 @@ PLANTS = [
          is_edible=False, is_toxic=False, is_medicinal=False, is_invasive=False, toxicity_level="aucun",
          culinary_uses="Tiges jeunes mâchées.", medicinal_uses="Peu d'usages documentés."),
 
-    # ══════════════════════════════════════════════════════════
-    # ÉPICES ET CONDIMENTS
-    # ══════════════════════════════════════════════════════════
     dict(name="Poivre de Guinée", local_name="Kani (Dioula) / Yiri-wulên (Baoulé) / Poivre selim",
          scientific_name="Xylopia aethiopica", family="Annonaceae",
          description="Épice africaine aux fruits allongés aromatiques. Incontournable en CI.",
@@ -802,9 +775,6 @@ PLANTS = [
          is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
          culinary_uses="Huile de sésame, graines en pâtisserie, tahini.", medicinal_uses="Riche en calcium, magnésium, antioxydants."),
 
-    # ══════════════════════════════════════════════════════════
-    # PLANTES ORNEMENTALES
-    # ══════════════════════════════════════════════════════════
     dict(name="Bougainvillée", local_name="Bougainvillier (CI)", scientific_name="Bougainvillea spectabilis",
          family="Nyctaginaceae", description="Liane ornementale aux bractées colorées omniprésente à Abidjan.",
          habitat="Jardins, haies ornementales", regions="Zones urbaines",
@@ -850,9 +820,6 @@ PLANTS = [
          is_edible=False, is_toxic=False, is_medicinal=True, is_invasive=True, toxicity_level="aucun",
          culinary_uses="Non comestible.", medicinal_uses="Insomnie, anxiété, anti-inflammatoire."),
 
-    # ══════════════════════════════════════════════════════════
-    # CHAMPIGNONS ET AUTRES
-    # ══════════════════════════════════════════════════════════
     dict(name="Termitière champignon", local_name="Gnôhi (Baoulé) / Kpandiê (Agni)",
          scientific_name="Termitomyces robustus", family="Lyophyllaceae",
          description="Grand champignon comestible poussant sur les termitières, très apprécié en CI.",
@@ -867,9 +834,6 @@ PLANTS = [
          is_edible=True, is_toxic=False, is_medicinal=False, is_invasive=False, toxicity_level="aucun",
          culinary_uses="Sauce, grillé.", medicinal_uses="Source de protéines."),
 
-    # ══════════════════════════════════════════════════════════
-    # PLANTES DES SAVANES DU NORD
-    # ══════════════════════════════════════════════════════════
     dict(name="Acacia seyal", local_name="Épineux rouge (CI) / Ganna woyo (Dioula)",
          scientific_name="Acacia seyal", family="Fabaceae",
          description="Acacia aux épines rouges caractéristiques, très commun dans les savanes du Nord.",
@@ -919,9 +883,6 @@ PLANTS = [
          is_edible=True, is_toxic=False, is_medicinal=True, is_invasive=False, toxicity_level="aucun",
          culinary_uses="Fruits frais consommés.", medicinal_uses="Antidouleur, cicatrisant."),
 
-    # ══════════════════════════════════════════════════════════
-    # PLANTES DES FORÊTS DU SUD-OUEST
-    # ══════════════════════════════════════════════════════════
     dict(name="Kolatier sauvage", local_name="Faux cola (CI) / Kola garouké",
          scientific_name="Cola acuminata", family="Malvaceae",
          description="Variété de colatier aux noix amères, utilisées différemment de Cola nitida.",

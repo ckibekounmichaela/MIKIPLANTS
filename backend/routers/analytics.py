@@ -12,9 +12,6 @@ from sqlalchemy.orm import Session
 
 ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "")
 
-
-
-#FONCTIONS UTILITAIRES — évite la duplication de code
 def extract_diseases(scan) -> list:
     """Extrait les maladies depuis le rapport JSON d'un scan."""
     if not scan.report_json:
@@ -52,42 +49,34 @@ def get_analytics_summary(
     Retourne des comptages agrégés de tous les scans.
     """
 
-    # Compter le nombre total de scans de l'utilisateur
     total_scans = db.query(func.count(Scan.id)).filter(
         Scan.user_id == current_user.id
     ).scalar()
-    # scalar() retourne un seul nombre (pas une liste)
 
-    # Compter les plantes uniques (par nom scientifique)
     unique_plants = db.query(func.count(func.distinct(Scan.plant_scientific_name))).filter(
         Scan.user_id == current_user.id
     ).scalar()
 
-    # Compter les plantes toxiques
     toxic_count = db.query(func.count(Scan.id)).filter(
         Scan.user_id == current_user.id,
         Scan.is_toxic == True
     ).scalar()
 
-    # Compter les plantes comestibles
     edible_count = db.query(func.count(Scan.id)).filter(
         Scan.user_id == current_user.id,
         Scan.is_edible == True
     ).scalar()
 
-    # Compter les plantes médicinales
     medicinal_count = db.query(func.count(Scan.id)).filter(
         Scan.user_id == current_user.id,
         Scan.is_medicinal == True
     ).scalar()
 
-    # Compter les plantes invasives
     invasive_count = db.query(func.count(Scan.id)).filter(
         Scan.user_id == current_user.id,
         Scan.is_invasive == True
     ).scalar()
 
-    # Compter le nombre total d'utilisateurs (pour l'admin)
     total_users = db.query(func.count(User.id)).scalar()
 
     return AnalyticsSummary(
@@ -111,13 +100,6 @@ def get_top_plants(
     Récupérer le classement des plantes les plus scannées.
     """
 
-    # Requête SQL équivalente :
-    # SELECT plant_name, plant_scientific_name, COUNT(*) as scan_count
-    # FROM scans
-    # WHERE user_id = {current_user.id}
-    # GROUP BY plant_name, plant_scientific_name
-    # ORDER BY scan_count DESC
-    # LIMIT {limit}
 
     results = db.query(
         Scan.plant_name,
@@ -132,7 +114,6 @@ def get_top_plants(
         desc("scan_count")
     ).limit(limit).all()
 
-    # Convertir les résultats en liste de dictionnaires
     return [
         TopPlant(
             plant_name=row.plant_name or "Inconnue",
@@ -189,23 +170,18 @@ def get_timeline(
     Récupérer l'évolution du nombre de scans sur les derniers jours.
     Données pour le graphique en courbes.
     """
-    # Date de début (il y a {days} jours)
     start_date = datetime.utcnow() - timedelta(days=days)
 
-    # Récupérer les scans récents
     scans = db.query(Scan).filter(
         Scan.user_id == current_user.id,
         Scan.created_at >= start_date
     ).order_by(Scan.created_at.asc()).all()
 
-    # Regrouper par jour
-    # On crée un dictionnaire : {"2024-01-15": 3, "2024-01-16": 1, ...}
     daily_counts = {}
     for scan in scans:
         day_key = scan.created_at.strftime("%Y-%m-%d")
         daily_counts[day_key] = daily_counts.get(day_key, 0) + 1
 
-    # Créer un point pour chaque jour (même les jours sans scan = 0)
     timeline = []
     for i in range(days):
         date = (start_date + timedelta(days=i)).strftime("%Y-%m-%d")
@@ -257,7 +233,6 @@ def get_alerts(
     week_start      = now - timedelta(days=7)
     prev_week_start = now - timedelta(days=14)
 
-    # ---- 1. Alertes ponctuelles (scans individuels) ----
     recent_scans = db.query(Scan).filter(
         Scan.user_id == current_user.id,
         Scan.created_at >= week_start,
@@ -281,7 +256,6 @@ def get_alerts(
             "date":            scan.created_at.strftime("%d/%m/%Y")
         })
 
-    # ---- 2. Alertes de tendance (semaine N vs semaine N-1) ----
     def count_week(filter_col, start, end):
         return db.query(func.count(Scan.id)).filter(
             Scan.user_id == current_user.id,
@@ -317,7 +291,6 @@ def get_alerts(
                 "prev_week":    prev
             })
 
-    # ---- Maladies : tendance depuis report_json ----
     def disease_count_in_range(start, end):
         scans = db.query(Scan).filter(
             Scan.user_id == current_user.id,
@@ -397,10 +370,7 @@ def get_scan_locations(
     return {"points": points, "total": len(points)}
 
 
-# ============================================================
-# STATISTIQUES GLOBALES ANONYMISÉES
-# Agrégation sur TOUS les utilisateurs — aucune donnée personnelle
-# ============================================================
+
 
 @router.get("/global/summary")
 def get_global_summary(
@@ -513,7 +483,6 @@ def get_global_regions_at_risk(
         (Scan.is_invasive == True) | (Scan.is_toxic == True)
     ).all()
 
-    # Arrondir les coordonnées à 1 décimale pour anonymiser (~zone de 10 km)
     zone_counts = {}
     for scan in scans:
         lat_r = round(scan.latitude,  1)
@@ -532,9 +501,6 @@ def get_global_regions_at_risk(
     return {"zones": zones, "total_zones": len(zones)}
 
 
-# ============================================================
-# EXPORT CSV
-# ============================================================
 
 @router.get("/is-admin")
 def is_admin(
@@ -633,7 +599,6 @@ def export_all_scans_csv(
     Données personnelles exclues : email, username remplacés par user_id anonyme.
     Coordonnées GPS arrondies à 1 décimale (~10 km) pour la confidentialité.
     """
-    # Vérification admin
     if not ADMIN_EMAIL or current_user.email.lower() != ADMIN_EMAIL.lower():
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -642,7 +607,6 @@ def export_all_scans_csv(
 
     scans = db.query(Scan).order_by(Scan.created_at.desc()).all()
 
-    # Créer un mapping user_id → identifiant anonyme (#1, #2, ...)
     user_id_map: dict[int, int] = {}
     counter = 1
     for scan in scans:

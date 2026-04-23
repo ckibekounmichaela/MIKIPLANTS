@@ -1,14 +1,3 @@
-# ============================================================
-# SCRIPT : update_local_names.py
-# RÔLE   : Mise à jour et vérification des noms locaux
-#          de toutes les plantes en base de données
-#
-# CORRECTIONS :
-#   - Suppression des noms en français utilisés comme noms locaux
-#   - Ajout des vrais noms dans les langues ivoiriennes
-#   - Couverture : Dioula, Baoulé, Bété, Senoufo, Agni, Attié, Dida
-# ============================================================
-
 import os, sys
 sys.path.insert(0, os.path.dirname(__file__))
 from dotenv import load_dotenv
@@ -16,15 +5,9 @@ load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
 from database import SessionLocal
 from models import Plant
 
-# ============================================================
-# DICTIONNAIRE DES MISES À JOUR
-# Clé = scientific_name en base | Valeur = nouveau local_name
-# ============================================================
 UPDATES = {
 
-    # ──────────────────────────────────────────────────────────
-    # PLANTES ALIMENTAIRES
-    # ──────────────────────────────────────────────────────────
+
 
     "Manihot esculenta": (
         "Bâkê (Baoulé) / Gnomi (Dioula) / Kpla (Bété) / Môkô (Attié) / "
@@ -170,9 +153,6 @@ UPDATES = {
         "Tchi (Dioula) / Bâgnan tchi (Baoulé) / Ajo (CI)"
     ),
 
-    # ──────────────────────────────────────────────────────────
-    # FRUITS TROPICAUX
-    # ──────────────────────────────────────────────────────────
 
     "Ananas comosus": (
         "Gblê (Baoulé) / Nanas (Dioula) / Kpandjô (Agni) / "
@@ -245,9 +225,6 @@ UPDATES = {
         "Akpi tchi (Agni) / Cerise tropicale (CI) / Besonti (Baoulé)"
     ),
 
-    # ──────────────────────────────────────────────────────────
-    # PLANTES MÉDICINALES
-    # ──────────────────────────────────────────────────────────
 
     "Azadirachta indica": (
         "Korobâ (Dioula) / Nim (Baoulé) / Pèm (Senoufo) / "
@@ -321,9 +298,6 @@ UPDATES = {
         "Wô kpli (Baoulé) / Roseau des marais (CI) / Sô wô (Dioula)"
     ),
 
-    # ──────────────────────────────────────────────────────────
-    # ARBRES FORESTIERS
-    # ──────────────────────────────────────────────────────────
 
     "Milicia excelsa": (
         "Séwê (Baoulé) / Kambala (Dioula) / Lok (Attié) / "
@@ -359,9 +333,6 @@ UPDATES = {
         "Séwê (Baoulé) / Kambala (Dioula) / Lok (Attié)"
     ),
 
-    # ──────────────────────────────────────────────────────────
-    # PLANTES DE RENTE
-    # ──────────────────────────────────────────────────────────
 
     "Theobroma cacao": (
         "Koko (Baoulé) / Kaka (Dioula) / Kpô (Bété) / "
@@ -399,9 +370,6 @@ UPDATES = {
         "Kpêkê (Senoufo) / Karité (CI)"
     ),
 
-    # ──────────────────────────────────────────────────────────
-    # PLANTES AQUATIQUES / ENVAHISSANTES
-    # ──────────────────────────────────────────────────────────
 
     "Eichhornia crassipes": (
         "Wô-wô kôrôgô (Dioula) / N'nzê wô (Baoulé) / "
@@ -414,9 +382,6 @@ UPDATES = {
         "Wô blêblê (Baoulé) / Lotus blanc (CI) / Wô-wô dji (Dioula)"
     ),
 
-    # ──────────────────────────────────────────────────────────
-    # ÉPICES ET CONDIMENTS
-    # ──────────────────────────────────────────────────────────
 
     "Xylopia aethiopica": (
         "Soubara (Dioula) / Kani (Baoulé/Agni) / Êtô (Attié) / "
@@ -449,9 +414,6 @@ UPDATES = {
         "Sesam (Agni)"
     ),
 
-    # ──────────────────────────────────────────────────────────
-    # PLANTES ORNEMENTALES
-    # ──────────────────────────────────────────────────────────
 
     "Hibiscus rosa-sinensis": (
         "Kêkê wulên (Baoulé) / Fleur chaussure (CI) / "
@@ -479,9 +441,6 @@ UPDATES = {
         "Flamboyant (CI) / Arbre de feu (CI)"
     ),
 
-    # ──────────────────────────────────────────────────────────
-    # KAPOKIER, RÔNIER, RAPHIA
-    # ──────────────────────────────────────────────────────────
 
     "Ceiba pentandra": (
         "Woî (Baoulé) / Konkoré (Dioula) / Gbê-woro (Bété) / "
@@ -496,9 +455,6 @@ UPDATES = {
         "Wôrô (Baoulé)"
     ),
 
-    # ──────────────────────────────────────────────────────────
-    # GRAMINÉES / BAMBOUS
-    # ──────────────────────────────────────────────────────────
 
     "Pennisetum purpureum": (
         "Gbê gbê (Baoulé) / Sô gbê (Dioula) / Herbe éléphant (CI)"
@@ -514,18 +470,12 @@ UPDATES = {
         "Bambu (Dioula) / Wôlê (Baoulé) / Bambou commun (CI)"
     ),
 
-    # ──────────────────────────────────────────────────────────
-    # SENSITIVE / MIMOSA
-    # ──────────────────────────────────────────────────────────
 
     "Mimosa pudica": (
         "Tomaô (Dioula) / Kôkôrôkô (Baoulé) / Gbê-kpêlê (Bété) / "
         "Sensitive (CI)"
     ),
 
-    # ──────────────────────────────────────────────────────────
-    # ACACIAS DU NORD
-    # ──────────────────────────────────────────────────────────
 
     "Acacia senegal": (
         "Séguélé (Dioula) / Gnin-gnin (Senoufo) / Gonakier (CI)"
@@ -540,9 +490,6 @@ UPDATES = {
         "Wasota (Dioula) / Prosopis (CI) / N'biridji (Senoufo)"
     ),
 
-    # ──────────────────────────────────────────────────────────
-    # ARBRES DE SAVANE
-    # ──────────────────────────────────────────────────────────
 
     "Detarium microcarpum": (
         "Dattier du Sénégal (CI) / Gbê kpê (Dioula) / "
@@ -599,9 +546,6 @@ UPDATES = {
         "Okoumé (CI) / Adjounbou (Attié)"
     ),
 
-    # ──────────────────────────────────────────────────────────
-    # PLANTES MÉDICINALES RESTANTES
-    # ──────────────────────────────────────────────────────────
 
     "Jatropha curcas": (
         "Gbongni (Dioula) / Gbêtê ngui (Baoulé) / Pina yiri (Senoufo) / "
@@ -615,9 +559,6 @@ UPDATES = {
         "Tchêman (Dioula) / Thym africain (CI) / Mintê yiri (Baoulé)"
     ),
 
-    # ──────────────────────────────────────────────────────────
-    # CHAMPIGNONS
-    # ──────────────────────────────────────────────────────────
 
     "Termitomyces robustus": (
         "Gnêhi (Baoulé) / Kpandjê (Agni) / Champignon de termite (CI) / "
@@ -629,9 +570,6 @@ UPDATES = {
 }
 
 
-# ============================================================
-# FONCTION PRINCIPALE
-# ============================================================
 def update():
     db = SessionLocal()
     updated = 0

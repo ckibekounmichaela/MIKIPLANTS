@@ -1,13 +1,3 @@
-# ============================================================
-# FICHIER : backend/routers/plants.py
-# RÔLE    : Endpoints du catalogue de plantes (surtout ivoiriennes)
-#
-# ENDPOINTS DISPONIBLES :
-#   GET /api/plants          → Liste des plantes (avec filtres)
-#   GET /api/plants/stats    → Statistiques du catalogue
-#   GET /api/plants/{id}     → Détail d'une plante
-# ============================================================
-
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -71,7 +61,6 @@ def list_plants(
             )
         )
 
-    # Filtres booléens
     if is_edible is not None:
         query = query.filter(Plant.is_edible == is_edible)
     if is_medicinal is not None:

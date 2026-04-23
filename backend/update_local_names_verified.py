@@ -1,17 +1,3 @@
-# ============================================================
-# SCRIPT : update_local_names_verified.py
-# RÔLE   : Mise à jour des noms locaux avec données VÉRIFIÉES
-#
-# SOURCES :
-#   1. Suzanne Lafage, Lexique français de Côte d'Ivoire (2002)
-#      via PlantUse — https://plantuse.plantnet.org
-#   2. Lexique de la cuisine ivoirienne — ivoirecuisine.wordpress.com
-#   3. Noms en Bambara/Dioula documentés (partagés avec le CI)
-#
-# RÈGLE : Un nom sans source = absent du script.
-#         Mieux vaut peu que faux.
-# ============================================================
-
 import os, sys
 sys.path.insert(0, os.path.dirname(__file__))
 from dotenv import load_dotenv
@@ -19,21 +5,8 @@ load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
 from database import SessionLocal
 from models import Plant
 
-# ============================================================
-# FORMAT : "nom (langue) / nom (langue)"
-# Légende langues :
-#   Mandenkan = Dioula / Malinké / Bambara de CI
-#   Baoulé    = groupe Akan du Centre
-#   Bété      = groupe Krou de l'Ouest
-#   Agni      = groupe Akan de l'Est
-#   Attié     = Sud-Est (région Abidjan)
-#   Abé       = Sud (Agboville)
-# ============================================================
-
 UPDATES = {
 
-    # ── PLANTES ALIMENTAIRES ──────────────────────────────────
-    # Source : Bambara/Mandenkan documenté + usage CI courant
 
     "Abelmoschus esculentus": (
         "kanja (Mandenkan)"
@@ -47,7 +20,6 @@ UPDATES = {
 
     "Capsicum annuum": (
         "foronto dji (Mandenkan)"
-        # dji = petit/doux en dioula
     ),
 
     "Zea mays": (
@@ -153,16 +125,14 @@ UPDATES = {
         # "woro" = noix de kola, bien documenté en dioula CI
     ),
 
-    # ── GRAINES ET ÉPICES ─────────────────────────────────────
-    # Source : Lafage PlantUse
+    
 
     "Aframomum melegueta": (
         "sa (Baoulé) / konè (Attié)"
         # Lafage : "malaguette" → baoulé: sa / attié: konè
     ),
 
-    # ── ARBRES FORESTIERS ─────────────────────────────────────
-    # Source : Lafage (2002) via PlantUse — données les plus fiables
+
 
     "Khaya ivorensis": (
         "boma (Baoulé) / niako (Mandenkan) / ékopa (Agni)"
@@ -292,9 +262,7 @@ UPDATES = {
 }
 
 
-# ============================================================
-# FONCTION PRINCIPALE
-# ============================================================
+
 def update():
     db = SessionLocal()
     updated = 0

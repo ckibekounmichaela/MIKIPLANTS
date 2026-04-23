@@ -1,20 +1,3 @@
-# ============================================================
-# FICHIER : setup.py
-# ROLE    : Installation automatique du projet MikiPlants
-#
-# USAGE   : python setup.py
-#           OU double-cliquer sur install.bat
-#
-# CE QUE CE SCRIPT FAIT :
-#   1. Verifie que Python est suffisamment recent
-#   2. Cree l'environnement virtuel (venv)
-#   3. Met a jour pip
-#   4. Installe toutes les dependances
-#   5. Cree le fichier .env depuis .env.example
-#   6. Cree le dossier uploads/
-#   7. Initialise la base de donnees et cree le compte par defaut
-# ============================================================
-
 import sys
 import os
 import subprocess
@@ -23,9 +6,6 @@ import shutil
 # Dossier racine du projet (dossier ou se trouve ce script)
 ROOT = os.path.dirname(os.path.abspath(__file__))
 
-# Chemin vers l'executable Python du venv selon le systeme d'exploitation
-# Sur Windows : venv/Scripts/python.exe
-# Sur Linux/Mac : venv/bin/python
 if sys.platform == "win32":
     VENV_PYTHON = os.path.join(ROOT, "venv", "Scripts", "python.exe")
     VENV_PIP    = os.path.join(ROOT, "venv", "Scripts", "pip.exe")
@@ -82,8 +62,6 @@ def create_venv():
     if os.path.exists(venv_dir):
         print_info("L'environnement virtuel existe deja, conserve.")
     else:
-        # subprocess.run() execute une commande systeme
-        # [sys.executable, "-m", "venv", venv_dir] = python -m venv venv/
         result = subprocess.run(
             [sys.executable, "-m", "venv", venv_dir],
             capture_output=True,
@@ -123,8 +101,6 @@ def install_dependencies():
         print_error("requirements.txt introuvable.")
         sys.exit(1)
 
-    # Lancer pip install en affichant la progression en temps reel
-    # (sans capture_output pour voir l'avancement)
     result = subprocess.run(
         [VENV_PIP, "install", "-r", requirements_file],
         cwd=ROOT
@@ -184,7 +160,6 @@ def init_database():
 
     init_script = os.path.join(ROOT, "backend", "init_db.py")
 
-    # Utiliser le Python du venv pour avoir acces aux packages installes
     result = subprocess.run(
         [VENV_PYTHON, init_script],
         cwd=os.path.join(ROOT, "backend")
@@ -220,9 +195,6 @@ def print_summary():
     print()
 
 
-# ============================================================
-# POINT D'ENTREE
-# ============================================================
 if __name__ == "__main__":
     print_header()
     check_python_version()
