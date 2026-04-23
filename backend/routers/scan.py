@@ -43,6 +43,8 @@ UPLOAD_DIR = os.getenv("UPLOAD_DIR") or os.path.join(_BASE_DIR, "uploads")
 MAX_FILE_SIZE = 5 * 1024 * 1024  # 5 MB en bytes
 # Types de fichiers autorisés
 ALLOWED_TYPES = {"image/jpeg", "image/png", "image/webp"}
+# Score minimum pour accepter une identification (60%)
+MIN_CONFIDENCE = float(os.getenv("MIN_CONFIDENCE", "0.60"))
 
 
 @router.post("/analyze", response_model=ScanResponse)
@@ -137,12 +139,18 @@ async def analyze_plant(
     # -------------------------------------------------------
     plantnet_result = await plantnet.identify_plant(image_bytes, unique_filename)
 
-    # -------------------------------------------------------
-    # ÉTAPE 3.5 : Rechercher la plante dans notre catalogue local
-    # Si on la trouve, on construit un bloc de contexte enrichi
-    # qui sera injecté dans le prompt Groq pour un rapport
-    # beaucoup plus précis sur la réalité ivoirienne.
-    # -------------------------------------------------------
+    # Vérifier le seuil de confiance (60% minimum)
+    confidence = plantnet_result.get("confidence_score", 0.0)
+    if not plantnet_result.get("success") or confidence < MIN_CONFIDENCE:
+        raise HTTPException(
+            status_code=422,
+            detail=(
+                f"Plante non identifiée avec certitude suffisante "
+                f"(score : {round(confidence * 100, 1)}%, minimum : {round(MIN_CONFIDENCE * 100)}%). "
+                "Essayez une photo plus nette, mieux éclairée et centrée sur la plante."
+            )
+        )
+
     local_data    = find_local_plant(db, plantnet_result)
     local_context = build_local_context_block(local_data) if local_data else ""
 
@@ -151,21 +159,10 @@ async def analyze_plant(
     else:
         logger.debug("[LOOKUP] Aucune correspondance pour : %s", plantnet_result.get('scientific_name'))
 
-    # -------------------------------------------------------
-    # ÉTAPE 4 : Générer le rapport avec Groq IA
-    # On passe les résultats PlantNet + le contexte local
-    # -------------------------------------------------------
     report_data = await groq_ai.generate_plant_report(plantnet_result, local_context=local_context)
 
-    # -------------------------------------------------------
-    # ÉTAPE 5 : Extraire les métadonnées du rapport
-    # (is_toxic, is_edible, etc. pour les filtres et stats)
-    # -------------------------------------------------------
     metadata = report_service.extract_metadata_from_report(report_data)
 
-    # -------------------------------------------------------
-    # ÉTAPE 6 : Sauvegarder tout en base de données
-    # -------------------------------------------------------
     new_scan = Scan(
         user_id=current_user.id,
         image_path=image_url,
@@ -189,11 +186,6 @@ async def analyze_plant(
     db.commit()
     db.refresh(new_scan)
 
-    # -------------------------------------------------------
-    # ÉTAPE 7 : Construire et retourner la réponse
-    # On convertit le JSON string en dictionnaire pour la réponse
-    # -------------------------------------------------------
-    # Construire l'objet local_match si une correspondance a été trouvée
     local_match_obj = None
     if local_data:
         local_match_obj = LocalPlantMatch(
@@ -244,10 +236,8 @@ def get_scan_history(
     EXEMPLE D'URL : GET /api/scan/history?page=2&limit=10&filter_type=toxic
     """
 
-    # Construire la requête de base (exclure les scans soft-deleted)
     query = db.query(Scan).filter(Scan.user_id == current_user.id, Scan.deleted_at == None)
 
-    # Appliquer le filtre si demandé
     if filter_type == "toxic":
         query = query.filter(Scan.is_toxic == True)
     elif filter_type == "edible":
@@ -260,7 +250,6 @@ def get_scan_history(
     # Trier par date décroissante (plus récent en premier)
     query = query.order_by(Scan.created_at.desc())
 
-    # Calculer l'offset pour la pagination
     # Si page=2 et limit=12, on saute les 12 premiers résultats
     offset = (page - 1) * limit
     scans = query.offset(offset).limit(limit).all()
@@ -293,7 +282,6 @@ def get_scan_detail(
             detail="Scan non trouvé ou accès non autorisé."
         )
 
-    # Reconstruire local_match depuis la BD si disponible
     local_match_obj = None
     if scan.local_plant_id:
         from models import Plant
